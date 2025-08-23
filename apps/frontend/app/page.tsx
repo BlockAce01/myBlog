@@ -1,47 +1,37 @@
-import { Layout } from "@/components/layout"
-import { BlogPostPreview } from "@/components/blog-post-preview"
-import type { Post } from "@/lib/types"
+import { Layout } from "@/components/Layout"
+import { PostCard } from "@/components/PostCard"
+import type { BlogPost } from "@/lib/types"
 
-// Placeholder data for blog posts
-const recentPosts: Post[] = [
+// Mock data - in a real app, this would come from an API
+const mockPosts: BlogPost[] = [
   {
-    id: "building-scalable-react-apps",
-    title: "Building Scalable React Applications with TypeScript and Next.js",
-    publicationDate: "December 15, 2024",
+    id: "1",
+    title: "Getting Started with Next.js 14 and App Router",
     summary:
-      "Exploring best practices for architecting large-scale React applications using TypeScript, Next.js, and modern development patterns. Learn how to structure your codebase for maintainability and performance.",
-    content: "# Building Scalable React Applications...", // Markdown content would go here
-    viewCount: 1247,
+      "Explore the latest features in Next.js 14 and learn how to leverage the App Router for better performance and developer experience.",
+    content: "# Getting Started with Next.js 14\n\nNext.js 14 introduces several exciting features...",
+    publicationDate: "2024-01-15",
+    viewCount: 1250,
     likeCount: 89,
   },
   {
-    id: "docker-kubernetes-deployment",
-    title: "From Docker to Kubernetes: A Complete Deployment Guide",
-    publicationDate: "November 28, 2024",
+    id: "2",
+    title: "Building Scalable React Applications with TypeScript",
     summary:
-      "A comprehensive walkthrough of containerizing applications with Docker and orchestrating them with Kubernetes. Includes practical examples and production-ready configurations.",
-    content: "# From Docker to Kubernetes...",
-    viewCount: 892,
+      "Learn best practices for structuring large React applications using TypeScript, including patterns for state management and component architecture.",
+    content: "# Building Scalable React Applications\n\nWhen building large React applications...",
+    publicationDate: "2024-01-10",
+    viewCount: 980,
     likeCount: 67,
   },
   {
-    id: "aws-serverless-architecture",
-    title: "Designing Serverless Architectures on AWS",
-    publicationDate: "November 10, 2024",
+    id: "3",
+    title: "Modern CSS Techniques: Grid, Flexbox, and Container Queries",
     summary:
-      "Deep dive into serverless computing with AWS Lambda, API Gateway, and DynamoDB. Learn how to build cost-effective, scalable applications without managing servers.",
-    content: "# Designing Serverless Architectures...",
-    viewCount: 1456,
-    likeCount: 112,
-  },
-  {
-    id: "terraform-infrastructure-as-code",
-    title: "Infrastructure as Code with Terraform: Best Practices",
-    publicationDate: "October 22, 2024",
-    summary:
-      "Master infrastructure automation using Terraform. From basic configurations to advanced patterns, learn how to manage cloud resources efficiently and safely.",
-    content: "# Infrastructure as Code with Terraform...",
-    viewCount: 734,
+      "Dive deep into modern CSS layout techniques and learn how to create responsive designs that work across all devices.",
+    content: "# Modern CSS Techniques\n\nCSS has evolved significantly...",
+    publicationDate: "2024-01-05",
+    viewCount: 756,
     likeCount: 45,
   },
 ]
@@ -50,19 +40,17 @@ export default function HomePage() {
   return (
     <Layout>
       <div className="space-y-8">
-        {/* Page Header */}
-        <div className="space-y-4">
-          <h1 className="text-3xl md:text-4xl font-serif font-bold text-foreground">Recent Posts</h1>
-          <p className="text-lg text-muted-foreground max-w-2xl">
-            Welcome to my tech journey! Here you'll find insights, tutorials, and experiences from my adventures in
-            software development, DevOps, and cloud architecture.
+        <div className="text-center">
+          <h1 className="text-4xl font-bold font-sans text-foreground mb-4">Recent Posts</h1>
+          <p className="text-muted-foreground font-serif text-lg max-w-2xl mx-auto">
+            Exploring modern web development, best practices, and the latest technologies in the ever-evolving world of
+            software engineering.
           </p>
         </div>
 
-        {/* Blog Posts Grid */}
-        <div className="grid gap-6 md:grid-cols-2">
-          {recentPosts.map((post) => (
-            <BlogPostPreview key={post.id} post={post} />
+        <div className="grid gap-8">
+          {mockPosts.map((post) => (
+            <PostCard key={post.id} post={post} />
           ))}
         </div>
       </div>
