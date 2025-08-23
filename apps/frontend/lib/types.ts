@@ -6,6 +6,7 @@ export interface BlogPost {
   publicationDate: string
   viewCount: number
   likeCount: number
+  tags: string[] // Add a tags property to the BlogPost interface
 }
 
 export interface Comment {
