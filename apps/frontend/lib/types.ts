@@ -1,9 +1,9 @@
-export interface Post {
+export interface BlogPost {
   id: string
   title: string
-  publicationDate: string
   summary: string
-  content: string // This will be Markdown content
+  content: string // This will contain the Markdown content
+  publicationDate: string
   viewCount: number
   likeCount: number
 }
@@ -13,4 +13,5 @@ export interface Comment {
   postId: string
   authorName: string
   commentText: string
+  createdAt: string
 }
