@@ -9,6 +9,7 @@ import { Eye, Heart, MessageCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { Badge } from "@/components/ui/badge" // Import Badge component
 import ReactMarkdown from "react-markdown"
 import { Prism as SyntaxHighlighter, type SyntaxHighlighterProps } from "react-syntax-highlighter"
 import atomDark from "react-syntax-highlighter/dist/cjs/styles/prism/atom-dark"
@@ -72,6 +73,7 @@ Next.js 14 with the App Router represents a significant step forward in React de
   publicationDate: "2024-01-15",
   viewCount: 1250,
   likeCount: 89,
+  tags: ["Next.js", "App Router", "React", "Web Development"], // Add tags to mockPost
 }
 
 const mockComments: Comment[] = [
@@ -137,6 +139,15 @@ export default function PostPage({ params }: { params: { id: string } }) {
               <span>{post.viewCount}</span>
             </div>
           </div>
+          {post.tags && post.tags.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-4">
+              {post.tags.map((tag) => (
+                <Badge key={tag} variant="secondary">
+                  {tag}
+                </Badge>
+              ))}
+            </div>
+          )}
         </header>
 
         {/* Post Content */}
