@@ -1,5 +1,9 @@
+"use client"
+
 import { Layout } from "@/components/Layout"
+import { useState } from "react"
 import { PostCard } from "@/components/PostCard"
+import { Badge } from "@/components/ui/badge" // Import Badge component
 import type { BlogPost } from "@/lib/types"
 
 // Mock data - in a real app, this would come from an API
@@ -13,6 +17,7 @@ const mockPosts: BlogPost[] = [
     publicationDate: "2024-01-15",
     viewCount: 1250,
     likeCount: 89,
+    tags: ["Next.js", "App Router", "React", "Web Development"],
   },
   {
     id: "2",
@@ -23,6 +28,7 @@ const mockPosts: BlogPost[] = [
     publicationDate: "2024-01-10",
     viewCount: 980,
     likeCount: 67,
+    tags: ["React", "TypeScript", "State Management", "Component Architecture"],
   },
   {
     id: "3",
@@ -33,10 +39,21 @@ const mockPosts: BlogPost[] = [
     publicationDate: "2024-01-05",
     viewCount: 756,
     likeCount: 45,
+    tags: ["CSS", "Grid", "Flexbox", "Responsive Design"],
   },
 ]
 
 export default function HomePage() {
+  const [selectedTag, setSelectedTag] = useState<string | null>(null)
+
+  // Extract unique tags from all posts
+  const allTags = Array.from(new Set(mockPosts.flatMap((post) => post.tags)))
+
+  // Filter posts based on the selected tag
+  const filteredPosts = selectedTag
+    ? mockPosts.filter((post) => post.tags.includes(selectedTag))
+    : mockPosts
+
   return (
     <Layout>
       <div className="space-y-8">
@@ -48,8 +65,29 @@ export default function HomePage() {
           </p>
         </div>
 
+        {/* Tag Filter Section */}
+        <div className="flex flex-wrap justify-center gap-2 mb-8">
+          <Badge
+            variant={selectedTag === null ? "default" : "outline"}
+            onClick={() => setSelectedTag(null)}
+            className="cursor-pointer"
+          >
+            All
+          </Badge>
+          {allTags.map((tag) => (
+            <Badge
+              key={tag}
+              variant={selectedTag === tag ? "default" : "outline"}
+              onClick={() => setSelectedTag(tag)}
+              className="cursor-pointer"
+            >
+              {tag}
+            </Badge>
+          ))}
+        </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {mockPosts.map((post) => (
+          {filteredPosts.map((post) => (
             <PostCard key={post.id} post={post} />
           ))}
         </div>
