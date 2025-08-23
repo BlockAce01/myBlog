@@ -1,183 +1,131 @@
-import { Layout } from "@/components/layout"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Mail, MapPin, Calendar } from "lucide-react"
+import { Layout } from "@/components/Layout"
+import { Mail, Github, Linkedin, Twitter } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
 export default function AboutPage() {
-  const skills = [
-    "JavaScript",
-    "TypeScript",
-    "React",
-    "Next.js",
-    "Node.js",
-    "Express",
-    "MongoDB",
-    "PostgreSQL",
-    "AWS",
-    "Docker",
-    "Kubernetes",
-    "Terraform",
-    "CI/CD",
-    "Git",
-    "Linux",
-    "Python",
-  ]
-
   return (
     <Layout>
       <div className="max-w-3xl mx-auto space-y-12">
-        {/* Page Header */}
-        <div className="text-center space-y-4">
-          <h1 className="text-3xl md:text-4xl font-serif font-bold text-foreground">About Me</h1>
-          <p className="text-lg text-muted-foreground">
-            Full-stack developer passionate about building scalable, modern web applications
-          </p>
-        </div>
-
         {/* Introduction Section */}
-        <section className="space-y-6">
-          <Card>
-            <CardContent className="p-8">
-              <div className="flex flex-col md:flex-row gap-8 items-start">
-                {/* Professional Headshot Placeholder */}
-                <div className="flex-shrink-0">
-                  <div className="w-32 h-32 md:w-40 md:h-40 bg-muted rounded-full flex items-center justify-center">
-                    <img
-                      src="/software-developer-headshot.png"
-                      alt="Professional headshot"
-                      className="w-full h-full rounded-full object-cover"
-                    />
-                  </div>
-                </div>
+        <section className="text-center">
+          <div className="w-32 h-32 bg-muted rounded-full mx-auto mb-6 flex items-center justify-center">
+            <span className="text-4xl font-bold text-muted-foreground">JD</span>
+          </div>
+          <h1 className="text-4xl font-bold font-sans text-foreground mb-4">Hi, I'm John Doe</h1>
+          <p className="text-xl text-muted-foreground font-serif leading-relaxed">
+            A passionate full-stack developer with over 8 years of experience building scalable web applications and
+            sharing knowledge through writing and open source contributions.
+          </p>
+        </section>
 
-                {/* Bio Content */}
-                <div className="flex-1 space-y-4">
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      <MapPin className="h-4 w-4" />
-                      <span>San Francisco, CA</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Calendar className="h-4 w-4" />
-                      <span>5+ years experience</span>
-                    </div>
-                  </div>
-
-                  <div className="space-y-4 text-muted-foreground leading-relaxed">
-                    <p>
-                      I'm a passionate full-stack developer with over 5 years of experience building scalable web
-                      applications and cloud infrastructure. My journey in tech started with a curiosity about how
-                      websites work, which quickly evolved into a deep fascination with modern development practices,
-                      DevOps, and cloud architecture.
-                    </p>
-                    <p>
-                      Currently, I work as a Senior Software Engineer where I lead the development of microservices
-                      architectures and implement CI/CD pipelines. I'm particularly interested in the intersection of
-                      development and operations, believing that great software requires both excellent code and robust
-                      infrastructure. When I'm not coding, you can find me contributing to open-source projects, writing
-                      technical articles, or exploring the latest developments in cloud-native technologies.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        {/* About Me */}
+        <section className="bg-card border border-border rounded-lg p-8">
+          <h2 className="text-2xl font-bold font-sans text-foreground mb-4">About Me</h2>
+          <div className="space-y-4 text-foreground/90 font-serif leading-relaxed">
+            <p>
+              I'm a senior software engineer currently working at a leading tech company, where I focus on building
+              high-performance web applications using modern JavaScript frameworks and cloud technologies.
+            </p>
+            <p>
+              My journey in tech started over a decade ago, and I've had the privilege of working with startups and
+              enterprise companies alike. I'm passionate about clean code, system architecture, and mentoring the next
+              generation of developers.
+            </p>
+            <p>
+              When I'm not coding, you can find me contributing to open source projects, writing technical articles, or
+              exploring the latest developments in web technologies and DevOps practices.
+            </p>
+          </div>
         </section>
 
         {/* Skills Section */}
-        <section className="space-y-6">
-          <h2 className="text-2xl font-serif font-semibold text-foreground">My Skills</h2>
-          <Card>
-            <CardContent className="p-6">
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-semibold text-foreground mb-3">Frontend Development</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {["JavaScript", "TypeScript", "React", "Next.js", "HTML5", "CSS3", "Tailwind CSS"].map((skill) => (
-                      <Badge key={skill} variant="secondary">
-                        {skill}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="text-lg font-semibold text-foreground mb-3">Backend Development</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {["Node.js", "Express", "Python", "PostgreSQL", "MongoDB", "Redis", "GraphQL", "REST APIs"].map(
-                      (skill) => (
-                        <Badge key={skill} variant="secondary">
-                          {skill}
-                        </Badge>
-                      ),
-                    )}
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="text-lg font-semibold text-foreground mb-3">DevOps & Cloud</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {["AWS", "Docker", "Kubernetes", "Terraform", "CI/CD", "Jenkins", "GitHub Actions", "Linux"].map(
-                      (skill) => (
-                        <Badge key={skill} variant="secondary">
-                          {skill}
-                        </Badge>
-                      ),
-                    )}
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="text-lg font-semibold text-foreground mb-3">Tools & Methodologies</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {["Git", "Agile", "Scrum", "TDD", "Microservices", "System Design", "Code Review"].map((skill) => (
-                      <Badge key={skill} variant="secondary">
-                        {skill}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        <section className="bg-card border border-border rounded-lg p-8">
+          <h2 className="text-2xl font-bold font-sans text-foreground mb-6">Technical Skills</h2>
+          <div className="grid md:grid-cols-2 gap-6">
+            <div>
+              <h3 className="text-lg font-semibold text-foreground mb-3">Frontend Development</h3>
+              <ul className="space-y-2 text-foreground/90">
+                <li>• React.js & Next.js</li>
+                <li>• TypeScript & JavaScript (ES6+)</li>
+                <li>• Tailwind CSS & Styled Components</li>
+                <li>• State Management (Redux, Zustand)</li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-foreground mb-3">Backend Development</h3>
+              <ul className="space-y-2 text-foreground/90">
+                <li>• Node.js & Express.js</li>
+                <li>• MongoDB & PostgreSQL</li>
+                <li>• RESTful APIs & GraphQL</li>
+                <li>• Authentication & Authorization</li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-foreground mb-3">DevOps & Tools</h3>
+              <ul className="space-y-2 text-foreground/90">
+                <li>• Docker & Kubernetes</li>
+                <li>• AWS & Vercel</li>
+                <li>• CI/CD Pipelines</li>
+                <li>• Git & GitHub Actions</li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-foreground mb-3">Other Technologies</h3>
+              <ul className="space-y-2 text-foreground/90">
+                <li>• Python & Django</li>
+                <li>• Redis & Elasticsearch</li>
+                <li>• Testing (Jest, Cypress)</li>
+                <li>• Monitoring & Analytics</li>
+              </ul>
+            </div>
+          </div>
         </section>
 
-        {/* About This Site Section */}
-        <section className="space-y-6">
-          <h2 className="text-2xl font-serif font-semibold text-foreground">About This Site</h2>
-          <Card>
-            <CardContent className="p-6">
-              <p className="text-muted-foreground leading-relaxed">
-                This blog is a portfolio piece that showcases my expertise in modern web development and DevOps
-                practices. Built with Next.js, TypeScript, and Tailwind CSS, it demonstrates my approach to creating
-                scalable, maintainable applications with clean architecture and responsive design. The site features a
-                custom dark mode implementation, optimized performance, and follows accessibility best practices. It
-                serves as both a platform for sharing my technical insights and a demonstration of the development
-                methodologies I advocate for in my professional work.
-              </p>
-            </CardContent>
-          </Card>
+        {/* About This Site */}
+        <section className="bg-card border border-border rounded-lg p-8">
+          <h2 className="text-2xl font-bold font-sans text-foreground mb-4">About This Site</h2>
+          <p className="text-foreground/90 font-serif leading-relaxed mb-4">
+            This blog serves as a platform for me to share my experiences, insights, and learnings in the world of
+            software development. Here you'll find articles covering:
+          </p>
+          <ul className="space-y-2 text-foreground/90 mb-4">
+            <li>• Modern web development practices and patterns</li>
+            <li>• Deep dives into JavaScript frameworks and libraries</li>
+            <li>• DevOps and deployment strategies</li>
+            <li>• Career advice and industry insights</li>
+            <li>• Open source project showcases</li>
+          </ul>
+          <p className="text-foreground/90 font-serif leading-relaxed">
+            Built with Next.js 14, TypeScript, and Tailwind CSS, this site demonstrates modern web development practices
+            while providing a clean, accessible reading experience.
+          </p>
         </section>
 
         {/* Contact Section */}
-        <section className="space-y-6">
-          <h2 className="text-2xl font-serif font-semibold text-foreground">Contact</h2>
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Mail className="h-5 w-5" />
-                <span>
-                  Feel free to reach out to me at{" "}
-                  <a
-                    href="mailto:hello@yourdomain.com"
-                    className="text-primary hover:text-primary/80 transition-colors font-medium"
-                  >
-                    hello@yourdomain.com
-                  </a>
-                </span>
-              </div>
-            </CardContent>
-          </Card>
+        <section className="bg-card border border-border rounded-lg p-8 text-center">
+          <h2 className="text-2xl font-bold font-sans text-foreground mb-4">Let's Connect</h2>
+          <p className="text-foreground/90 font-serif leading-relaxed mb-6">
+            I'm always interested in connecting with fellow developers, discussing new opportunities, or collaborating
+            on interesting projects.
+          </p>
+          <div className="flex flex-wrap justify-center gap-4">
+            <Button variant="outline" size="lg" className="flex items-center space-x-2 bg-transparent">
+              <Mail className="w-5 h-5" />
+              <span>john.doe@example.com</span>
+            </Button>
+            <Button variant="outline" size="lg" className="flex items-center space-x-2 bg-transparent">
+              <Github className="w-5 h-5" />
+              <span>GitHub</span>
+            </Button>
+            <Button variant="outline" size="lg" className="flex items-center space-x-2 bg-transparent">
+              <Linkedin className="w-5 h-5" />
+              <span>LinkedIn</span>
+            </Button>
+            <Button variant="outline" size="lg" className="flex items-center space-x-2 bg-transparent">
+              <Twitter className="w-5 h-5" />
+              <span>Twitter</span>
+            </Button>
+          </div>
         </section>
       </div>
     </Layout>

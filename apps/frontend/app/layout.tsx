@@ -3,8 +3,8 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import { Merriweather } from "next/font/google"
 import { Fira_Code } from "next/font/google"
-import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
+import "./globals.css"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -26,8 +26,8 @@ const firaCode = Fira_Code({
 })
 
 export const metadata: Metadata = {
-  title: "My Tech Journey",
-  description: "A personal tech blog showcasing my journey in software development",
+  title: "John Doe's Tech Blog",
+  description: "A professional personal tech blog covering modern development practices and insights",
   generator: "v0.app",
 }
 
@@ -37,9 +37,14 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} ${merriweather.variable} ${firaCode.variable} antialiased`}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+    <html
+      lang="en"
+      className={`${inter.variable} ${merriweather.variable} ${firaCode.variable} antialiased`}
+      suppressHydrationWarning
+    >
+      <body>
+        {/* Added ThemeProvider wrapper */}
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange={false}>
           {children}
         </ThemeProvider>
       </body>
