@@ -1,7 +1,7 @@
-import type { Post, Comment } from "@/lib/types"
+import type { BlogPost, Comment } from "@/lib/types"
 
 // Placeholder data for blog posts (in a real app, this would come from a database)
-export const posts: Post[] = [
+export const posts: BlogPost[] = [
   {
     id: "building-scalable-react-apps",
     title: "Building Scalable React Applications with TypeScript and Next.js",
@@ -252,6 +252,7 @@ export const comments: Comment[] = [
     authorName: "Sarah Chen",
     commentText:
       "Great article! I've been struggling with project structure in my React apps. The folder organization you suggested makes a lot of sense. Do you have any recommendations for managing shared state across deeply nested components?",
+    createdAt: "2024-12-16T10:00:00Z",
   },
   {
     id: "2",
@@ -259,6 +260,7 @@ export const comments: Comment[] = [
     authorName: "Mike Rodriguez",
     commentText:
       "The TypeScript examples are really helpful. I especially like the generic Table component approach. We've been using something similar at work and it's made our codebase much more maintainable.",
+    createdAt: "2024-12-17T11:30:00Z",
   },
   {
     id: "3",
@@ -266,5 +268,6 @@ export const comments: Comment[] = [
     authorName: "Alex Kim",
     commentText:
       "Thanks for sharing this! One question about performance optimization - have you experimented with React Server Components in Next.js 13+? I'm curious about your thoughts on when to use them vs traditional client components.",
+    createdAt: "2024-12-18T14:45:00Z",
   },
 ]
