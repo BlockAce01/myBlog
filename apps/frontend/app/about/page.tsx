@@ -9,9 +9,9 @@ export default function AboutPage() {
         {/* Introduction Section */}
         <section className="text-center">
           <div className="w-32 h-32 bg-muted rounded-full mx-auto mb-6 flex items-center justify-center">
-            <span className="text-4xl font-bold text-muted-foreground">JD</span>
+            <span className="text-4xl font-bold text-muted-foreground">YU</span>
           </div>
-          <h1 className="text-4xl font-bold font-sans text-foreground mb-4">Hi, I'm John Doe</h1>
+          <h1 className="text-4xl font-bold font-sans text-foreground mb-4">Hi, I'm Yugan</h1>
           <p className="text-xl text-muted-foreground font-serif leading-relaxed">
             A passionate full-stack developer with over 8 years of experience building scalable web applications and
             sharing knowledge through writing and open source contributions.
@@ -111,7 +111,7 @@ export default function AboutPage() {
           <div className="flex flex-wrap justify-center gap-4">
             <Button variant="outline" size="lg" className="flex items-center space-x-2 bg-transparent">
               <Mail className="w-5 h-5" />
-              <span>john.doe@example.com</span>
+              <span>yugan.doe@example.com</span>
             </Button>
             <Button variant="outline" size="lg" className="flex items-center space-x-2 bg-transparent">
               <Github className="w-5 h-5" />
