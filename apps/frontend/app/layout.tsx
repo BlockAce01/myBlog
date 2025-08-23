@@ -26,8 +26,8 @@ const firaCode = Fira_Code({
 })
 
 export const metadata: Metadata = {
-  title: "John Doe's Tech Blog",
-  description: "A professional personal tech blog covering modern development practices and insights",
+  title: "Yugan's Tech Blog",
+  description: "A professional personal tech blog by Yugan, covering modern development practices and insights",
   generator: "v0.app",
 }
 
