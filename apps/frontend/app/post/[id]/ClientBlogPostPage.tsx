@@ -1,7 +1,7 @@
 "use client"
 
 import { notFound } from "next/navigation"
-import { Layout } from "@/components/layout"
+import { Layout } from "@/components/Layout"
 import { LikeButton } from "@/components/like-button"
 import { CommentCard } from "@/components/comment-card"
 import { CommentForm } from "@/components/comment-form"

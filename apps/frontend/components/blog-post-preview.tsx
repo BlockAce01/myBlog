@@ -1,10 +1,10 @@
 import Link from "next/link"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Eye, Heart } from "lucide-react"
-import type { Post } from "@/lib/types"
+import type { BlogPost } from "@/lib/types"
 
 interface BlogPostPreviewProps {
-  post: Post
+  post: BlogPost
 }
 
 export function BlogPostPreview({ post }: BlogPostPreviewProps) {
