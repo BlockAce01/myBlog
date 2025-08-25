@@ -1,6 +1,6 @@
 "use client"
 
-import { Layout } from "@/components/Layout"
+import { Layout } from "@/components/layout"
 import { useState } from "react"
 import { PostCard } from "@/components/PostCard"
 import { Badge } from "@/components/ui/badge" // Import Badge component
