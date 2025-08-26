@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState } from "react"
-import { Layout } from "@/components/Layout"
+import { Layout } from "@/components/layout"
 import type { BlogPost, Comment } from "@/lib/types"
 import { Eye, Heart, MessageCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
