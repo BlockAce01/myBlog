@@ -1,2 +1,6 @@
 .bmad-core
 .clinerules
+.gemini
+.github
+.vscode
+node_modules/
