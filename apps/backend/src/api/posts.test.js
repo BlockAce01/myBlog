@@ -115,10 +115,10 @@ describe('GET /posts/:id', () => {
     expect(res.body).toHaveProperty('message', 'Post not found');
   });
 
-  it('should return 500 for invalid ID format', async () => {
+  it('should return 400 for invalid ID format', async () => {
     const res = await request(app).get('/posts/invalidid');
-    expect(res.statusCode).toEqual(500);
-    expect(res.body).toHaveProperty('message', 'Server error');
+    expect(res.statusCode).toEqual(400);
+    expect(res.body).toHaveProperty('message', 'Invalid post ID');
   });
 });
 
@@ -146,11 +146,11 @@ describe('PUT /posts/:id', () => {
     expect(res.body).toHaveProperty('message', 'Post not found');
   });
 
-  it('should return 500 for invalid ID format during update', async () => {
+  it('should return 400 for invalid ID format during update', async () => {
     const updatedData = { title: "Invalid" };
     const res = await request(app).put('/posts/invalidid').send(updatedData);
-    expect(res.statusCode).toEqual(500);
-    expect(res.body).toHaveProperty('message', 'Server error');
+    expect(res.statusCode).toEqual(400);
+    expect(res.body).toHaveProperty('message', 'Invalid post ID');
   });
 });
 
@@ -171,9 +171,9 @@ describe('DELETE /posts/:id', () => {
     expect(res.body).toHaveProperty('message', 'Post not found');
   });
 
-  it('should return 500 for invalid ID format during delete', async () => {
+  it('should return 400 for invalid ID format during delete', async () => {
     const res = await request(app).delete('/posts/invalidid');
-    expect(res.statusCode).toEqual(500);
-    expect(res.body).toHaveProperty('message', 'Server error');
+    expect(res.statusCode).toEqual(400);
+    expect(res.body).toHaveProperty('message', 'Invalid post ID');
   });
 });
