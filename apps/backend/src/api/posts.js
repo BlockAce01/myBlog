@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const BlogPost = require('../models/BlogPost'); // Import the BlogPost model
+const mongoose = require('mongoose');
 
 // POST /api/posts - Create a new blog post (AC: 1)
 router.post('/posts', async (req, res) => {
@@ -51,6 +52,11 @@ router.get('/posts', async (req, res) => {
 router.get('/posts/:id', async (req, res) => {
   try {
     const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: 'Invalid post ID' });
+    }
+
     const post = await BlogPost.findById(id);
 
     if (post) {
@@ -68,6 +74,11 @@ router.get('/posts/:id', async (req, res) => {
 router.put('/posts/:id', async (req, res) => {
   try {
     const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: 'Invalid post ID' });
+    }
+
     const { title, summary, content, coverPhotoUrl, tags, author } = req.body;
 
     const updatedPost = await BlogPost.findByIdAndUpdate(
@@ -91,6 +102,11 @@ router.put('/posts/:id', async (req, res) => {
 router.delete('/posts/:id', async (req, res) => {
   try {
     const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: 'Invalid post ID' });
+    }
+    
     const deletedPost = await BlogPost.findByIdAndDelete(id);
 
     if (deletedPost) {
