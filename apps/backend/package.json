@@ -7,6 +7,13 @@
     "start": "node src/index.js",
     "test": "jest"
   },
+  "jest": {
+    "testMatch": [
+      "**/__tests__/**/*.js?(x)",
+      "**/?(*.)+(spec|test).js?(x)",
+      "**/src/models/**/*.test.js"
+    ]
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",

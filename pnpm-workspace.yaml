@@ -1,0 +1,11 @@
+packages:
+  - apps/*
+
+ignoredBuiltDependencies:
+  - mongodb-memory-server
+  - sharp
+  - unrs-resolver
+
+onlyBuiltDependencies:
+  - '@swc/core'
+  - '@tailwindcss/oxide'

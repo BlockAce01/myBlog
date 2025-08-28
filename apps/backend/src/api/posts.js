@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const BlogPost = require('../models/BlogPost'); // Import the BlogPost model
+const Comment = require('../models/Comment'); // Import the Comment model
 const mongoose = require('mongoose');
 
 // POST /api/posts - Create a new blog post (AC: 1)
@@ -116,6 +117,51 @@ router.delete('/posts/:id', async (req, res) => {
     }
   } catch (error) {
     console.error('Error deleting post:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// POST /api/posts/:postId/comments - Add a new comment to a post
+router.post('/posts/:postId/comments', async (req, res) => {
+  try {
+    const { postId } = req.params;
+    const { authorName, commentText } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(postId)) {
+      return res.status(400).json({ message: 'Invalid post ID' });
+    }
+
+    if (!authorName || !commentText) {
+      return res.status(400).json({ message: 'Missing required fields: authorName, commentText' });
+    }
+
+    const newComment = new Comment({
+      postId,
+      authorName,
+      commentText,
+    });
+
+    await newComment.save();
+    res.status(201).json(newComment);
+  } catch (error) {
+    console.error('Error adding comment:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// GET /api/posts/:id/comments - Get all comments for a post
+router.get('/posts/:id/comments', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: 'Invalid post ID' });
+    }
+
+    const comments = await Comment.find({ postId: id }).sort({ createdAt: -1 });
+    res.status(200).json(comments);
+  } catch (error) {
+    console.error('Error fetching comments:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

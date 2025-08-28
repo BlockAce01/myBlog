@@ -1,4 +1,4 @@
-import { Layout } from "@/components/Layout"
+import { Layout } from "@/components/layout"
 import { Mail, Github, Linkedin, Twitter } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -11,7 +11,7 @@ export default function AboutPage() {
           <div className="w-32 h-32 bg-muted rounded-full mx-auto mb-6 flex items-center justify-center">
             <span className="text-4xl font-bold text-muted-foreground">YU</span>
           </div>
-          <h1 className="text-4xl font-bold font-sans text-foreground mb-4">Hi, I'm Yugan</h1>
+          <h1 className="text-4xl font-bold font-sans text-foreground mb-4">Hi, I&apos;m Yugan</h1>
           <p className="text-xl text-muted-foreground font-serif leading-relaxed">
             A passionate full-stack developer with over 8 years of experience building scalable web applications and
             sharing knowledge through writing and open source contributions.
@@ -23,16 +23,16 @@ export default function AboutPage() {
           <h2 className="text-2xl font-bold font-sans text-foreground mb-4">About Me</h2>
           <div className="space-y-4 text-foreground/90 font-serif leading-relaxed">
             <p>
-              I'm a senior software engineer currently working at a leading tech company, where I focus on building
+              I&apos;m a senior software engineer currently working at a leading tech company, where I focus on building
               high-performance web applications using modern JavaScript frameworks and cloud technologies.
             </p>
             <p>
-              My journey in tech started over a decade ago, and I've had the privilege of working with startups and
-              enterprise companies alike. I'm passionate about clean code, system architecture, and mentoring the next
+              My journey in tech started over a decade ago, and I&apos;ve had the privilege of working with startups and
+              enterprise companies alike. I&apos;m passionate about clean code, system architecture, and mentoring the next
               generation of developers.
             </p>
             <p>
-              When I'm not coding, you can find me contributing to open source projects, writing technical articles, or
+              When I&apos;m not coding, you can find me contributing to open source projects, writing technical articles, or
               exploring the latest developments in web technologies and DevOps practices.
             </p>
           </div>
@@ -86,7 +86,7 @@ export default function AboutPage() {
           <h2 className="text-2xl font-bold font-sans text-foreground mb-4">About This Site</h2>
           <p className="text-foreground/90 font-serif leading-relaxed mb-4">
             This blog serves as a platform for me to share my experiences, insights, and learnings in the world of
-            software development. Here you'll find articles covering:
+            software development. Here you&apos;ll find articles covering:
           </p>
           <ul className="space-y-2 text-foreground/90 mb-4">
             <li>• Modern web development practices and patterns</li>
@@ -103,9 +103,9 @@ export default function AboutPage() {
 
         {/* Contact Section */}
         <section className="bg-card border border-border rounded-lg p-8 text-center">
-          <h2 className="text-2xl font-bold font-sans text-foreground mb-4">Let's Connect</h2>
+          <h2 className="text-2xl font-bold font-sans text-foreground mb-4">Lets Connect</h2>
           <p className="text-foreground/90 font-serif leading-relaxed mb-6">
-            I'm always interested in connecting with fellow developers, discussing new opportunities, or collaborating
+            I&apos;m always interested in connecting with fellow developers, discussing new opportunities, or collaborating
             on interesting projects.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
