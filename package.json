@@ -24,10 +24,12 @@
     "apps/*",
     "packages/*"
   ],
-  "devDependencies": {
+    "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^8.41.0",
     "@typescript-eslint/parser": "^8.41.0",
     "eslint": "^9.34.0",
+    "next": "15.2.4",
     "typescript": "^5.9.2"
-  }
+  },
+  "packageManager": "pnpm@10.15.0"
 }

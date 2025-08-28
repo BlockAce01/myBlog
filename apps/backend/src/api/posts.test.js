@@ -1,17 +1,16 @@
 const request = require('supertest');
 const express = require('express');
 const mongoose = require('mongoose');
-const { MongoMemoryServer } = require('mongodb-memory-server');
 const postsRouter = require('./posts');
 const BlogPost = require('../models/BlogPost');
+const Comment = require('../models/Comment'); // Import the Comment model
 
-let mongoServer;
+jest.setTimeout(30000);
+
 let app;
 
 beforeAll(async () => {
-  mongoServer = await MongoMemoryServer.create();
-  const uri = mongoServer.getUri();
-  await mongoose.connect(uri);
+  await mongoose.connect('mongodb://localhost:27017/test');
 
   app = express();
   app.use(express.json());
@@ -20,11 +19,11 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await mongoose.disconnect();
-  await mongoServer.stop();
 });
 
 beforeEach(async () => {
   await BlogPost.deleteMany({});
+  await Comment.deleteMany({}); // Clear comments before each test
   // Seed data for tests
   await BlogPost.create({
     title: "Test Post 1",
@@ -175,5 +174,86 @@ describe('DELETE /posts/:id', () => {
     const res = await request(app).delete('/posts/invalidid');
     expect(res.statusCode).toEqual(400);
     expect(res.body).toHaveProperty('message', 'Invalid post ID');
+  });
+});
+
+describe('Comments API', () => {
+  let testPost;
+
+  beforeEach(async () => {
+    // Create a test post to associate comments with
+    testPost = await BlogPost.create({
+      title: "Comment Test Post",
+      summary: "Summary",
+      content: "Content",
+      coverPhotoUrl: "http://example.com/photo.jpg",
+      tags: ["comments"],
+      author: "Comment Author",
+    });
+  });
+
+  describe('POST /posts/:postId/comments', () => {
+    it('should add a new comment to a post', async () => {
+      const commentData = {
+        authorName: 'John Doe',
+        commentText: 'Great post!',
+      };
+      const res = await request(app).post(`/posts/${testPost._id}/comments`).send(commentData);
+      expect(res.statusCode).toEqual(201);
+      expect(res.body).toHaveProperty('_id');
+      expect(res.body.postId.toString()).toEqual(testPost._id.toString());
+      expect(res.body.authorName).toEqual(commentData.authorName);
+      expect(res.body.commentText).toEqual(commentData.commentText);
+
+      const savedComment = await Comment.findById(res.body._id);
+      expect(savedComment).toBeDefined();
+    });
+
+    it('should return 400 if required fields are missing for comment', async () => {
+      const invalidCommentData = {
+        authorName: 'Jane Doe',
+        // commentText is missing
+      };
+      const res = await request(app).post(`/posts/${testPost._id}/comments`).send(invalidCommentData);
+      expect(res.statusCode).toEqual(400);
+      expect(res.body).toHaveProperty('message', 'Missing required fields: authorName, commentText');
+    });
+
+    it('should return 400 for invalid postId format when adding comment', async () => {
+      const commentData = {
+        authorName: 'John Doe',
+        commentText: 'Great post!',
+      };
+      const res = await request(app).post('/posts/invalidid/comments').send(commentData);
+      expect(res.statusCode).toEqual(400);
+      expect(res.body).toHaveProperty('message', 'Invalid post ID');
+    });
+  });
+
+  describe('GET /posts/:id/comments', () => {
+    it('should retrieve all comments for a given post', async () => {
+      await Comment.create({ postId: testPost._id, authorName: 'Commenter 1', commentText: 'First comment' });
+      await Comment.create({ postId: testPost._id, authorName: 'Commenter 2', commentText: 'Second comment' });
+
+      const res = await request(app).get(`/posts/${testPost._id}/comments`);
+      expect(res.statusCode).toEqual(200);
+      expect(Array.isArray(res.body)).toBe(true);
+      expect(res.body.length).toEqual(2);
+      expect(res.body[0].commentText).toEqual('Second comment'); // Should be sorted by createdAt descending
+      expect(res.body[1].commentText).toEqual('First comment');
+    });
+
+    it('should return an empty array if no comments exist for a post', async () => {
+      const res = await request(app).get(`/posts/${testPost._id}/comments`);
+      expect(res.statusCode).toEqual(200);
+      expect(Array.isArray(res.body)).toBe(true);
+      expect(res.body.length).toEqual(0);
+    });
+
+    it('should return 400 for invalid postId format when getting comments', async () => {
+      const res = await request(app).get('/posts/invalidid/comments');
+      expect(res.statusCode).toEqual(400);
+      expect(res.body).toHaveProperty('message', 'Invalid post ID');
+    });
   });
 });

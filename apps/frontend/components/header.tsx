@@ -7,7 +7,7 @@ export function Header() {
       <div className="max-w-4xl mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <Link href="/" className="text-xl font-bold font-sans text-foreground hover:text-accent transition-colors">
-            Yugan's Tech Blog
+            Yugan&apos;s Tech Blog
           </Link>
           <nav className="flex items-center space-x-6">
             <Link href="/" className="text-foreground hover:text-accent transition-colors font-medium">

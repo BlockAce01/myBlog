@@ -9,11 +9,10 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 
 interface CommentFormProps {
-  postId: string
   onSubmit?: (name: string, comment: string) => void
 }
 
-export function CommentForm({ postId, onSubmit }: CommentFormProps) {
+export function CommentForm({ onSubmit }: CommentFormProps) {
   const [name, setName] = useState("")
   const [comment, setComment] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)

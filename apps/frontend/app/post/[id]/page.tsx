@@ -11,8 +11,9 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge" // Import Badge component
 import ReactMarkdown from "react-markdown"
-import { Prism as SyntaxHighlighter, type SyntaxHighlighterProps } from "react-syntax-highlighter"
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter"
 import atomDark from "react-syntax-highlighter/dist/cjs/styles/prism/atom-dark"
+import type { CSSProperties } from "react"
 
 // Mock data - in a real app, this would come from an API
 const mockPost: BlogPost = {
@@ -93,7 +94,7 @@ const mockComments: Comment[] = [
   },
 ]
 
-export default function PostPage({ params }: { params: { id: string } }) {
+export default function PostPage() {
   const [post] = useState<BlogPost>(mockPost)
   const [comments, setComments] = useState<Comment[]>(mockComments)
   const [liked, setLiked] = useState(false)
@@ -155,20 +156,19 @@ export default function PostPage({ params }: { params: { id: string } }) {
           <ReactMarkdown
             components={{
               code({ className, children, ...props }) {
-                const { ref, ...restProps } = props;
                 const match = /language-(\w+)/.exec(className || "")
                 return match ? (
                   <SyntaxHighlighter
-                    style={atomDark as any}
+                    style={atomDark as CSSProperties}
                     language={match[1]}
                     PreTag="div"
                     className={className}
-                    {...restProps}
+                    {...props}
                   >
                     {String(children).replace(/\n$/, "")}
                   </SyntaxHighlighter>
                 ) : (
-                  <code className={className} {...restProps}>
+                  <code className={className} {...props}>
                     {children}
                   </code>
                 )
