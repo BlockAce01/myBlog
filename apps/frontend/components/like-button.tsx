@@ -6,10 +6,9 @@ import { Heart } from "lucide-react"
 
 interface LikeButtonProps {
   initialCount: number
-  postId?: string
 }
 
-export function LikeButton({ initialCount, postId }: LikeButtonProps) {
+export function LikeButton({ initialCount }: LikeButtonProps) {
   const [likeCount, setLikeCount] = useState(initialCount)
   const [isLiked, setIsLiked] = useState(false)
 
