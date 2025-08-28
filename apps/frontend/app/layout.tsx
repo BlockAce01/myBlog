@@ -28,7 +28,11 @@ const firaCode = Fira_Code({
 export const metadata: Metadata = {
   title: "Yugan's Tech Blog",
   description: "A professional personal tech blog by Yugan, covering modern development practices and insights",
-  generator: "v0.app",
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/favicon.ico",
+  },
 }
 
 export default function RootLayout({
