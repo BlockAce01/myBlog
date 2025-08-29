@@ -6,7 +6,7 @@
     "doc": "docs"
   },
   "scripts": {
-    "test": "npm -w backend test"
+    "test": "pnpm -w backend test"
   },
   "repository": {
     "type": "git",
