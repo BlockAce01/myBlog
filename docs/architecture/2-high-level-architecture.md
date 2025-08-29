@@ -14,7 +14,7 @@ This project will be a serverless, containerized microservices application deplo
 
 ### Repository Structure
 *   **Structure:** Monorepo
-*   **Tool:** npm Workspaces
+*   **Tool:** pnpm Workspaces
 *   **Rationale:** A monorepo is ideal for managing the frontend app, multiple backend services, and shared packages.
 
 ### High-Level Architecture Diagram

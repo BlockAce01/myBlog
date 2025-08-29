@@ -1,6 +1,7 @@
 # 7. Unified Project Structure (Source Tree)
 
 This structure reflects the user's naming and folder preferences.
+Dependency management is handled by `pnpm workspaces`.
 
 ```
 myBlog/
