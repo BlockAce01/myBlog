@@ -7,10 +7,10 @@ const mongoose = require('mongoose');
 // POST /api/posts - Create a new blog post (AC: 1)
 router.post('/posts', async (req, res) => {
   try {
-    const { title, summary, content, coverPhotoUrl, tags, author } = req.body;
+    const { title, summary, content, coverPhotoUrl, tags } = req.body;
 
     // Basic validation
-    if (!title || !summary || !content || !coverPhotoUrl || !author) {
+    if (!title || !summary || !content || !coverPhotoUrl) {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
@@ -20,7 +20,6 @@ router.post('/posts', async (req, res) => {
       content,
       coverPhotoUrl,
       tags: tags || [],
-      author,
     });
 
     await newPost.save();
@@ -80,11 +79,11 @@ router.put('/posts/:id', async (req, res) => {
       return res.status(400).json({ message: 'Invalid post ID' });
     }
 
-    const { title, summary, content, coverPhotoUrl, tags, author } = req.body;
+    const { title, summary, content, coverPhotoUrl, tags } = req.body;
 
     const updatedPost = await BlogPost.findByIdAndUpdate(
       id,
-      { title, summary, content, coverPhotoUrl, tags, author },
+      { title, summary, content, coverPhotoUrl, tags },
       { new: true, runValidators: true }
     );
 

@@ -31,7 +31,6 @@ beforeEach(async () => {
     content: "Content 1",
     coverPhotoUrl: "http://example.com/photo1.jpg",
     tags: ["tech", "testing"],
-    author: "Author 1",
   });
   await BlogPost.create({
     title: "Test Post 2",
@@ -39,7 +38,6 @@ beforeEach(async () => {
     content: "Content 2",
     coverPhotoUrl: "http://example.com/photo2.jpg",
     tags: ["news", "testing"],
-    author: "Author 2",
   });
 });
 
@@ -51,13 +49,11 @@ describe('POST /posts', () => {
       content: "New Content",
       coverPhotoUrl: "http://example.com/new.jpg",
       tags: ["new", "post"],
-      author: "New Author",
     };
     const res = await request(app).post('/posts').send(newPost);
     expect(res.statusCode).toEqual(201);
     expect(res.body).toHaveProperty('_id');
     expect(res.body.title).toEqual(newPost.title);
-    expect(res.body.author).toEqual(newPost.author);
   });
 
   it('should return 400 if required fields are missing', async () => {
@@ -66,7 +62,6 @@ describe('POST /posts', () => {
       summary: "Invalid Summary",
       // content is missing
       coverPhotoUrl: "http://example.com/invalid.jpg",
-      author: "Invalid Author",
     };
     const res = await request(app).post('/posts').send(invalidPost);
     expect(res.statusCode).toEqual(400);
@@ -130,12 +125,10 @@ describe('PUT /posts/:id', () => {
       content: "Updated Content",
       coverPhotoUrl: "http://example.com/updated.jpg",
       tags: ["updated", "tech"],
-      author: "Updated Author",
     };
     const res = await request(app).put(`/posts/${post._id}`).send(updatedData);
     expect(res.statusCode).toEqual(200);
     expect(res.body).toHaveProperty('title', updatedData.title);
-    expect(res.body).toHaveProperty('author', updatedData.author);
   });
 
   it('should return 404 if post to update is not found', async () => {
@@ -188,7 +181,6 @@ describe('Comments API', () => {
       content: "Content",
       coverPhotoUrl: "http://example.com/photo.jpg",
       tags: ["comments"],
-      author: "Comment Author",
     });
   });
 
