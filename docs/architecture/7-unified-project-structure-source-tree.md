@@ -9,21 +9,32 @@ myBlog/
 │   └── workflows/
 │       └── ci-cd.yml
 ├── apps/
-│   ├── frontend/             # The AI-generated Next.js frontend
-│   │   ├── components/
-│   │   ├── pages/
-│   │   └── ...
-│   └── backend/              # Single backend app containing all services
-│       ├── src/
-│       │   ├── api/          # Express routes, organized by service
-│       │   ├── services/     # Business logic modules (blog, auth, analytics)
-│       │   ├── models/     # Mongoose schemas
-│       │   └── index.js      # Main server entry point
-│       ├── Dockerfile
-│       └── package.json
-├── infrastructure/
-│   ├── terraform/
-│   └── ansible/
+│   ├── analytics-service/    # Analytics service for view counts
+│   │   ├── index.js
+│   │   └── package.json
+│   ├── backend/              # Backend app containing blog and comment services
+│   │   ├── src/
+│   │   │   ├── api/          # Express routes
+│   │   │   ├── models/     # Mongoose schemas
+│   │   │   ├── utils/      # Database connection utility
+│   │   │   └── index.js      # Main server entry point
+│   │   ├── Dockerfile
+│   │   └── package.json
+│   └── frontend/             # Next.js frontend
+│       ├── app/
+│       ├── components/
+│       ├── lib/
+│       └── ...
+├── docs/
+│   ├── architecture/
+│   ├── prd/
+│   ├── qa/
+│   └── stories/
 ├── packages/
-│   └── shared-types/
-└── package.json
+│   └── README.md
+├── .gitignore
+├── package.json
+├── pnpm-lock.yaml
+├── pnpm-workspace.yaml
+└── tsconfig.json
+```
