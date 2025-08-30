@@ -15,4 +15,5 @@
 | **Authentication** | JWT (jsonwebtoken) | 9.x | Secure token-based authentication. | Standard for stateless authentication in microservices. |
 | **Password Hashing** | bcrypt | 5.x | Securely hashing user passwords. | Industry-standard for password security. |
 | **Testing** | Jest, React Testing Library | Latest | Unit and integration testing. | Standard testing tools for the React and Node.js ecosystems. |
+| **Package Manager** | pnpm | Latest | Efficient dependency management for monorepos. | Faster, more disk-space efficient, and better for monorepos than npm/yarn. |
 | **Cloud SDK** | AWS SDK for JavaScript | v3 | Interacting with AWS services (S3). | Required for generating pre-signed URLs securely from the backend. |
