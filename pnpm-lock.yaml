@@ -42,12 +42,18 @@ importers:
 
   apps/backend:
     dependencies:
+      dotenv:
+        specifier: ^17.2.1
+        version: 17.2.1
       express:
         specifier: ^4.21.2
         version: 4.21.2
       jest:
         specifier: ^30.0.5
         version: 30.1.1(@types/node@22.18.0)
+      mongodb:
+        specifier: ^6.19.0
+        version: 6.19.0
       mongodb-memory-server:
         specifier: ^10.2.0
         version: 10.2.0
@@ -2710,6 +2716,10 @@ packages:
     resolution: {integrity: sha512-yxJ2mFy/sibVQlu5qHjOkf9J3K6zgmCxgJ94u2EdvDOV09H+32LtRswEcUsmUWN72pVLOEnTSRaIVVzVQgS0dg==}
     engines: {node: '>=8'}
     deprecated: Use your platform's native DOMException instead
+
+  dotenv@17.2.1:
+    resolution: {integrity: sha512-kQhDYKZecqnM0fCnzI5eIv5L4cAe/iRI+HqMbO/hbRdTAeXDG+M9FjipUxNfbARuEg4iHIbhnhs78BCHNbSxEQ==}
+    engines: {node: '>=12'}
 
   dunder-proto@1.0.1:
     resolution: {integrity: sha512-KIN/nDJBQRcXw0MLVhZE9iQHmG68qAVIBg9CqmUYjmQIhgij9U5MFvrqkUL5FbtyyzZuOeOt0zdeRe4UY7ct+A==}
@@ -8024,6 +8034,8 @@ snapshots:
   domexception@2.0.1:
     dependencies:
       webidl-conversions: 5.0.0
+
+  dotenv@17.2.1: {}
 
   dunder-proto@1.0.1:
     dependencies:

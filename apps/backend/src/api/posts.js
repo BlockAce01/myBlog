@@ -4,33 +4,45 @@ const BlogPost = require('../models/BlogPost'); // Import the BlogPost model
 const Comment = require('../models/Comment'); // Import the Comment model
 const mongoose = require('mongoose');
 
-// POST /api/posts - Create a new blog post (AC: 1)
+// POST /api/posts - Create a new blog post (AC: 1, 3, 4, 6)
 router.post('/posts', async (req, res) => {
   try {
-    const { title, summary, content, coverPhotoUrl, tags } = req.body;
+    const { title, content, tags, summary, coverPhotoUrl } = req.body;
 
-    // Basic validation
-    if (!title || !summary || !content || !coverPhotoUrl) {
-      return res.status(400).json({ message: 'Missing required fields' });
+    // Validate all required fields
+    const requiredFields = ['title', 'content', 'summary', 'coverPhotoUrl'];
+    const missingFields = requiredFields.filter(field => !req.body[field]);
+    
+    if (missingFields.length > 0) {
+      return res.status(400).json({ 
+        message: `Missing required fields: ${missingFields.join(', ')}`,
+        error: true
+      });
     }
 
+    // Create post with all required fields
     const newPost = new BlogPost({
       title,
-      summary,
       content,
+      summary,
       coverPhotoUrl,
-      tags: tags || [],
+      tags: tags || []
     });
 
+    console.log('Attempting to save new post:', newPost); // Added log
     await newPost.save();
+    console.log('New post saved successfully:', newPost); // Added log
     res.status(201).json(newPost);
   } catch (error) {
     console.error('Error creating post:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ 
+      message: 'Server error: ' + error.message,
+      error: true
+    });
   }
 });
 
-// GET /api/posts - Retrieve a list of all blog posts (AC: 2)
+// GET /api/posts - Retrieve a list of all blog posts (AC: 1, 5, 6)
 router.get('/posts', async (req, res) => {
   try {
     const { tags } = req.query;
@@ -48,7 +60,7 @@ router.get('/posts', async (req, res) => {
   }
 });
 
-// GET /api/posts/:id - Retrieve a single blog post by ID (AC: 3)
+// GET /api/posts/:id - Retrieve a single blog post by ID (AC: 1, 6)
 router.get('/posts/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -70,20 +82,38 @@ router.get('/posts/:id', async (req, res) => {
   }
 });
 
-// PUT /api/posts/:id - Update an existing blog post (AC: 4)
+// PUT /api/posts/:id - Update a blog post by ID (AC: 1, 6)
 router.put('/posts/:id', async (req, res) => {
   try {
     const { id } = req.params;
+    const { title, content, tags, summary, coverPhotoUrl } = req.body;
 
+    // Validate post ID
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ message: 'Invalid post ID' });
     }
 
-    const { title, summary, content, coverPhotoUrl, tags } = req.body;
+    // Validate all required fields
+    const requiredFields = ['title', 'content', 'summary', 'coverPhotoUrl'];
+    const missingFields = requiredFields.filter(field => !req.body[field]);
+    
+    if (missingFields.length > 0) {
+      return res.status(400).json({ 
+        message: `Missing required fields: ${missingFields.join(', ')}`,
+        error: true
+      });
+    }
 
+    // Find and update the post
     const updatedPost = await BlogPost.findByIdAndUpdate(
       id,
-      { title, summary, content, coverPhotoUrl, tags },
+      {
+        title,
+        content,
+        summary,
+        coverPhotoUrl,
+        tags: tags || []
+      },
       { new: true, runValidators: true }
     );
 
@@ -94,44 +124,59 @@ router.put('/posts/:id', async (req, res) => {
     }
   } catch (error) {
     console.error('Error updating post:', error);
-    res.status(500).json({ message: 'Server error' });
+    if (error.name === 'ValidationError') {
+      res.status(400).json({ 
+        message: 'Validation error: ' + error.message,
+        error: true
+      });
+    } else {
+      res.status(500).json({ 
+        message: 'Server error: ' + error.message,
+        error: true
+      });
+    }
   }
 });
 
-// DELETE /api/posts/:id - Remove a blog post (AC: 5)
+// DELETE /api/posts/:id - Delete a blog post by ID (AC: 1, 6)
 router.delete('/posts/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
+    // Validate post ID
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ message: 'Invalid post ID' });
     }
-    
+
+    // Find and delete the post
     const deletedPost = await BlogPost.findByIdAndDelete(id);
 
     if (deletedPost) {
-      res.status(200).json({ message: 'Post deleted successfully' });
+      res.status(200).json({ message: 'Post deleted successfully', deletedPost });
     } else {
       res.status(404).json({ message: 'Post not found' });
     }
   } catch (error) {
     console.error('Error deleting post:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ 
+      message: 'Server error: ' + error.message,
+      error: true
+    });
   }
 });
 
-// POST /api/posts/:postId/comments - Add a new comment to a post
+// POST /api/posts/:postId/comments - Add a new comment to a post (AC: 2, 6)
 router.post('/posts/:postId/comments', async (req, res) => {
   try {
     const { postId } = req.params;
     const { authorName, commentText } = req.body;
 
-    if (!mongoose.Types.ObjectId.isValid(postId)) {
-      return res.status(400).json({ message: 'Invalid post ID' });
-    }
-
     if (!authorName || !commentText) {
       return res.status(400).json({ message: 'Missing required fields: authorName, commentText' });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(postId)) {
+      return res.status(400).json({ message: 'Invalid post ID' });
     }
 
     const newComment = new Comment({
@@ -140,15 +185,15 @@ router.post('/posts/:postId/comments', async (req, res) => {
       commentText,
     });
 
-    await newComment.save();
-    res.status(201).json(newComment);
+    const savedComment = await newComment.save();
+    res.status(201).json(savedComment);
   } catch (error) {
     console.error('Error adding comment:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
 
-// GET /api/posts/:id/comments - Get all comments for a post
+// GET /api/posts/:id/comments - Get all comments for a post (AC: 2, 6)
 router.get('/posts/:id/comments', async (req, res) => {
   try {
     const { id } = req.params;
