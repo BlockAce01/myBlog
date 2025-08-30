@@ -1,131 +1,93 @@
-"use client"
+"use client";
 
-import type React from "react"
-
-import { useState } from "react"
-import { Layout } from "@/components/layout"
-import type { BlogPost, Comment } from "@/lib/types"
-import { Eye, Heart, MessageCircle } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Badge } from "@/components/ui/badge" // Import Badge component
-import ReactMarkdown from "react-markdown"
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter"
-import atomDark from "react-syntax-highlighter/dist/cjs/styles/prism/atom-dark"
-import type { CSSProperties } from "react"
-
-// Mock data - in a real app, this would come from an API
-const mockPost: BlogPost = {
-  id: "1",
-  title: "Getting Started with Next.js 14 and App Router",
-  summary:
-    "Explore the latest features in Next.js 14 and learn how to leverage the App Router for better performance and developer experience.",
-  content: `# Getting Started with Next.js 14 and App Router
-
-Next.js 14 introduces several exciting features that make building React applications even more powerful and efficient. In this comprehensive guide, we'll explore the App Router and its benefits.
-
-## What's New in Next.js 14
-
-The latest version of Next.js brings significant improvements:
-
-- **Turbopack**: Faster local development with Rust-based bundling
-- **Server Actions**: Simplified server-side mutations
-- **Partial Prerendering**: Combine static and dynamic rendering
-
-## App Router Benefits
-
-The App Router provides several advantages over the Pages Router:
-
-> The App Router is a new paradigm that allows you to use React's latest features like Server Components, Streaming, and Suspense.
-
-### Key Features
-
-1. **Nested Layouts**: Create shared UI that persists across routes
-2. **Loading UI**: Show instant loading states for route segments
-3. **Error Handling**: Graceful error boundaries for route segments
-
-## Code Example
-
-Here's how to create a simple page with the App Router:
-
-\`\`\`tsx
-// app/dashboard/page.tsx
-export default function Dashboard() {
-  return (
-    <div>
-      <h1>Dashboard</h1>
-      <p>Welcome to your dashboard!</p>
-    </div>
-  )
-}
-\`\`\`
-
-## Server Components vs Client Components
-
-Understanding when to use Server Components versus Client Components is crucial:
-
-- **Server Components**: Default, run on the server, great for data fetching
-- **Client Components**: Use \`'use client'\` directive, run in the browser, needed for interactivity
-
-## Conclusion
-
-Next.js 14 with the App Router represents a significant step forward in React development. The combination of Server Components, improved performance, and better developer experience makes it an excellent choice for modern web applications.`,
-  publicationDate: "2024-01-15",
-  viewCount: 1250,
-  likeCount: 89,
-  tags: ["Next.js", "App Router", "React", "Web Development"], // Add tags to mockPost
-}
-
-const mockComments: Comment[] = [
-  {
-    id: "1",
-    postId: "1",
-    authorName: "Sarah Chen",
-    commentText: "Great explanation of the App Router! The code examples really helped me understand the concepts.",
-    createdAt: "2024-01-16T10:30:00Z",
-  },
-  {
-    id: "2",
-    postId: "1",
-    authorName: "Mike Johnson",
-    commentText: "I was struggling with Server Components vs Client Components. This cleared it up perfectly.",
-    createdAt: "2024-01-16T14:45:00Z",
-  },
-]
+import type React from "react";
+import { useState, useEffect } from "react";
+import { Layout } from "@/components/layout";
+import type { BlogPost, Comment } from "@/lib/types";
+import { Eye, Heart, MessageCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import ReactMarkdown from "react-markdown";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import atomDark from "react-syntax-highlighter/dist/cjs/styles/prism/atom-dark";
+import type { CSSProperties } from "react";
+import {
+  getPost,
+  getComments,
+  createComment,
+  likePost,
+  incrementViewCount,
+} from "@/lib/data";
+import { useParams } from "next/navigation";
 
 export default function PostPage() {
-  const [post] = useState<BlogPost>(mockPost)
-  const [comments, setComments] = useState<Comment[]>(mockComments)
-  const [liked, setLiked] = useState(false)
-  const [likeCount, setLikeCount] = useState(post.likeCount)
-  const [newComment, setNewComment] = useState({ name: "", comment: "" })
+  const params = useParams();
+  const id = params.id as string;
 
+  const [post, setPost] = useState<BlogPost | null>(null);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [liked, setLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
+  const [newComment, setNewComment] = useState({ name: "", comment: "" });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (id) {
+      const fetchData = async () => {
+        setLoading(true);
+        const [postData, commentsData] = await Promise.all([
+          getPost(id),
+          getComments(id),
+        ]);
+        setPost(postData);
+        setComments(commentsData);
+        if (postData) {
+          setLikeCount(postData.likeCount);
+          incrementViewCount(id);
+        }
+        setLoading(false);
+      };
+      fetchData();
+    }
+  }, [id]);
+
+  const handleLike = async () => {
+    if (post) {
+      await likePost(post.id);
+      setLiked(!liked);
+      setLikeCount((prev) => (liked ? prev - 1 : prev + 1));
+    }
+  };
+
+  const handleCommentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (post && newComment.name && newComment.comment) {
+      const comment = await createComment(post.id, {
+        authorName: newComment.name,
+        commentText: newComment.comment,
+      });
+      if (comment) {
+        setComments([...comments, comment]);
+        setNewComment({ name: "", comment: "" });
+      }
+    }
+  };
+
+  if (loading) {
+    return <Layout><div className="text-center">Loading...</div></Layout>;
+  }
+
+  if (!post) {
+    return <Layout><div className="text-center">Post not found</div></Layout>;
+  }
+  
   const formattedDate = new Date(post.publicationDate).toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
     day: "numeric",
-  })
-
-  const handleLike = () => {
-    setLiked(!liked)
-    setLikeCount((prev) => (liked ? prev - 1 : prev + 1))
-  }
-
-  const handleCommentSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (newComment.name && newComment.comment) {
-      const comment: Comment = {
-        id: Date.now().toString(),
-        postId: post.id,
-        authorName: newComment.name,
-        commentText: newComment.comment,
-        createdAt: new Date().toISOString(),
-      }
-      setComments([...comments, comment])
-      setNewComment({ name: "", comment: "" })
-    }
-  }
+  });
 
   return (
     <Layout>
@@ -156,7 +118,7 @@ export default function PostPage() {
           <ReactMarkdown
             components={{
               code({ className, children, ...props }) {
-                const match = /language-(\w+)/.exec(className || "")
+                const match = /language-(\w+)/.exec(className || "");
                 return match ? (
                   <SyntaxHighlighter
                     style={atomDark as CSSProperties}
@@ -171,7 +133,7 @@ export default function PostPage() {
                   <code className={className} {...props}>
                     {children}
                   </code>
-                )
+                );
               },
             }}
           >
@@ -253,5 +215,5 @@ export default function PostPage() {
         </section>
       </article>
     </Layout>
-  )
+  );
 }

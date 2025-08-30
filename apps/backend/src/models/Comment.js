@@ -5,6 +5,8 @@ const commentSchema = new mongoose.Schema({
   authorName: { type: String, required: true },
   commentText: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },
+}, {
+  toJSON: { virtuals: true }
 });
 
 module.exports = mongoose.model('Comment', commentSchema);
