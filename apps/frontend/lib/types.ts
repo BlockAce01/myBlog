@@ -7,6 +7,7 @@ export interface BlogPost {
   viewCount: number
   likeCount: number
   tags: string[] // Add a tags property to the BlogPost interface
+  likedBy?: string[] // Track user IDs who liked this post
 }
 
 export interface Comment {
