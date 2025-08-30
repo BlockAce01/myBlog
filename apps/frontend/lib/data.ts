@@ -63,16 +63,33 @@ export async function createComment(
   }
 }
 
-export async function likePost(postId: string): Promise<void> {
+export async function likePost(postId: string): Promise<{ likeCount: number; isLiked: boolean } | null> {
   try {
+    // Generate or retrieve user ID from localStorage
+    let userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
+    if (!userId) {
+      userId = 'user_' + Math.random().toString(36).substr(2, 9);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('userId', userId);
+      }
+    }
+
     const res = await fetch(`${API_URL}/analytics/likes/${postId}`, {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ userId }),
     });
+
     if (!res.ok) {
       throw new Error("Failed to like post");
     }
+
+    return res.json();
   } catch (error) {
     console.error(error);
+    return null;
   }
 }
 
