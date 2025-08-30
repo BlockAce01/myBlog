@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Layout } from "@/components/layout";
 import type { BlogPost, Comment } from "@/lib/types";
 import { Eye, Heart, MessageCircle } from "lucide-react";
@@ -10,9 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import ReactMarkdown from "react-markdown";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import atomDark from "react-syntax-highlighter/dist/cjs/styles/prism/atom-dark";
-import type { CSSProperties } from "react";
+
 import {
   getPost,
   getComments,
@@ -25,6 +23,7 @@ import { useParams } from "next/navigation";
 export default function PostPage() {
   const params = useParams();
   const id = params.id as string;
+  const hasViewed = useRef(false);
 
   const [post, setPost] = useState<BlogPost | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
@@ -34,20 +33,47 @@ export default function PostPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (id) {
+    if (id && !hasViewed.current) {
       const fetchData = async () => {
         setLoading(true);
-        const [postData, commentsData] = await Promise.all([
-          getPost(id),
-          getComments(id),
-        ]);
-        setPost(postData);
-        setComments(commentsData);
-        if (postData) {
-          setLikeCount(postData.likeCount);
-          incrementViewCount(id);
+        try {
+          // Normalize ID to lowercase for consistent matching
+          const normalizedId = id.toLowerCase();
+          
+          // Check session storage BEFORE fetching data
+          const viewedPosts = JSON.parse(sessionStorage.getItem('blogPostViews') || '{}');
+          
+          if (!viewedPosts[normalizedId]) {
+            // Immediately mark as viewed to prevent concurrent increments
+            viewedPosts[normalizedId] = true;
+            sessionStorage.setItem('blogPostViews', JSON.stringify(viewedPosts));
+            
+            // Then increment the view count
+            await incrementViewCount(normalizedId);
+          }
+
+          const [postData, commentsData] = await Promise.all([
+            getPost(normalizedId),
+            getComments(normalizedId),
+          ]);
+          
+          setPost(postData);
+          setComments(commentsData);
+          
+          if (postData) {
+            setLikeCount(postData.likeCount);
+            // Check if user has already liked this post
+            const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
+            if (userId && postData.likedBy?.includes(userId)) {
+              setLiked(true);
+            }
+          }
+        } catch (error) {
+          console.error("Error loading post:", error);
+        } finally {
+          setLoading(false);
+          hasViewed.current = true;
         }
-        setLoading(false);
       };
       fetchData();
     }
@@ -55,9 +81,11 @@ export default function PostPage() {
 
   const handleLike = async () => {
     if (post) {
-      await likePost(post.id);
-      setLiked(!liked);
-      setLikeCount((prev) => (liked ? prev - 1 : prev + 1));
+      const result = await likePost(post.id);
+      if (result) {
+        setLiked(result.isLiked);
+        setLikeCount(result.likeCount);
+      }
     }
   };
 
@@ -115,28 +143,7 @@ export default function PostPage() {
 
         {/* Post Content */}
         <div className="prose prose-lg max-w-none mb-12">
-          <ReactMarkdown
-            components={{
-              code({ className, children, ...props }) {
-                const match = /language-(\w+)/.exec(className || "");
-                return match ? (
-                  <SyntaxHighlighter
-                    style={atomDark as CSSProperties}
-                    language={match[1]}
-                    PreTag="div"
-                    className={className}
-                    {...props}
-                  >
-                    {String(children).replace(/\n$/, "")}
-                  </SyntaxHighlighter>
-                ) : (
-                  <code className={className} {...props}>
-                    {children}
-                  </code>
-                );
-              },
-            }}
-          >
+          <ReactMarkdown>
             {post.content}
           </ReactMarkdown>
         </div>

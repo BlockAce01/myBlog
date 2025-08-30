@@ -9,6 +9,7 @@ const blogPostSchema = new mongoose.Schema({
   publicationDate: { type: Date, default: Date.now },
   viewCount: { type: Number, default: 0 },
   likeCount: { type: Number, default: 0 },
+  likedBy: { type: [String], default: [] }, // Track user IDs who liked this post
 }, {
   toJSON: { virtuals: true }
 });
