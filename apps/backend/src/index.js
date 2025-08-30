@@ -9,6 +9,8 @@ require('./models/BlogPost');
 require('./models/Comment');
 
 const app = express();
+const cors = require('cors');
+app.use(cors());
 app.use(express.json());
 const port = process.env.PORT || 3003;
 
