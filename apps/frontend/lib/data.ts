@@ -1,7 +1,9 @@
 import type { BlogPost, Comment } from "@/lib/types";
 
-const API_URL = "http://localhost:3003/api";
-
+const API_URL = typeof window === 'undefined'
+  ? "http://backend:3003/api" // Server-side (inside Docker)
+  : "http://localhost:3003/api"; // Client-side (in browser)
+  
 export async function getPosts(): Promise<BlogPost[]> {
   try {
     const res = await fetch(`${API_URL}/posts`);
