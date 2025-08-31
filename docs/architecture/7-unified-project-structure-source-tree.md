@@ -9,7 +9,7 @@ myBlog/
 │   └── workflows/
 │       └── ci-cd.yml
 ├── apps/
-│   ├── analytics-service/    # Analytics service for view counts
+
 │   │   ├── index.js
 │   │   └── package.json
 │   ├── backend/              # Backend app containing blog and comment services
