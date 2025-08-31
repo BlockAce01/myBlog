@@ -36,10 +36,7 @@ services:
     volumes:
       - ./apps/backend:/app
       - /app/node_modules
-    # Removed mongo dependency as it's now a cloud database
-
-  
-
+      
 
 
 networks:
