@@ -10,8 +10,12 @@ WORKDIR /usr/src/app
 # Copy package files
 COPY --chown=appuser:appgroup package*.json ./
 
+# Delete existing node_modules if any
+RUN rm -rf node_modules || true
+
 # Install dependencies
-RUN npm install --legacy-peer-deps
+RUN npm install -g pnpm
+RUN pnpm install --shamefully-hoist
 
 # Copy application code
 COPY --chown=appuser:appgroup . .

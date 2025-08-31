@@ -1,0 +1,60 @@
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+    working_dir: /app
+    command: >
+      sh -c "pnpm install --frozen-lockfile && pnpm --filter frontend dev"
+    volumes:
+      - ./apps:/app/apps
+      - ./package.json:/app/package.json
+      - ./pnpm-lock.yaml:/app/pnpm-lock.yaml
+      - ./pnpm-workspace.yaml:/app/pnpm-workspace.yaml
+      - ./tsconfig.json:/app/tsconfig.json
+      - /app/node_modules
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - MONGODB_URI=mongodb://mongo:27017/myBlog?retryWrites=true&w=majority
+      - NODE_ENV=development
+      - DB_CONNECT_RETRIES=5
+      - DB_CONNECT_TIMEOUT=10000
+    command: pnpm start
+    volumes:
+      - ./apps/backend:/app
+      - /app/node_modules
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 5s
+      timeout: 30s
+      retries: 3
+
+volumes:
+  mongo-data:
+
+networks:
+  default:
+    name: myBlog-network
