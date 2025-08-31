@@ -46,31 +46,66 @@ describe('Analytics API', () => {
   });
 
   describe('POST /analytics/likes/:id', () => {
-    it('should increment the like count of a post', async () => {
-      const mockPost = { _id: '60d21b4667d0d8992e610c85', likeCount: 5 };
+    it('should like a post successfully', async () => {
+      const mockPost = {
+        _id: '60d21b4667d0d8992e610c85',
+        likeCount: 5,
+        likedBy: [],
+        save: jest.fn().mockResolvedValue(true),
+      };
       jest.spyOn(mongoose.Types.ObjectId, 'isValid').mockReturnValue(true);
-      BlogPost.findByIdAndUpdate.mockResolvedValue(mockPost);
+      BlogPost.findById.mockResolvedValue(mockPost);
 
-      const res = await request(app).post('/analytics/likes/60d21b4667d0d8992e610c85');
+      const res = await request(app)
+        .post('/analytics/likes/60d21b4667d0d8992e610c85')
+        .send({ userId: 'test-user' });
 
       expect(res.statusCode).toEqual(200);
-      expect(res.body.message).toEqual('Like count incremented');
-      expect(res.body.likeCount).toEqual(5);
-      expect(BlogPost.findByIdAndUpdate).toHaveBeenCalledWith(
-        '60d21b4667d0d8992e610c85',
-        { $inc: { likeCount: 1 } },
-        { new: true }
-      );
+      expect(res.body.likeCount).toEqual(6);
+      expect(res.body.isLiked).toBe(true);
+      expect(mockPost.save).toHaveBeenCalled();
     });
 
-    it('should return 404 if the post is not found', async () => {
+    it('should unlike a post successfully', async () => {
+        const mockPost = {
+          _id: '60d21b4667d0d8992e610c85',
+          likeCount: 5,
+          likedBy: ['test-user'],
+          save: jest.fn().mockResolvedValue(true),
+        };
         jest.spyOn(mongoose.Types.ObjectId, 'isValid').mockReturnValue(true);
-        BlogPost.findByIdAndUpdate.mockResolvedValue(null);
+        BlogPost.findById.mockResolvedValue(mockPost);
   
-        const res = await request(app).post('/analytics/likes/60d21b4667d0d8992e610c85');
+        const res = await request(app)
+          .post('/analytics/likes/60d21b4667d0d8992e610c85')
+          .send({ userId: 'test-user' });
   
-        expect(res.statusCode).toEqual(404);
-        expect(res.body.message).toEqual('Post not found');
+        expect(res.statusCode).toEqual(200);
+        expect(res.body.likeCount).toEqual(4);
+        expect(res.body.isLiked).toBe(false);
+        expect(mockPost.save).toHaveBeenCalled();
+      });
+
+    it('should return 404 if the post is not found', async () => {
+      jest.spyOn(mongoose.Types.ObjectId, 'isValid').mockReturnValue(true);
+      BlogPost.findById.mockResolvedValue(null);
+
+      const res = await request(app)
+        .post('/analytics/likes/60d21b4667d0d8992e610c85')
+        .send({ userId: 'test-user' });
+
+      expect(res.statusCode).toEqual(404);
+      expect(res.body.message).toEqual('Post not found');
+    });
+
+    it('should return 400 if userId is not provided', async () => {
+        jest.spyOn(mongoose.Types.ObjectId, 'isValid').mockReturnValue(true);
+  
+        const res = await request(app)
+          .post('/analytics/likes/60d21b4667d0d8992e610c85');
+  
+        expect(res.statusCode).toEqual(400);
+        expect(res.body.message).toEqual('User ID is required');
       });
   });
 });
