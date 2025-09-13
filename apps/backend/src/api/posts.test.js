@@ -1,6 +1,7 @@
 const request = require('supertest');
 const express = require('express');
 const mongoose = require('mongoose');
+const jwt = require('jsonwebtoken');
 const postsRouter = require('./posts');
 const BlogPost = require('../models/BlogPost');
 const Comment = require('../models/Comment');
@@ -9,9 +10,20 @@ const Comment = require('../models/Comment');
 jest.mock('../models/BlogPost');
 jest.mock('../models/Comment');
 
+// Create test app
 const app = express();
 app.use(express.json());
 app.use('/api', postsRouter);
+
+// Test data
+const testUser = {
+  userId: '507f1f77bcf86cd799439011',
+  role: 'admin'
+};
+
+const createTestToken = () => {
+  return jwt.sign(testUser, process.env.JWT_SECRET || 'test-secret-key');
+};
 
 describe('Posts API', () => {
   afterEach(() => {
@@ -107,6 +119,154 @@ describe('Posts API', () => {
 
       expect(res.statusCode).toEqual(200);
       expect(res.body).toEqual(mockComments);
+    });
+  });
+
+  describe('POST /api/posts', () => {
+    const validPostData = {
+      title: 'Test Post',
+      content: 'Test content',
+      summary: 'Test summary',
+      coverPhotoUrl: 'https://example.com/image.jpg'
+    };
+
+    it('should create a new post with valid authentication', async () => {
+      const mockSavedPost = { _id: '60d21b4667d0d8992e610c85', ...validPostData, tags: [] };
+      const mockPostInstance = { ...validPostData, tags: [] };
+      BlogPost.mockImplementation((data) => {
+        Object.assign(mockPostInstance, data);
+        mockPostInstance.save = jest.fn().mockImplementation(async () => {
+          Object.assign(mockPostInstance, mockSavedPost);
+          return mockPostInstance;
+        });
+        return mockPostInstance;
+      });
+
+      const token = createTestToken();
+      const res = await request(app)
+        .post('/api/posts')
+        .set('Authorization', `Bearer ${token}`)
+        .send(validPostData);
+
+      expect(res.statusCode).toEqual(201);
+      expect(res.body).toEqual(mockSavedPost);
+    });
+
+    it('should return 401 without authentication', async () => {
+      const res = await request(app)
+        .post('/api/posts')
+        .send(validPostData);
+
+      expect(res.statusCode).toEqual(401);
+      expect(res.body.message).toEqual('Access token required');
+    });
+
+    it('should return 401 with invalid token', async () => {
+      const res = await request(app)
+        .post('/api/posts')
+        .set('Authorization', 'Bearer invalid-token')
+        .send(validPostData);
+
+      expect(res.statusCode).toEqual(401);
+      expect(res.body.message).toEqual('Invalid or expired token');
+    });
+
+    it('should return 400 for missing required fields', async () => {
+      const token = createTestToken();
+      const res = await request(app)
+        .post('/api/posts')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ title: 'Test Post' });
+
+      expect(res.statusCode).toEqual(400);
+      expect(res.body.message).toContain('Missing required fields');
+    });
+  });
+
+  describe('PUT /api/posts/:id', () => {
+    const updateData = {
+      title: 'Updated Post',
+      content: 'Updated content',
+      summary: 'Updated summary',
+      coverPhotoUrl: 'https://example.com/updated.jpg'
+    };
+
+    it('should update a post with valid authentication', async () => {
+      const mockUpdatedPost = { _id: '60d21b4667d0d8992e610c85', ...updateData };
+      jest.spyOn(mongoose.Types.ObjectId, 'isValid').mockReturnValue(true);
+      BlogPost.findByIdAndUpdate.mockResolvedValue(mockUpdatedPost);
+
+      const token = createTestToken();
+      const res = await request(app)
+        .put('/api/posts/60d21b4667d0d8992e610c85')
+        .set('Authorization', `Bearer ${token}`)
+        .send(updateData);
+
+      expect(res.statusCode).toEqual(200);
+      expect(res.body).toEqual(mockUpdatedPost);
+    });
+
+    it('should return 401 without authentication', async () => {
+      jest.spyOn(mongoose.Types.ObjectId, 'isValid').mockReturnValue(true);
+      const res = await request(app)
+        .put('/api/posts/60d21b4667d0d8992e610c85')
+        .send(updateData);
+
+      expect(res.statusCode).toEqual(401);
+      expect(res.body.message).toEqual('Access token required');
+    });
+
+    it('should return 404 if post not found', async () => {
+      jest.spyOn(mongoose.Types.ObjectId, 'isValid').mockReturnValue(true);
+      BlogPost.findByIdAndUpdate.mockResolvedValue(null);
+
+      const token = createTestToken();
+      const res = await request(app)
+        .put('/api/posts/60d21b4667d0d8992e610c85')
+        .set('Authorization', `Bearer ${token}`)
+        .send(updateData);
+
+      expect(res.statusCode).toEqual(404);
+      expect(res.body.message).toEqual('Post not found');
+    });
+  });
+
+  describe('DELETE /api/posts/:id', () => {
+    it('should delete a post with valid authentication', async () => {
+      const mockDeletedPost = { _id: '60d21b4667d0d8992e610c85', title: 'Deleted Post' };
+      jest.spyOn(mongoose.Types.ObjectId, 'isValid').mockReturnValue(true);
+      BlogPost.findByIdAndDelete.mockResolvedValue(mockDeletedPost);
+
+      const token = createTestToken();
+      const res = await request(app)
+        .delete('/api/posts/60d21b4667d0d8992e610c85')
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(res.statusCode).toEqual(200);
+      expect(res.body.message).toEqual('Post deleted successfully');
+      expect(res.body.deletedPost).toEqual(mockDeletedPost);
+    });
+
+    it('should return 401 without authentication', async () => {
+      jest.spyOn(mongoose.Types.ObjectId, 'isValid').mockReturnValue(true);
+      const res = await request(app)
+        .delete('/api/posts/60d21b4667d0d8992e610c85');
+
+      expect(res.statusCode).toEqual(401);
+      expect(res.body.message).toEqual('Access token required');
+    });
+
+    it('should return 404 if post not found', async () => {
+      jest.spyOn(mongoose.Types.ObjectId, 'isValid').mockReturnValue(true);
+      BlogPost.findByIdAndDelete.mockResolvedValue(null);
+
+      const token = createTestToken();
+      const res = await request(app)
+        .delete('/api/posts/60d21b4667d0d8992e610c85')
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(res.statusCode).toEqual(404);
+      expect(res.body.message).toEqual('Post not found');
     });
   });
 });
