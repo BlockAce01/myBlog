@@ -1,0 +1,28 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Basic secret scanning using grep patterns
+echo "🔍 Scanning for potential secrets..."
+
+# Check for common secret patterns
+if git diff --cached --name-only | xargs grep -l "password\|secret\|key\|token\|credential" 2>/dev/null; then
+  echo "⚠️  Potential secrets detected in staged files!"
+  echo "Please review the following files:"
+  git diff --cached --name-only | xargs grep -l "password\|secret\|key\|token\|credential" 2>/dev/null
+  echo ""
+  echo "💡 If these are false positives, you can:"
+  echo "   - Use 'git reset HEAD <file>' to unstage the file"
+  echo "   - Move sensitive data to environment variables"
+  echo "   - Add the file to .gitignore if it contains secrets"
+  exit 1
+fi
+
+# Check for hardcoded MongoDB URIs
+if git diff --cached --name-only | xargs grep -l "mongodb+srv://" 2>/dev/null; then
+  echo "⚠️  MongoDB URI detected in staged files!"
+  echo "Please ensure credentials are not hardcoded:"
+  git diff --cached --name-only | xargs grep -l "mongodb+srv://" 2>/dev/null
+  exit 1
+fi
+
+echo "✅ No obvious secrets detected - proceeding with commit"
