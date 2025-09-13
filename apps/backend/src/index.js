@@ -5,8 +5,10 @@ const { connectDB, disconnectDB } = require('./utils/db');
 const helloRouter = require('./api/hello');
 const postsRouter = require('./api/posts');
 const analyticsRouter = require('./api/analytics');
+const authRouter = require('./api/auth/auth'); // Import auth router
 require('./models/BlogPost');
 require('./models/Comment');
+require('./models/User'); // Ensure User model is loaded
 
 const app = express();
 const cors = require('cors');
@@ -17,6 +19,7 @@ const port = process.env.PORT || 3003;
 app.use('/api/hello', helloRouter);
 app.use('/api', postsRouter);
 app.use('/api/analytics', analyticsRouter);
+app.use('/api/auth', authRouter); // Use auth router
 
 const startServer = async () => {
   try {
@@ -39,4 +42,8 @@ const startServer = async () => {
   }
 };
 
-startServer();
+if (require.main === module) {
+  startServer();
+}
+
+module.exports = app;
