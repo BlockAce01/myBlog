@@ -88,13 +88,25 @@ describe('Posts API', () => {
   });
 
   describe('GET /api/posts/:id', () => {
-    it('should return a single post if found', async () => {
-        const mockPost = { _id: '60d21b4667d0d8992e610c85', title: 'Found Post' };
+    it('should return a single post if found by ID', async () => {
+        const mockPost = { _id: '60d21b4667d0d8992e610c85', title: 'Found Post', status: 'published' };
         // Mock the static method isValid of mongoose.Types.ObjectId
         jest.spyOn(mongoose.Types.ObjectId, 'isValid').mockReturnValue(true);
         BlogPost.findById.mockResolvedValue(mockPost);
-    
+
         const res = await request(app).get('/api/posts/60d21b4667d0d8992e610c85');
+        expect(res.statusCode).toEqual(200);
+        expect(res.body).toEqual(mockPost);
+    });
+
+    it('should return a single post if found by slug', async () => {
+        const mockPost = { _id: '60d21b4667d0d8992e610c85', title: 'Found Post', slug: 'found-post', status: 'published' };
+        // Mock the static method isValid of mongoose.Types.ObjectId to return false for slug
+        jest.spyOn(mongoose.Types.ObjectId, 'isValid').mockReturnValue(false);
+        BlogPost.findById.mockResolvedValue(null);
+        BlogPost.findOne.mockResolvedValue(mockPost);
+
+        const res = await request(app).get('/api/posts/found-post');
         expect(res.statusCode).toEqual(200);
         expect(res.body).toEqual(mockPost);
     });
@@ -102,17 +114,20 @@ describe('Posts API', () => {
     it('should return 404 if post not found', async () => {
         jest.spyOn(mongoose.Types.ObjectId, 'isValid').mockReturnValue(true);
         BlogPost.findById.mockResolvedValue(null);
+        BlogPost.findOne.mockResolvedValue(null);
 
         const res = await request(app).get('/api/posts/60d21b4667d0d8992e610c85');
         expect(res.statusCode).toEqual(404);
         expect(res.body.message).toEqual('Post not found');
     });
 
-    it('should return 400 for an invalid post ID', async () => {
+    it('should return 404 for an invalid post ID/slug', async () => {
         jest.spyOn(mongoose.Types.ObjectId, 'isValid').mockReturnValue(false);
+        BlogPost.findById.mockResolvedValue(null);
+        BlogPost.findOne.mockResolvedValue(null);
         const res = await request(app).get('/api/posts/invalid-id');
-        expect(res.statusCode).toEqual(400);
-        expect(res.body.message).toEqual('Invalid post ID');
+        expect(res.statusCode).toEqual(404);
+        expect(res.body.message).toEqual('Post not found');
     });
   });
 
