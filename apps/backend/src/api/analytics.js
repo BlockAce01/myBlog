@@ -35,15 +35,23 @@ router.post('/likes/:id', async (req, res) => {
     const { id } = req.params;
     const { userId } = req.body;
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ message: 'Invalid post ID' });
-    }
-
     if (!userId) {
       return res.status(400).json({ message: 'User ID is required' });
     }
 
-    const post = await BlogPost.findById(id);
+    let post;
+
+    // Try to find by ObjectID first
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      post = await BlogPost.findById(id);
+    }
+
+    // If not found by ObjectID, try to find by slug
+    if (!post) {
+      post = await BlogPost.findOne({ slug: id });
+    }
+
+    // If still not found, return 404
     if (!post) {
       return res.status(404).json({ message: 'Post not found' });
     }
@@ -71,7 +79,15 @@ router.post('/likes/:id', async (req, res) => {
     });
   } catch (error) {
     console.error('Error liking post:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
+    res.status(500).json({
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 
