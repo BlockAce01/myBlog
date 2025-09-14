@@ -9,3 +9,4 @@ ignoredBuiltDependencies:
 onlyBuiltDependencies:
   - '@swc/core'
   - '@tailwindcss/oxide'
+  - bcrypt
