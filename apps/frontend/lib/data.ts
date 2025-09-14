@@ -329,13 +329,23 @@ export async function likePost(postId: string): Promise<{ likeCount: number; isL
     });
 
     if (!res.ok) {
-      throw new Error("Failed to like post");
+      // Try to get detailed error message from response
+      let errorMessage = "Failed to like post";
+      try {
+        const errorData = await res.json();
+        errorMessage = errorData.message || errorMessage;
+      } catch {
+        // If we can't parse the error response, use the status text
+        errorMessage = res.statusText || errorMessage;
+      }
+      throw new Error(errorMessage);
     }
 
     return res.json();
   } catch (error) {
-    console.error(error);
-    return null;
+    console.error("Like post error:", error);
+    // Re-throw the error so the calling component can handle it
+    throw error;
   }
 }
 

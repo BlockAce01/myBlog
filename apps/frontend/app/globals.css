@@ -163,25 +163,21 @@
 
   /* Light mode gradient for PostCard */
   .post-card-gradient {
-    background: #cce0eb;
     background: linear-gradient(0deg, rgb(232, 245, 245, 0.96) 50%, rgba(237, 221, 83, 0) 100%);
   }
 
   /* Light mode hover gradient for PostCard */
   .post-card-gradient-hover {
-    background: rgba(204, 224, 235, 1);
     background: linear-gradient(0deg, rgba(235, 244, 244, 1) 10%, rgba(255, 255, 255, 0) 100%);
   }
 
   /* Dark mode gradient for PostCard */
   .dark .post-card-gradient {
-    background: #070C0E;
     background: linear-gradient(0deg, rgba(7, 12, 14, 0.96) 50%, rgba(237, 221, 83, 0) 100%);
   }
 
   /* Dark mode hover gradient for PostCard */
   .dark .post-card-gradient-hover {
-    background: rgba(7, 12, 14, 1);
     background: linear-gradient(0deg, rgba(7, 12, 14, 1) 10%, rgba(255, 255, 255, 0) 100%);
   }
 }

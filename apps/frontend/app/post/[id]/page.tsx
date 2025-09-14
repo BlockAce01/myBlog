@@ -83,10 +83,16 @@ export default function PostPage() {
 
   const handleLike = async () => {
     if (post) {
-      const result = await likePost(post.id);
-      if (result) {
-        setLiked(result.isLiked);
-        setLikeCount(result.likeCount);
+      try {
+        const result = await likePost(post.id);
+        if (result) {
+          setLiked(result.isLiked);
+          setLikeCount(result.likeCount);
+        }
+      } catch (error) {
+        console.error("Failed to like post:", error);
+        // Show user-friendly error message
+        alert(`Unable to like post: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }
   };
