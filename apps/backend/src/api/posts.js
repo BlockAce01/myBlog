@@ -98,24 +98,42 @@ router.get('/posts', async (req, res) => {
   }
 });
 
-// GET /api/posts/:id - Retrieve a single blog post by ID (AC: 1, 6)
+// GET /api/posts/:id - Retrieve a single blog post by ID or slug (AC: 1, 6)
 router.get('/posts/:id', async (req, res) => {
   try {
     const { id } = req.params;
+    const { admin } = req.query;
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ message: 'Invalid post ID' });
+    let post;
+
+    // Check if it's a valid ObjectId (MongoDB ID)
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      post = await BlogPost.findById(id);
     }
 
-    const post = await BlogPost.findById(id);
-
-    if (post) {
-      res.status(200).json(post);
-    } else {
-      res.status(404).json({ message: 'Post not found' });
+    // If not found by ID, try to find by slug
+    if (!post) {
+      post = await BlogPost.findOne({ slug: id });
     }
+
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    // Check visibility for non-admin users
+    if (admin !== 'true') {
+      const now = new Date();
+      const isVisible = post.status === 'published' ||
+        (post.status === 'scheduled' && post.scheduledPublishDate && post.scheduledPublishDate <= now);
+
+      if (!isVisible) {
+        return res.status(404).json({ message: 'Post not found' });
+      }
+    }
+
+    res.status(200).json(post);
   } catch (error) {
-    console.error('Error fetching post by ID:', error);
+    console.error('Error fetching post:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

@@ -224,6 +224,17 @@ export default function NewBlogPostPage() {
                     {formData.excerpt.length}/500 characters
                   </p>
                 </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="coverPhotoUrl">Cover Photo URL</Label>
+                  <Input
+                    id="coverPhotoUrl"
+                    value={formData.coverPhotoUrl}
+                    onChange={(e) => handleInputChange('coverPhotoUrl', e.target.value)}
+                    placeholder="https://example.com/image.jpg"
+                    disabled={isSubmitting}
+                  />
+                </div>
               </CardContent>
             </Card>
 

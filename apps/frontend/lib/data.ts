@@ -155,11 +155,12 @@ export interface CreateBlogPostRequest {
   coverPhotoUrl: string;
   tags: string[];
   status: 'draft' | 'published' | 'hidden' | 'scheduled';
-  scheduledPublishDate: string;
+  scheduledPublishDate?: string;
 }
 
 export interface UpdateBlogPostRequest extends CreateBlogPostRequest {
   id: string;
+  version?: number;
 }
 
 export async function createBlogPost(postData: CreateBlogPostRequest): Promise<BlogPost | null> {
@@ -212,7 +213,7 @@ export async function updateBlogPost(postData: UpdateBlogPostRequest): Promise<B
         tags: postData.tags,
         status: postData.status,
         scheduledPublishDate: postData.scheduledPublishDate || undefined,
-        version: 0, // Will be set by frontend based on current post version
+        version: postData.version || 0,
       }),
     });
     if (!res.ok) {
@@ -259,11 +260,12 @@ export async function getPosts(admin: boolean = false): Promise<BlogPost[]> {
   }
 }
 
-export async function getPost(id: string): Promise<BlogPost | null> {
+export async function getPost(idOrSlug: string, admin: boolean = false): Promise<BlogPost | null> {
   try {
-    const res = await fetch(`${API_URL}/posts/${id}`);
+    const url = admin ? `${API_URL}/posts/${idOrSlug}?admin=true` : `${API_URL}/posts/${idOrSlug}`;
+    const res = await fetch(url);
     if (!res.ok) {
-      throw new Error(`Failed to fetch post with id ${id}`);
+      throw new Error(`Failed to fetch post with id/slug ${idOrSlug}`);
     }
     return res.json();
   } catch (error) {

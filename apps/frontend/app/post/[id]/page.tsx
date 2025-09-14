@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import ReactMarkdown from "react-markdown";
+import { MarkdownRenderer } from "@/components/markdown-renderer";
 
 import {
   getPost,
@@ -52,13 +52,15 @@ export default function PostPage() {
             await incrementViewCount(normalizedId);
           }
 
-          const [postData, commentsData] = await Promise.all([
-            getPost(normalizedId),
-            getComments(normalizedId),
-          ]);
-          
+          const postData = await getPost(normalizedId);
+
           setPost(postData);
-          setComments(commentsData);
+
+          // Use the actual post ID (not slug) to fetch comments
+          if (postData) {
+            const commentsData = await getComments(postData.id);
+            setComments(commentsData);
+          }
           
           if (postData) {
             setLikeCount(postData.likeCount);
@@ -120,6 +122,17 @@ export default function PostPage() {
   return (
     <Layout>
       <article className="max-w-3xl mx-auto">
+        {/* Cover Photo */}
+        {post.coverPhotoUrl && post.coverPhotoUrl !== "https://via.placeholder.com/800x400?text/No+Image" && (
+          <div className="mb-8 rounded-lg overflow-hidden">
+            <img
+              src={post.coverPhotoUrl}
+              alt={post.title}
+              className="w-full h-auto object-contain"
+            />
+          </div>
+        )}
+
         {/* Post Header */}
         <header className="mb-8">
           <h1 className="text-4xl font-bold font-sans text-foreground mb-4">{post.title}</h1>
@@ -142,10 +155,8 @@ export default function PostPage() {
         </header>
 
         {/* Post Content */}
-        <div className="prose prose-lg max-w-none mb-12">
-          <ReactMarkdown>
-            {post.content}
-          </ReactMarkdown>
+        <div className="mb-12">
+          <MarkdownRenderer content={post.content} />
         </div>
 
         {/* Engagement Section */}

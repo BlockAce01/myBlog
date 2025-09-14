@@ -148,9 +148,10 @@ export default function AdminDashboardPage() {
                     <TableRow>
                       <TableHead>Title</TableHead>
                       <TableHead>Status</TableHead>
+                      <TableHead>Scheduled</TableHead>
                       <TableHead>Views</TableHead>
                       <TableHead>Likes</TableHead>
-                      <TableHead>Published</TableHead>
+                      <TableHead>Last Saved</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -168,19 +169,27 @@ export default function AdminDashboardPage() {
                         <TableCell>
                           <Badge
                             variant={
-                              (post as any).status === 'published' ? 'default' :
-                              (post as any).status === 'scheduled' ? 'outline' :
-                              (post as any).status === 'hidden' ? 'destructive' : 'secondary'
+                              post.status === 'published' ? 'default' :
+                              post.status === 'scheduled' ? 'outline' :
+                              post.status === 'hidden' ? 'destructive' : 'secondary'
                             }
                           >
-                            {(post as any).status === 'published' ? 'Published' :
-                             (post as any).status === 'scheduled' ? 'Scheduled' :
-                             (post as any).status === 'hidden' ? 'Hidden' : 'Draft'}
+                            {post.status === 'published' ? 'Published' :
+                             post.status === 'scheduled' ? 'Scheduled' :
+                             post.status === 'hidden' ? 'Hidden' : 'Draft'}
                           </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {post.status === 'scheduled' && post.scheduledPublishDate
+                            ? formatDate(post.scheduledPublishDate)
+                            : '-'
+                          }
                         </TableCell>
                         <TableCell>{post.viewCount.toLocaleString()}</TableCell>
                         <TableCell>{post.likeCount.toLocaleString()}</TableCell>
-                        <TableCell>{formatDate(post.publicationDate)}</TableCell>
+                        <TableCell>
+                          {post.lastSavedAt ? formatDate(post.lastSavedAt) : formatDate(post.publicationDate)}
+                        </TableCell>
                         <TableCell>
                           <div className="flex items-center space-x-2">
                             <Link href={`/post/${post.id}`} target="_blank">
