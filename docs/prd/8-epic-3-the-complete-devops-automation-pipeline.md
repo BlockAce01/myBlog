@@ -1,6 +1,6 @@
 # Epic 3: The Complete DevOps Automation Pipeline
 
-**Epic Goal:** To take the verified local application and build the entire automated CI/CD pipeline to deploy it to a production-like environment on AWS.
+**Epic Goal:** To take the fully developed and tested application (post-development completion) and build the entire automated CI/CD pipeline to deploy it to a production-like environment on AWS.
 
 **Stories:**
 

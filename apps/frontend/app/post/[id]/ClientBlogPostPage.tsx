@@ -1,7 +1,7 @@
 "use client"
 
 import { notFound } from "next/navigation"
-import { Layout } from "@/components/Layout"
+import { Layout } from "@/components/layout"
 import { LikeButton } from "@/components/like-button"
 import { CommentCard } from "@/components/comment-card"
 import { CommentForm } from "@/components/comment-form"
@@ -61,7 +61,6 @@ export default function ClientBlogPostPage({ params }: BlogPostPageProps) {
           <div className="border-t border-border pt-8">
             <h3 className="text-lg font-semibold text-foreground mb-4">Leave a Comment</h3>
             <CommentForm
-              postId={post.id}
               onSubmit={(name, comment) => {
                 console.log("New comment:", { name, comment, postId: post.id })
                 // In a real app, this would save the comment to a database

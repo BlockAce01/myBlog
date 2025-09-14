@@ -3,7 +3,243 @@ import type { BlogPost, Comment } from "@/lib/types";
 const API_URL = typeof window === 'undefined'
   ? "http://backend:3003/api" // Server-side (inside Docker)
   : "http://localhost:3003/api"; // Client-side (in browser)
-  
+
+// Mock data for development
+export const posts: BlogPost[] = [
+  {
+    id: "1",
+    title: "Getting Started with Next.js",
+    summary: "Learn the basics of Next.js and how to build modern web applications.",
+    content: "Next.js is a powerful React framework that makes building web applications easier and more efficient. In this post, we'll explore the key features and best practices for getting started with Next.js development.",
+    publicationDate: "2024-01-15",
+    viewCount: 1250,
+    likeCount: 45,
+    tags: ["nextjs", "react", "web-development"]
+  },
+  {
+    id: "2",
+    title: "Understanding TypeScript",
+    summary: "A comprehensive guide to TypeScript fundamentals and advanced concepts.",
+    content: "TypeScript is a superset of JavaScript that adds static typing to the language. This post covers everything from basic types to advanced features like generics and decorators.",
+    publicationDate: "2024-01-20",
+    viewCount: 980,
+    likeCount: 32,
+    tags: ["typescript", "javascript", "programming"]
+  }
+];
+
+export const comments: Comment[] = [
+  {
+    id: "1",
+    postId: "1",
+    authorName: "John Doe",
+    commentText: "Great article! Very helpful for beginners.",
+    createdAt: "2024-01-16T10:30:00Z"
+  },
+  {
+    id: "2",
+    postId: "1",
+    authorName: "Jane Smith",
+    commentText: "I learned a lot from this. Thanks for sharing!",
+    createdAt: "2024-01-17T14:20:00Z"
+  }
+];
+
+// Authentication functions
+export interface LoginRequest {
+  username: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  token: string;
+  user: {
+    id: string;
+    username: string;
+  };
+}
+
+export interface RegisterRequest {
+  username: string;
+  email: string;
+  password: string;
+}
+
+export interface RegisterResponse {
+  message: string;
+  user: {
+    id: string;
+    username: string;
+    email: string;
+    role: string;
+  };
+}
+
+export async function login(credentials: LoginRequest): Promise<LoginResponse | null> {
+  try {
+    const res = await fetch(`${API_URL}/auth/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(credentials),
+    });
+    if (!res.ok) {
+      throw new Error("Login failed");
+    }
+    return res.json();
+  } catch (error) {
+    console.error("Login error:", error);
+    return null;
+  }
+}
+
+export async function register(userData: RegisterRequest): Promise<RegisterResponse | null> {
+  try {
+    const res = await fetch(`${API_URL}/auth/register`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(userData),
+    });
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.message || "Registration failed");
+    }
+    return res.json();
+  } catch (error) {
+    console.error("Registration error:", error);
+    return null;
+  }
+}
+
+export function setAuthToken(token: string): void {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('adminToken', token);
+  }
+}
+
+export function getAuthToken(): string | null {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('adminToken');
+  }
+  return null;
+}
+
+export function removeAuthToken(): void {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('adminToken');
+  }
+}
+
+export function isAuthenticated(): boolean {
+  const token = getAuthToken();
+  if (!token) return false;
+
+  try {
+    // Basic JWT validation - check if token exists and hasn't expired
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const currentTime = Date.now() / 1000;
+    return payload.exp > currentTime;
+  } catch {
+    return false;
+  }
+}
+
+// Blog post CRUD operations for admin
+export interface CreateBlogPostRequest {
+  title: string;
+  content: string;
+  excerpt: string;
+  tags: string[];
+  published: boolean;
+}
+
+export interface UpdateBlogPostRequest extends CreateBlogPostRequest {
+  id: string;
+}
+
+export async function createBlogPost(postData: CreateBlogPostRequest): Promise<BlogPost | null> {
+  try {
+    const token = getAuthToken();
+    if (!token) throw new Error("Not authenticated");
+
+    const res = await fetch(`${API_URL}/posts`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        title: postData.title,
+        content: postData.content,
+        summary: postData.excerpt, // Backend expects 'summary' not 'excerpt'
+        coverPhotoUrl: "https://via.placeholder.com/800x400?text=No+Image", // Backend requires this field
+        tags: postData.tags,
+        // Remove 'published' field as backend doesn't use it
+      }),
+    });
+    if (!res.ok) {
+      throw new Error("Failed to create blog post");
+    }
+    return res.json();
+  } catch (error) {
+    console.error("Create blog post error:", error);
+    return null;
+  }
+}
+
+export async function updateBlogPost(postData: UpdateBlogPostRequest): Promise<BlogPost | null> {
+  try {
+    const token = getAuthToken();
+    if (!token) throw new Error("Not authenticated");
+
+    const res = await fetch(`${API_URL}/posts/${postData.id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        title: postData.title,
+        content: postData.content,
+        summary: postData.excerpt, // Map 'excerpt' to 'summary' for backend
+        coverPhotoUrl: "https://via.placeholder.com/800x400?text=No+Image", // Backend requires this field
+        tags: postData.tags,
+        // Remove 'published' field as backend doesn't use it
+      }),
+    });
+    if (!res.ok) {
+      const errorData = await res.text();
+      console.error("Update blog post error response:", errorData);
+      throw new Error(`Failed to update blog post: ${errorData}`);
+    }
+    return res.json();
+  } catch (error) {
+    console.error("Update blog post error:", error);
+    return null;
+  }
+}
+
+export async function deleteBlogPost(id: string): Promise<boolean> {
+  try {
+    const token = getAuthToken();
+    if (!token) throw new Error("Not authenticated");
+
+    const res = await fetch(`${API_URL}/posts/${id}`, {
+      method: "DELETE",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+      },
+    });
+    return res.ok;
+  } catch (error) {
+    console.error("Delete blog post error:", error);
+    return false;
+  }
+}
+
 export async function getPosts(): Promise<BlogPost[]> {
   try {
     const res = await fetch(`${API_URL}/posts`);

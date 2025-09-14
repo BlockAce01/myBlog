@@ -19,7 +19,10 @@ The testing strategy will include both unit tests for individual functions and i
 *   **Rationale:** A comprehensive testing strategy is a hallmark of a professional developer. This approach demonstrates the ability to ensure code quality at multiple levels without the overhead of full end-to-end (E2E) tests for the MVP. All tests will be automated and run as part of the CI/CD pipeline.
 
 ### Additional Technical Assumptions and Requests
-*   All application components (frontend, microservices) will be individually containerized using **Docker**.
+*   **Package Manager**: pnpm exclusively for all dependency management (no npm or yarn).
+*   **Database**: MongoDB Atlas cloud service for all environments (never local MongoDB installation).
+*   **Development Workflow**: Focus on code development and testing before any Docker/build concerns. Containerization occurs only after complete feature development.
+*   All application components (frontend, microservices) will be individually containerized using **Docker** (post-development phase).
 *   All AWS infrastructure will be provisioned and managed via **Terraform** (Infrastructure as Code).
 *   The deployment and configuration management of the services onto the AWS infrastructure will be handled by **Ansible**.
 *   The entire build, test, and deployment process will be automated via **GitHub Actions**.
