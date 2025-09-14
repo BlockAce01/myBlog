@@ -152,8 +152,10 @@ export interface CreateBlogPostRequest {
   title: string;
   content: string;
   excerpt: string;
+  coverPhotoUrl: string;
   tags: string[];
-  published: boolean;
+  status: 'draft' | 'published' | 'hidden' | 'scheduled';
+  scheduledPublishDate: string;
 }
 
 export interface UpdateBlogPostRequest extends CreateBlogPostRequest {
@@ -175,9 +177,10 @@ export async function createBlogPost(postData: CreateBlogPostRequest): Promise<B
         title: postData.title,
         content: postData.content,
         summary: postData.excerpt, // Backend expects 'summary' not 'excerpt'
-        coverPhotoUrl: "https://via.placeholder.com/800x400?text=No+Image", // Backend requires this field
+        coverPhotoUrl: postData.coverPhotoUrl || "https://via.placeholder.com/800x400?text=No+Image",
         tags: postData.tags,
-        // Remove 'published' field as backend doesn't use it
+        status: postData.status,
+        scheduledPublishDate: postData.scheduledPublishDate || undefined,
       }),
     });
     if (!res.ok) {
@@ -205,9 +208,11 @@ export async function updateBlogPost(postData: UpdateBlogPostRequest): Promise<B
         title: postData.title,
         content: postData.content,
         summary: postData.excerpt, // Map 'excerpt' to 'summary' for backend
-        coverPhotoUrl: "https://via.placeholder.com/800x400?text=No+Image", // Backend requires this field
+        coverPhotoUrl: postData.coverPhotoUrl || "https://via.placeholder.com/800x400?text=No+Image",
         tags: postData.tags,
-        // Remove 'published' field as backend doesn't use it
+        status: postData.status,
+        scheduledPublishDate: postData.scheduledPublishDate || undefined,
+        version: 0, // Will be set by frontend based on current post version
       }),
     });
     if (!res.ok) {
@@ -240,9 +245,10 @@ export async function deleteBlogPost(id: string): Promise<boolean> {
   }
 }
 
-export async function getPosts(): Promise<BlogPost[]> {
+export async function getPosts(admin: boolean = false): Promise<BlogPost[]> {
   try {
-    const res = await fetch(`${API_URL}/posts`);
+    const url = admin ? `${API_URL}/posts?admin=true` : `${API_URL}/posts`;
+    const res = await fetch(url);
     if (!res.ok) {
       throw new Error("Failed to fetch posts");
     }

@@ -31,7 +31,7 @@ export default function AdminDashboardPage() {
     try {
       setIsLoading(true);
       setError('');
-      const fetchedPosts = await getPosts();
+      const fetchedPosts = await getPosts(true); // Pass true for admin to get all posts
       setPosts(fetchedPosts);
     } catch (err) {
       console.error('Failed to fetch posts:', err);
@@ -166,8 +166,16 @@ export default function AdminDashboardPage() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge variant={post.tags.includes('published') ? 'default' : 'secondary'}>
-                            {post.tags.includes('published') ? 'Published' : 'Draft'}
+                          <Badge
+                            variant={
+                              (post as any).status === 'published' ? 'default' :
+                              (post as any).status === 'scheduled' ? 'outline' :
+                              (post as any).status === 'hidden' ? 'destructive' : 'secondary'
+                            }
+                          >
+                            {(post as any).status === 'published' ? 'Published' :
+                             (post as any).status === 'scheduled' ? 'Scheduled' :
+                             (post as any).status === 'hidden' ? 'Hidden' : 'Draft'}
                           </Badge>
                         </TableCell>
                         <TableCell>{post.viewCount.toLocaleString()}</TableCell>

@@ -5,12 +5,47 @@ import { Layout } from "@/components/layout"
 import { LikeButton } from "@/components/like-button"
 import { CommentCard } from "@/components/comment-card"
 import { CommentForm } from "@/components/comment-form"
+import { CodeBlock } from "@/components/code-block"
 import { posts, comments } from "@/lib/data"
 
 interface BlogPostPageProps {
   params: {
     id: string
   }
+}
+
+function renderContent(content: string) {
+  // Split content by code blocks (```language\ncode\n```)
+  const parts = content.split(/(```[\s\S]*?```)/g);
+
+  return parts.map((part, index) => {
+    // Check if this part is a code block
+    const codeBlockMatch = part.match(/^```(\w+)?\n([\s\S]*?)```$/);
+    if (codeBlockMatch) {
+      const [, language = 'javascript', code] = codeBlockMatch;
+      return (
+        <CodeBlock
+          key={index}
+          code={code.trim()}
+          language={language}
+          className="my-4"
+        />
+      );
+    }
+
+    // Regular text - split by newlines and render paragraphs
+    const paragraphs = part.split('\n\n').filter(p => p.trim());
+    return paragraphs.map((paragraph, pIndex) => (
+      <p key={`${index}-${pIndex}`} className="mb-4">
+        {paragraph.split('\n').map((line, lIndex) => (
+          <span key={lIndex}>
+            {line}
+            {lIndex < paragraph.split('\n').length - 1 && <br />}
+          </span>
+        ))}
+      </p>
+    ));
+  });
 }
 
 export default function ClientBlogPostPage({ params }: BlogPostPageProps) {
@@ -34,7 +69,9 @@ export default function ClientBlogPostPage({ params }: BlogPostPageProps) {
 
         {/* Post Content */}
         <div className="prose prose-gray dark:prose-invert max-w-none mb-8">
-          <div className="whitespace-pre-wrap font-serif leading-relaxed">{post.content}</div>
+          <div className="font-serif leading-relaxed">
+            {renderContent(post.content)}
+          </div>
         </div>
 
         {/* Like Button */}
