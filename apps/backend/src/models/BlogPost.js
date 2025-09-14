@@ -10,6 +10,15 @@ const blogPostSchema = new mongoose.Schema({
   viewCount: { type: Number, default: 0 },
   likeCount: { type: Number, default: 0 },
   likedBy: { type: [String], default: [] }, // Track user IDs who liked this post
+  status: {
+    type: String,
+    enum: ['draft', 'published', 'hidden', 'scheduled'],
+    default: 'draft'
+  },
+  scheduledPublishDate: { type: Date },
+  slug: { type: String, required: true, unique: true },
+  lastSavedAt: { type: Date, default: Date.now },
+  version: { type: Number, default: 0 }, // For optimistic locking
 }, {
   toJSON: { virtuals: true }
 });
