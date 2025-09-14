@@ -8,4 +8,4 @@ web-bundles
 .bmad-infrastructure-devops
 .env
 .pnpm-store/
-.husky/
+.husky/** */
