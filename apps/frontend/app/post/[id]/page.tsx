@@ -39,17 +39,22 @@ export default function PostPage() {
         try {
           // Normalize ID to lowercase for consistent matching
           const normalizedId = id.toLowerCase();
-          
+
           // Check session storage BEFORE fetching data
           const viewedPosts = JSON.parse(sessionStorage.getItem('blogPostViews') || '{}');
-          
+
           if (!viewedPosts[normalizedId]) {
             // Immediately mark as viewed to prevent concurrent increments
             viewedPosts[normalizedId] = true;
             sessionStorage.setItem('blogPostViews', JSON.stringify(viewedPosts));
-            
+
             // Then increment the view count
-            await incrementViewCount(normalizedId);
+            try {
+              await incrementViewCount(normalizedId);
+            } catch (viewError) {
+              console.error('Failed to increment view count:', viewError);
+              // Don't throw here - we don't want view count errors to break the page load
+            }
           }
 
           const postData = await getPost(normalizedId);

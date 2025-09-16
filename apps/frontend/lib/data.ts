@@ -318,9 +318,11 @@ export async function incrementViewCount(postId: string): Promise<void> {
       method: "POST",
     });
     if (!res.ok) {
-      throw new Error("Failed to increment view count");
+      const errorText = await res.text();
+      throw new Error(`Failed to increment view count: ${res.status} ${errorText}`);
     }
   } catch (error) {
-    console.error(error);
+    console.error('Error incrementing view count:', error);
+    throw error; // Re-throw so calling code can handle it
   }
 }
