@@ -139,7 +139,7 @@ export default function PostPage() {
             <img
               src={post.coverPhotoUrl}
               alt={post.title}
-              className="w-full h-auto object-cover max-h-64 sm:max-h-80 lg:max-h-96"
+              className="w-full h-auto object-inherit max-h-64 sm:max-h-80 lg:max-h-96"
             />
           </div>
         )}
