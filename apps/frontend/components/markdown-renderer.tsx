@@ -3,6 +3,7 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import { CodeBlock } from './code-block';
+import { HTMLCodeBlock } from './HTMLCodeBlock';
 import { cn } from '@/lib/utils';
 
 interface MarkdownRendererProps {
@@ -11,6 +12,42 @@ interface MarkdownRendererProps {
 }
 
 export function MarkdownRenderer({ content, className }: MarkdownRendererProps) {
+  // Check if content contains HTML tags (from TinyMCE)
+  const hasHTMLTags = /<[^>]*>/.test(content);
+
+  if (hasHTMLTags) {
+    // For HTML content from TinyMCE, we need to handle it specially
+    // Split content by code blocks and render them separately
+    const parts = content.split(/(<pre[^>]*>[\s\S]*?<\/pre>)/g);
+
+    return (
+      <div className={cn("prose prose-lg max-w-none", className)} style={{
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif',
+        lineHeight: '1.7',
+        color: '#374151'
+      }}>
+        {parts.map((part, index) => {
+          // Check if this part is a code block
+          const codeBlockMatch = part.match(/^<pre[^>]*>([\s\S]*?)<\/pre>$/);
+
+          if (codeBlockMatch) {
+            return <HTMLCodeBlock key={index} htmlContent={part} />;
+          }
+
+          // Regular HTML content
+          if (part.trim()) {
+            return (
+              <div key={index} dangerouslySetInnerHTML={{ __html: part }} />
+            );
+          }
+
+          return null;
+        })}
+      </div>
+    );
+  }
+
+  // For traditional Markdown content, use ReactMarkdown
   return (
     <div className={cn("prose prose-lg max-w-none", className)}>
       <ReactMarkdown
@@ -48,12 +85,14 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
 
             if (!isInline && language) {
               return (
-                <CodeBlock
-                  code={actualCode}
-                  language={language}
-                  showLineNumbers={showLineNumbers}
-                  title={title}
-                />
+                <div key={node?.position?.start?.offset || Math.random()} className="my-4">
+                  <CodeBlock
+                    code={actualCode}
+                    language={language}
+                    showLineNumbers={showLineNumbers}
+                    title={title}
+                  />
+                </div>
               );
             }
 

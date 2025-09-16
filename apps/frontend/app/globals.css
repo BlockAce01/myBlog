@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "../styles/code-blocks.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -155,6 +156,77 @@
 
   .prose pre {
     @apply bg-card border rounded-lg p-4 overflow-x-auto;
+  }
+
+  /* Mobile typography improvements */
+  @media (max-width: 640px) {
+    .prose h1 {
+      @apply text-2xl leading-tight;
+    }
+
+    .prose h2 {
+      @apply text-xl leading-tight;
+    }
+
+    .prose h3 {
+      @apply text-lg leading-snug;
+    }
+
+    .prose p {
+      @apply text-base leading-relaxed;
+    }
+
+    .prose blockquote {
+      @apply px-3 py-2 text-sm;
+    }
+
+    .prose code {
+      @apply text-xs px-1 py-0.5;
+    }
+
+    .prose pre {
+      @apply p-3 text-sm;
+    }
+
+    .prose ul,
+    .prose ol {
+      @apply pl-4;
+    }
+
+    .prose li {
+      @apply mb-1;
+    }
+  }
+
+  /* Override prose styles for code blocks to use our enhanced styling */
+  .prose pre[class*="language-"] {
+    @apply bg-gray-900 text-gray-100 p-4 overflow-x-auto text-sm leading-relaxed border-0 rounded-none;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .prose pre[class*="language-"] code {
+    @apply bg-transparent p-0 border-0 rounded-none text-sm leading-relaxed;
+    width: 100%;
+    max-width: none;
+    white-space: pre;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+  }
+
+  /* Mobile prose code block adjustments */
+  @media (max-width: 640px) {
+    .prose pre[class*="language-"] {
+      @apply p-3 text-sm;
+      font-size: 0.8125rem;
+      line-height: 1.5;
+    }
+
+    .prose pre[class*="language-"] code {
+      font-size: 0.8125rem;
+      line-height: 1.5;
+    }
   }
 
   .prose a {
