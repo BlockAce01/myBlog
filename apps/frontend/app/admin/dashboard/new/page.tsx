@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Loader2, ArrowLeft, Save } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { createBlogPost } from '@/lib/data';
+import { getTextContentFromHtml } from '@/lib/html-utils';
 import RichTextEditor from '@/components/RichTextEditor';
 
 export default function NewBlogPostPage() {
@@ -258,7 +259,7 @@ export default function NewBlogPostPage() {
                     <p className="text-sm text-red-500">{errors.content}</p>
                   )}
                   <p className="text-sm text-gray-500">
-                    {formData.content.replace(/<[^>]*>/g, '').length}/50,000 characters (HTML tags excluded)
+                    {getTextContentFromHtml(formData.content).length}/50,000 characters (HTML tags excluded)
                   </p>
                 </div>
               </CardContent>
