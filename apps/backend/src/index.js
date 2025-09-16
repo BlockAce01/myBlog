@@ -3,6 +3,7 @@ require('dotenv').config();
 const express = require('express');
 const cron = require('node-cron');
 const { connectDB, disconnectDB } = require('./utils/db');
+const { getConnected } = require('./utils/connection-status');
 const helloRouter = require('./api/hello');
 const postsRouter = require('./api/posts');
 const imagesRouter = require('./api/images');
@@ -11,6 +12,8 @@ const authRouter = require('./api/auth/auth'); // Import auth router
 const BlogPost = require('./models/BlogPost');
 require('./models/Comment');
 require('./models/User'); // Ensure User model is loaded
+
+
 
 const app = express();
 const cors = require('cors');
@@ -38,6 +41,15 @@ const startServer = async () => {
     // Scheduled publishing cron job - runs every minute
     cron.schedule('* * * * *', async () => {
       try {
+        // Check if MongoDB is connected before executing database operations
+        const isConnected = getConnected();
+        console.log('Cron job running - DB connected status:', isConnected);
+        if (!isConnected) {
+          console.log('Skipping scheduled publishing - MongoDB not connected');
+          return;
+        }
+
+        console.log('Executing scheduled publishing database operation...');
         const now = new Date();
         const result = await BlogPost.updateMany(
           {
@@ -52,9 +64,14 @@ const startServer = async () => {
 
         if (result.modifiedCount > 0) {
           console.log(`Published ${result.modifiedCount} scheduled posts`);
+        } else {
+          console.log('No scheduled posts to publish');
         }
       } catch (error) {
         console.error('Error in scheduled publishing:', error);
+        // Reset connection flag on database error
+        const { setConnected } = require('./utils/connection-status');
+        setConnected(false);
       }
     });
 

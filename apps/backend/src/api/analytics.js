@@ -8,21 +8,31 @@ router.post('/views/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ message: 'Invalid post ID' });
+    let post;
+
+    // Try to find by ObjectID first
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      post = await BlogPost.findById(id);
     }
 
-    const updatedPost = await BlogPost.findByIdAndUpdate(
-      id,
-      { $inc: { viewCount: 1 } },
-      { new: true }
-    );
-
-    if (updatedPost) {
-      res.status(200).json({ message: 'View count incremented', viewCount: updatedPost.viewCount });
-    } else {
-      res.status(404).json({ message: 'Post not found' });
+    // If not found by ObjectID, try to find by slug
+    if (!post) {
+      post = await BlogPost.findOne({ slug: id });
     }
+
+    // If still not found, return 404
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    // Increment view count
+    post.viewCount = (post.viewCount || 0) + 1;
+    await post.save();
+
+    res.status(200).json({
+      message: 'View count incremented',
+      viewCount: post.viewCount
+    });
   } catch (error) {
     console.error('Error incrementing view count:', error);
     res.status(500).json({ message: 'Server error' });
