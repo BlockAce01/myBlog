@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { MarkdownRenderer } from "@/components/markdown-renderer";
+import HTMLRenderer from "@/components/HTMLRenderer";
 
 import {
   getPost,
@@ -162,7 +162,7 @@ export default function PostPage() {
 
         {/* Post Content */}
         <div className="mb-12">
-          <MarkdownRenderer content={post.content} />
+          <HTMLRenderer html={post.content} />
         </div>
 
         {/* Engagement Section */}
