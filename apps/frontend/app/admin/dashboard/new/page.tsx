@@ -10,9 +10,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, ArrowLeft, Save } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { createBlogPost } from '@/lib/data';
+import RichTextEditor from '@/components/RichTextEditor';
 
 export default function NewBlogPostPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
@@ -22,8 +24,10 @@ export default function NewBlogPostPage() {
     title: '',
     content: '',
     excerpt: '',
+    coverPhotoUrl: '',
     tags: [] as string[],
-    published: false,
+    status: 'draft' as 'draft' | 'published' | 'hidden' | 'scheduled',
+    scheduledPublishDate: '',
   });
 
   const [tagInput, setTagInput] = useState('');
@@ -100,10 +104,11 @@ export default function NewBlogPostPage() {
     setTagInput(e.target.value);
   };
 
-  const handleCheckboxChange = (checked: boolean | 'indeterminate') => {
+  const handleStatusChange = (status: 'draft' | 'published' | 'hidden' | 'scheduled') => {
     setFormData((prev: typeof formData) => ({
       ...prev,
-      published: Boolean(checked),
+      status,
+      scheduledPublishDate: status === 'scheduled' ? prev.scheduledPublishDate : '',
     }));
   };
 
@@ -220,6 +225,17 @@ export default function NewBlogPostPage() {
                     {formData.excerpt.length}/500 characters
                   </p>
                 </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="coverPhotoUrl">Cover Photo URL</Label>
+                  <Input
+                    id="coverPhotoUrl"
+                    value={formData.coverPhotoUrl}
+                    onChange={(e) => handleInputChange('coverPhotoUrl', e.target.value)}
+                    placeholder="https://example.com/image.jpg"
+                    disabled={isSubmitting}
+                  />
+                </div>
               </CardContent>
             </Card>
 
@@ -227,25 +243,22 @@ export default function NewBlogPostPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Content</CardTitle>
-                <CardDescription>Write the main content of your blog post</CardDescription>
+                <CardDescription>Write the main content of your blog post using the rich text editor</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
                   <Label htmlFor="content">Content *</Label>
-                  <Textarea
-                    id="content"
+                  <RichTextEditor
                     value={formData.content}
-                    onChange={(e) => handleInputChange('content', e.target.value)}
-                    className={errors.content ? 'border-red-500' : ''}
-                    placeholder="Write your blog post content here..."
-                    rows={15}
+                    onChange={(value) => handleInputChange('content', value)}
                     disabled={isSubmitting}
+                    height={500}
                   />
                   {errors.content && (
                     <p className="text-sm text-red-500">{errors.content}</p>
                   )}
                   <p className="text-sm text-gray-500">
-                    {formData.content.length}/50,000 characters
+                    {formData.content.replace(/<[^>]*>/g, '').length}/50,000 characters (HTML tags excluded)
                   </p>
                 </div>
               </CardContent>
@@ -304,22 +317,45 @@ export default function NewBlogPostPage() {
                 <CardTitle>Publishing Options</CardTitle>
                 <CardDescription>Configure how and when your blog post will be published</CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="published"
-                    checked={formData.published}
-                    onCheckedChange={handleCheckboxChange}
-                    disabled={isSubmitting}
-                  />
-                  <Label htmlFor="published">Publish immediately</Label>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="status">Status</Label>
+                  <Select value={formData.status} onValueChange={handleStatusChange} disabled={isSubmitting}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="draft">Draft</SelectItem>
+                      <SelectItem value="published">Published</SelectItem>
+                      <SelectItem value="hidden">Hidden</SelectItem>
+                      <SelectItem value="scheduled">Scheduled</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-                <p className="text-sm text-gray-500 mt-2">
-                  {formData.published
-                    ? 'This post will be published and visible to readers immediately.'
-                    : 'This post will be saved as a draft and not visible to readers.'
-                  }
-                </p>
+
+                {formData.status === 'scheduled' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="scheduledPublishDate">Publish Date & Time</Label>
+                    <Input
+                      id="scheduledPublishDate"
+                      type="datetime-local"
+                      value={formData.scheduledPublishDate}
+                      onChange={(e) => handleInputChange('scheduledPublishDate', e.target.value)}
+                      disabled={isSubmitting}
+                      min={new Date().toISOString().slice(0, 16)}
+                    />
+                    <p className="text-sm text-gray-500">
+                      Select when this post should be automatically published
+                    </p>
+                  </div>
+                )}
+
+                <div className="text-sm text-gray-500">
+                  {formData.status === 'draft' && 'This post will be saved as a draft and not visible to readers.'}
+                  {formData.status === 'published' && 'This post will be published and visible to readers immediately.'}
+                  {formData.status === 'hidden' && 'This post will be saved but hidden from readers.'}
+                  {formData.status === 'scheduled' && 'This post will be published automatically at the scheduled time.'}
+                </div>
               </CardContent>
             </Card>
 
