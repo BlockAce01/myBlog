@@ -32,13 +32,9 @@ import { Button } from '@/components/ui/button';
 import { Copy, Check, Code2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-interface CodeBlockProps {
-  code: string;
-  language?: string;
+interface HTMLCodeBlockProps {
+  htmlContent: string;
   className?: string;
-  showLineNumbers?: boolean;
-  title?: string;
-  htmlContent?: string; // For HTML content from TinyMCE
 }
 
 const languageNames: Record<string, string> = {
@@ -71,51 +67,121 @@ const languageNames: Record<string, string> = {
   mongodb: 'MongoDB',
 };
 
-export function CodeBlock({
-  code,
-  language = 'javascript',
-  className = '',
-  showLineNumbers = false,
-  title
-}: CodeBlockProps) {
+export function HTMLCodeBlock({ htmlContent, className = '' }: HTMLCodeBlockProps) {
   const [copied, setCopied] = useState(false);
-  const [highlightedCode, setHighlightedCode] = useState(code);
+  const [language, setLanguage] = useState('javascript');
+  const [title, setTitle] = useState('');
+  const [showLineNumbers, setShowLineNumbers] = useState(false);
+  const [codeContent, setCodeContent] = useState('');
+  const [highlightedCode, setHighlightedCode] = useState('');
 
-  // Highlight code after component mounts to avoid hydration issues
+  // Parse HTML content and highlight code after component mounts
   useEffect(() => {
-    try {
-      const highlighted = Prism.highlight(
-        code,
-        Prism.languages[language] || Prism.languages.javascript,
-        language
-      );
+    // Parse HTML content from TinyMCE
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(htmlContent, 'text/html');
 
-      if (showLineNumbers) {
-        // Add line numbers to the highlighted code
-        const lines = highlighted.split('\n');
-        const numberedLines = lines.map((line, index) => {
-          const lineNumber = index + 1;
-          return `<span class="line-number">${lineNumber}</span>${line}`;
-        }).join('\n');
-        setHighlightedCode(numberedLines);
-      } else {
-        setHighlightedCode(highlighted);
+    // Extract code content and language
+    const preElement = doc.querySelector('pre');
+    const codeElement = doc.querySelector('code');
+
+    if (preElement || codeElement) {
+      let lang = 'javascript';
+      let titleText = '';
+      let lineNumbers = false;
+
+      // Get language from class (e.g., "language-javascript")
+      const langClass = preElement?.className || codeElement?.className || '';
+      const langMatch = langClass.match(/language-(\w+)/);
+      if (langMatch) {
+        lang = langMatch[1];
       }
-    } catch (error) {
-      // Fallback to plain text if highlighting fails
-      setHighlightedCode(code);
+
+      // Check for line numbers class
+      if (langClass.includes('line-numbers')) {
+        lineNumbers = true;
+      }
+
+      // Get code content
+      const content = (codeElement?.textContent || preElement?.textContent || '').trim();
+
+      // Check for title in first line
+      const lines = content.split('\n');
+      if (lines.length > 0) {
+        const firstLine = lines[0];
+        const titleMatch = firstLine.match(/^\/\/\s*title:\s*(.+)$/i);
+        if (titleMatch) {
+          titleText = titleMatch[1].trim();
+          // Remove title line from code
+          const actualCode = lines.slice(1).join('\n');
+          setCodeContent(actualCode);
+        } else {
+          setCodeContent(content);
+        }
+      } else {
+        setCodeContent(content);
+      }
+
+      setLanguage(lang);
+      setTitle(titleText);
+      setShowLineNumbers(lineNumbers);
+
+      // Highlight code
+      try {
+        const highlighted = Prism.highlight(
+          content,
+          Prism.languages[lang] || Prism.languages.javascript,
+          lang
+        );
+
+        if (lineNumbers) {
+          // Add line numbers to the highlighted code
+          const lines = highlighted.split('\n');
+          const numberedLines = lines.map((line, index) => {
+            const lineNumber = index + 1;
+            return `<span class="line-number">${lineNumber}</span>${line}`;
+          }).join('\n');
+          setHighlightedCode(numberedLines);
+        } else {
+          setHighlightedCode(highlighted);
+        }
+      } catch (error) {
+        // Fallback to plain text if highlighting fails
+        setHighlightedCode(content);
+      }
+    } else {
+      // Fallback: show the raw HTML content
+      setHighlightedCode(htmlContent);
     }
-  }, [code, language, showLineNumbers]);
+  }, [htmlContent]);
 
   const copyToClipboard = async () => {
     try {
-      await navigator.clipboard.writeText(code);
+      // Extract plain text from HTML content
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(htmlContent, 'text/html');
+      const codeElement = doc.querySelector('code') || doc.querySelector('pre');
+      const codeText = (codeElement?.textContent || '').trim();
+
+      if (!codeText) {
+        // Fallback: try to extract from the highlighted code
+        const fallbackText = highlightedCode.replace(/<[^>]*>/g, '').trim();
+        await navigator.clipboard.writeText(fallbackText || htmlContent);
+      } else {
+        await navigator.clipboard.writeText(codeText);
+      }
+
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       // Fallback for older browsers
       const textArea = document.createElement('textarea');
-      textArea.value = code;
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(htmlContent, 'text/html');
+      const codeElement = doc.querySelector('code') || doc.querySelector('pre');
+      const codeText = (codeElement?.textContent || '').trim();
+
+      textArea.value = codeText || highlightedCode.replace(/<[^>]*>/g, '').trim() || htmlContent;
       document.body.appendChild(textArea);
       textArea.select();
       document.execCommand('copy');
@@ -170,7 +236,7 @@ export function CodeBlock({
         )}>
           <code
             className={`language-${language}`}
-            dangerouslySetInnerHTML={{ __html: highlightedCode }}
+            dangerouslySetInnerHTML={{ __html: highlightedCode || 'No content to display' }}
             suppressHydrationWarning
           />
         </pre>

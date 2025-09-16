@@ -4,46 +4,9 @@ const API_URL = typeof window === 'undefined'
   ? "http://backend:3003/api" // Server-side (inside Docker)
   : "http://localhost:3003/api"; // Client-side (in browser)
 
-// Mock data for development
-export const posts: BlogPost[] = [
-  {
-    id: "1",
-    title: "Getting Started with Next.js",
-    summary: "Learn the basics of Next.js and how to build modern web applications.",
-    content: "Next.js is a powerful React framework that makes building web applications easier and more efficient. In this post, we'll explore the key features and best practices for getting started with Next.js development.",
-    publicationDate: "2024-01-15",
-    viewCount: 1250,
-    likeCount: 45,
-    tags: ["nextjs", "react", "web-development"]
-  },
-  {
-    id: "2",
-    title: "Understanding TypeScript",
-    summary: "A comprehensive guide to TypeScript fundamentals and advanced concepts.",
-    content: "TypeScript is a superset of JavaScript that adds static typing to the language. This post covers everything from basic types to advanced features like generics and decorators.",
-    publicationDate: "2024-01-20",
-    viewCount: 980,
-    likeCount: 32,
-    tags: ["typescript", "javascript", "programming"]
-  }
-];
-
-export const comments: Comment[] = [
-  {
-    id: "1",
-    postId: "1",
-    authorName: "John Doe",
-    commentText: "Great article! Very helpful for beginners.",
-    createdAt: "2024-01-16T10:30:00Z"
-  },
-  {
-    id: "2",
-    postId: "1",
-    authorName: "Jane Smith",
-    commentText: "I learned a lot from this. Thanks for sharing!",
-    createdAt: "2024-01-17T14:20:00Z"
-  }
-];
+// Mock data removed - using API only
+export const posts: BlogPost[] = [];
+export const comments: Comment[] = [];
 
 // Authentication functions
 export interface LoginRequest {
