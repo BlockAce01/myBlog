@@ -1,0 +1,439 @@
+/* Enhanced Code Block Styles */
+
+/* Line Numbers */
+pre[class*="language-"] {
+  counter-reset: line-number;
+}
+
+pre[class*="language-"] code {
+  display: block;
+  position: relative;
+}
+
+pre[class*="language-"] .line-number {
+  position: absolute;
+  left: 0;
+  width: 3em;
+  padding-right: 0.5em;
+  text-align: right;
+  color: #666;
+  font-size: 0.85em;
+  line-height: inherit;
+  user-select: none;
+}
+
+/* Copy Button Enhancements */
+.code-block-container {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.code-block-copy-button {
+  position: sticky;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 10;
+  opacity: 1;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.code-block-container:hover .code-block-copy-button {
+  opacity: 1;
+}
+
+/* Enhanced Header Styles */
+.code-block-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 1rem;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+  border-top-left-radius: 0.5rem;
+  border-top-right-radius: 0.5rem;
+}
+
+.dark .code-block-header {
+  background-color: #2d3748;
+  border-color: #4a5568;
+}
+
+.code-block-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #4a5568;
+}
+
+.dark .code-block-title {
+  color: #e2e8f0;
+}
+
+.code-block-language {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #718096;
+  background-color: #edf2f7;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  text-transform: uppercase;
+}
+
+.dark .code-block-language {
+  color: #a0aec0;
+  background-color: #4a5568;
+}
+
+/* Scrollbar Styling */
+pre[class*="language-"]::-webkit-scrollbar {
+  height: 8px;
+}
+
+pre[class*="language-"]::-webkit-scrollbar-track {
+  background: #2d3748;
+  border-radius: 4px;
+}
+
+pre[class*="language-"]::-webkit-scrollbar-thumb {
+  background: #4a5568;
+  border-radius: 4px;
+}
+
+pre[class*="language-"]::-webkit-scrollbar-thumb:hover {
+  background: #718096;
+}
+
+/* Copy Success Animation */
+.copy-success {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 11;
+  background-color: #48bb78;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  animation: fadeInOut 2s ease-in-out;
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translateY(-10px); }
+  20% { opacity: 1; transform: translateY(0); }
+  80% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-10px); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .code-block-header {
+    padding: 0.5rem 0.75rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .code-block-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  .code-block-language {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    align-self: flex-start;
+  }
+
+  .code-block-copy-button {
+    align-self: flex-end;
+    margin-top: -0.25rem;
+    min-width: 2rem;
+    min-height: 2rem;
+  }
+
+  /* Code content responsive adjustments */
+  pre[class*="language-"] {
+    font-size: 0.8125rem; /* 13px */
+    line-height: 1.5;
+    padding: 0.875rem;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    white-space: pre;
+    -webkit-overflow-scrolling: touch;
+    box-sizing: border-box;
+  }
+
+  /* Ensure code content stays within bounds */
+  pre[class*="language-"] code {
+    width: 100%;
+    max-width: none;
+    white-space: pre;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+  }
+
+  /* Line numbers on mobile */
+  pre[class*="language-"] .line-number {
+    left: 0.5rem;
+    width: 2rem;
+    font-size: 0.75rem;
+    padding-right: 0.25rem;
+  }
+
+  /* Adjust padding when line numbers are present */
+  pre[class*="language-"].pl-12 {
+    padding-left: 3rem;
+  }
+
+  /* Copy button positioning on mobile */
+  .code-block-copy-button {
+    top: 0.5rem;
+    right: 0.5rem;
+    opacity: 0.9;
+  }
+
+  .code-block-container:hover .code-block-copy-button {
+    opacity: 1;
+  }
+
+  /* Ensure code blocks don't overflow container */
+  .code-block-container {
+    margin: 1rem 0;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+}
+
+@media (max-width: 640px) {
+  .code-block-header {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .code-block-title {
+    font-size: 0.8125rem;
+  }
+
+  .code-block-language {
+    font-size: 0.6875rem;
+    padding: 0.1875rem 0.375rem;
+  }
+
+  pre[class*="language-"] {
+    font-size: 0.75rem; /* 12px */
+    line-height: 1.3;
+    padding: 0.625rem;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    white-space: pre;
+    -webkit-overflow-scrolling: touch;
+    box-sizing: border-box;
+  }
+
+  /* Ensure code content stays within bounds */
+  pre[class*="language-"] code {
+    width: 100%;
+    max-width: none;
+    white-space: pre;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+  }
+
+  /* Smaller line numbers on very small screens */
+  pre[class*="language-"] .line-number {
+    left: 0.375rem;
+    width: 1.75rem;
+    font-size: 0.6875rem;
+  }
+
+  pre[class*="language-"].pl-12 {
+    padding-left: 2.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .code-block-header {
+    padding: 0.375rem 0.5rem;
+    gap: 0.375rem;
+  }
+
+  .code-block-title {
+    font-size: 0.75rem;
+    line-height: 1.2;
+  }
+
+  .code-block-language {
+    font-size: 0.625rem;
+    padding: 0.125rem 0.25rem;
+  }
+
+  pre[class*="language-"] {
+    font-size: 0.6875rem; /* 11px */
+    line-height: 1.2;
+    padding: 0.5rem;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    white-space: pre;
+    -webkit-overflow-scrolling: touch;
+    box-sizing: border-box;
+    /* Ensure no horizontal overflow on mobile */
+    min-width: 0;
+    word-break: break-all;
+  }
+
+  /* Ensure code content stays within bounds */
+  pre[class*="language-"] code {
+    width: 100%;
+    max-width: none;
+    white-space: pre;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-all;
+    /* Prevent any overflow */
+    display: block;
+    min-width: 0;
+  }
+
+  .code-block-copy-button {
+    top: 0.375rem;
+    right: 0.375rem;
+    width: 1.75rem;
+    height: 1.75rem;
+    /* Ensure button doesn't cause overflow */
+    position: absolute;
+    z-index: 10;
+  }
+
+  .code-block-copy-button svg {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+
+  /* Copy success indicator on mobile */
+  .copy-success {
+    top: 0.375rem;
+    right: 0.375rem;
+    padding: 0.1875rem 0.375rem;
+    font-size: 0.625rem;
+    /* Ensure it doesn't overflow */
+    position: absolute;
+    z-index: 11;
+    max-width: calc(100% - 1rem);
+  }
+
+  /* Extra small mobile phones */
+  @media (max-width: 360px) {
+    .code-block-header {
+      padding: 0.25rem 0.375rem;
+    }
+
+    .code-block-title {
+      font-size: 0.6875rem;
+    }
+
+    .code-block-language {
+      font-size: 0.5625rem;
+      padding: 0.125rem 0.1875rem;
+    }
+
+    pre[class*="language-"] {
+      font-size: 0.625rem; /* 10px */
+      padding: 0.375rem;
+    }
+
+    .code-block-copy-button {
+      width: 1.5rem;
+      height: 1.5rem;
+      top: 0.25rem;
+      right: 0.25rem;
+    }
+
+    .code-block-copy-button svg {
+      width: 0.75rem;
+      height: 0.75rem;
+    }
+  }
+}
+
+/* Touch-friendly interactions */
+@media (hover: none) and (pointer: coarse) {
+  .code-block-copy-button {
+    opacity: 0.9 !important;
+  }
+
+  .code-block-container:hover .code-block-copy-button {
+    opacity: 0.9 !important;
+  }
+}
+
+/* Mobile phone specific optimizations */
+@media only screen and (max-device-width: 480px) {
+  /* Ensure code blocks never overflow on mobile phones */
+  .code-block-container {
+    margin-left: -0.5rem;
+    margin-right: -0.5rem;
+    width: calc(100% + 1rem);
+    max-width: calc(100% + 1rem);
+  }
+
+  /* Prevent any horizontal scrolling issues */
+  pre[class*="language-"] {
+    -webkit-overflow-scrolling: touch;
+    -ms-overflow-style: -ms-autohiding-scrollbar;
+    scrollbar-width: thin;
+  }
+
+  /* Ensure buttons are properly positioned */
+  .code-block-copy-button {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* iOS specific fixes */
+@supports (-webkit-touch-callout: none) {
+  .code-block-container {
+    -webkit-transform: translateZ(0);
+  }
+
+  pre[class*="language-"] {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .code-block-header {
+    border-color: currentColor;
+  }
+
+  pre[class*="language-"] {
+    border: 1px solid currentColor;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .code-block-copy-button,
+  .copy-success {
+    transition: none;
+  }
+
+  .copy-success {
+    animation: none;
+  }
+}
