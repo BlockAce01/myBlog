@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "../styles/code-blocks.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -14,7 +15,7 @@
   --primary-foreground: oklch(1 0 0);
   --secondary: oklch(0.55 0.15 270);
   --secondary-foreground: oklch(1 0 0);
-  --muted: oklch(0.96 0.01 200);
+  --muted: oklch(96.04% 0.00958 197.626);
   --muted-foreground: oklch(0.45 0.02 220);
   --accent: oklch(0.55 0.15 270);
   --accent-foreground: oklch(1 0 0);
@@ -53,7 +54,7 @@
   --primary-foreground: oklch(0.1 0.01 220);
   --secondary: oklch(0.6 0.15 270);
   --secondary-foreground: oklch(1 0 0);
-  --muted: oklch(0.15 0.01 220);
+  --muted: oklch(14.958% 0.00957 222.987);
   --muted-foreground: oklch(0.65 0.02 200);
   --accent: oklch(0.6 0.15 270);
   --accent-foreground: oklch(1 0 0);
@@ -138,11 +139,35 @@
   .prose h4,
   .prose h5,
   .prose h6 {
-    @apply text-foreground font-sans;
+    @apply text-foreground font-sans font-semibold;
+  }
+
+  .prose h1 {
+    @apply text-3xl md:text-4xl font-bold mb-6 mt-8 first:mt-0;
+  }
+
+  .prose h2 {
+    @apply text-2xl md:text-3xl font-bold mb-4 mt-6;
+  }
+
+  .prose h3 {
+    @apply text-xl md:text-2xl font-semibold mb-3 mt-5;
+  }
+
+  .prose h4 {
+    @apply text-lg md:text-xl font-semibold mb-2 mt-4;
+  }
+
+  .prose h5 {
+    @apply text-base md:text-lg font-semibold mb-2 mt-3;
+  }
+
+  .prose h6 {
+    @apply text-sm md:text-base font-semibold mb-2 mt-3;
   }
 
   .prose p {
-    @apply text-foreground/90 font-serif leading-relaxed;
+    @apply text-foreground/90 font-serif leading-relaxed mb-4 last:mb-0;
   }
 
   .prose blockquote {
@@ -157,7 +182,143 @@
     @apply bg-card border rounded-lg p-4 overflow-x-auto;
   }
 
+  /* Mobile typography improvements */
+  @media (max-width: 640px) {
+    .prose h1 {
+      @apply text-2xl leading-tight;
+    }
+
+    .prose h2 {
+      @apply text-xl leading-tight;
+    }
+
+    .prose h3 {
+      @apply text-lg leading-snug;
+    }
+
+    .prose p {
+      @apply text-base leading-relaxed;
+    }
+
+    .prose blockquote {
+      @apply px-3 py-2 text-sm;
+    }
+
+    .prose code {
+      @apply text-xs px-1 py-0.5;
+    }
+
+    .prose pre {
+      @apply p-3 text-sm;
+    }
+
+    .prose ul,
+    .prose ol {
+      @apply pl-4;
+    }
+
+    .prose li {
+      @apply mb-1;
+    }
+  }
+
+  /* Override prose styles for code blocks to use our enhanced styling */
+  .prose pre[class*="language-"] {
+    @apply bg-gray-900 text-gray-100 p-4 overflow-x-auto text-sm leading-relaxed border-0 rounded-none;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .prose pre[class*="language-"] code {
+    @apply bg-transparent p-0 border-0 rounded-none text-sm leading-relaxed;
+    width: 100%;
+    max-width: none;
+    white-space: pre;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+  }
+
+  /* Mobile prose code block adjustments */
+  @media (max-width: 640px) {
+    .prose pre[class*="language-"] {
+      @apply p-3 text-sm;
+      font-size: 0.8125rem;
+      line-height: 1.5;
+    }
+
+    .prose pre[class*="language-"] code {
+      font-size: 0.8125rem;
+      line-height: 1.5;
+    }
+  }
+
+  .prose ul,
+  .prose ol {
+    @apply pl-4 sm:pl-6 my-4 space-y-1 text-foreground;
+  }
+
+  .prose li {
+    @apply leading-relaxed text-foreground/90;
+  }
+
+  .prose ul > li {
+    @apply list-disc;
+  }
+
+  .prose ol > li {
+    @apply list-decimal;
+  }
+
+  /* Dark mode list styling */
+  .dark .prose ul,
+  .dark .prose ol {
+    @apply text-foreground;
+  }
+
+  .dark .prose li {
+    @apply text-foreground/90;
+  }
+
+  /* Nested list styling */
+  .prose ul ul,
+  .prose ol ol,
+  .prose ul ol,
+  .prose ol ul {
+    @apply mt-2 mb-2;
+  }
+
+  .prose ul ul > li,
+  .prose ol ol > li {
+    @apply list-disc sm:list-disc;
+  }
+
+  .prose ul ol > li,
+  .prose ol ul > li {
+    @apply list-decimal sm:list-decimal;
+  }
+
   .prose a {
     @apply text-accent hover:text-accent/80 underline;
+  }
+
+  /* Light mode gradient for PostCard */
+  .post-card-gradient {
+    background: linear-gradient(0deg, rgb(232, 245, 245, 0.96) 50%, rgba(237, 221, 83, 0) 100%);
+  }
+
+  /* Light mode hover gradient for PostCard */
+  .post-card-gradient-hover {
+    background: linear-gradient(0deg, rgba(235, 244, 244, 1) 10%, rgba(255, 255, 255, 0) 100%);
+  }
+
+  /* Dark mode gradient for PostCard */
+  .dark .post-card-gradient {
+    background: linear-gradient(0deg, rgba(7, 12, 14, 0.96) 50%, rgba(237, 221, 83, 0) 100%);
+  }
+
+  /* Dark mode hover gradient for PostCard */
+  .dark .post-card-gradient-hover {
+    background: linear-gradient(0deg, rgba(7, 12, 14, 1) 10%, rgba(255, 255, 255, 0) 100%);
   }
 }

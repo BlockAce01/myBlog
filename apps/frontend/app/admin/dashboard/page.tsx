@@ -31,7 +31,7 @@ export default function AdminDashboardPage() {
     try {
       setIsLoading(true);
       setError('');
-      const fetchedPosts = await getPosts();
+      const fetchedPosts = await getPosts(true); // Pass true for admin to get all posts
       setPosts(fetchedPosts);
     } catch (err) {
       console.error('Failed to fetch posts:', err);
@@ -148,9 +148,10 @@ export default function AdminDashboardPage() {
                     <TableRow>
                       <TableHead>Title</TableHead>
                       <TableHead>Status</TableHead>
+                      <TableHead>Scheduled</TableHead>
                       <TableHead>Views</TableHead>
                       <TableHead>Likes</TableHead>
-                      <TableHead>Published</TableHead>
+                      <TableHead>Last Saved</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -166,13 +167,29 @@ export default function AdminDashboardPage() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge variant={post.tags.includes('published') ? 'default' : 'secondary'}>
-                            {post.tags.includes('published') ? 'Published' : 'Draft'}
+                          <Badge
+                            variant={
+                              post.status === 'published' ? 'default' :
+                              post.status === 'scheduled' ? 'outline' :
+                              post.status === 'hidden' ? 'destructive' : 'secondary'
+                            }
+                          >
+                            {post.status === 'published' ? 'Published' :
+                             post.status === 'scheduled' ? 'Scheduled' :
+                             post.status === 'hidden' ? 'Hidden' : 'Draft'}
                           </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {post.status === 'scheduled' && post.scheduledPublishDate
+                            ? formatDate(post.scheduledPublishDate)
+                            : '-'
+                          }
                         </TableCell>
                         <TableCell>{post.viewCount.toLocaleString()}</TableCell>
                         <TableCell>{post.likeCount.toLocaleString()}</TableCell>
-                        <TableCell>{formatDate(post.publicationDate)}</TableCell>
+                        <TableCell>
+                          {post.lastSavedAt ? formatDate(post.lastSavedAt) : formatDate(post.publicationDate)}
+                        </TableCell>
                         <TableCell>
                           <div className="flex items-center space-x-2">
                             <Link href={`/post/${post.id}`} target="_blank">
