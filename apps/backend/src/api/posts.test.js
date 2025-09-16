@@ -10,6 +10,29 @@ const Comment = require('../models/Comment');
 jest.mock('../models/BlogPost');
 jest.mock('../models/Comment');
 
+// Mock the slug utilities
+jest.mock('../utils/slug', () => ({
+  generateSlug: jest.fn(() => 'test-post'),
+  generateUniqueSlug: jest.fn(() => 'test-post')
+}));
+
+// Mock the authentication middleware
+jest.mock('../middleware/auth', () => ({
+  authenticateToken: jest.fn((req, res, next) => {
+    // Check if Authorization header is present
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+      const token = req.headers.authorization.substring(7);
+      if (token === 'invalid-token') {
+        return res.status(401).json({ message: 'Invalid or expired token' });
+      }
+      req.user = { userId: '507f1f77bcf86cd799439011', role: 'admin' };
+      next();
+    } else {
+      return res.status(401).json({ message: 'Access token required' });
+    }
+  })
+}));
+
 // Create test app
 const app = express();
 app.use(express.json());
@@ -33,7 +56,10 @@ describe('Posts API', () => {
   describe('GET /api/posts', () => {
     it('should return a list of posts', async () => {
       const mockPosts = [{ title: 'Post 1' }, { title: 'Post 2' }];
-      BlogPost.find.mockResolvedValue(mockPosts);
+      const mockQuery = {
+        sort: jest.fn().mockResolvedValue(mockPosts)
+      };
+      BlogPost.find.mockReturnValue(mockQuery);
 
       const res = await request(app).get('/api/posts');
       expect(res.statusCode).toEqual(200);
@@ -42,23 +68,45 @@ describe('Posts API', () => {
 
     it('should filter posts by tags', async () => {
       const mockPosts = [{ title: 'React Post', tags: ['react'] }];
-      BlogPost.find.mockResolvedValue(mockPosts);
+      const mockQuery = {
+        sort: jest.fn().mockResolvedValue(mockPosts)
+      };
+      BlogPost.find.mockReturnValue(mockQuery);
 
       const res = await request(app).get('/api/posts?tags=react');
       expect(res.statusCode).toEqual(200);
-      expect(BlogPost.find).toHaveBeenCalledWith({ tags: { '$in': ['react'] } });
+      // The actual query includes additional filtering for published/scheduled posts
+      expect(BlogPost.find).toHaveBeenCalledWith({
+        tags: { '$in': ['react'] },
+        $or: [
+          { status: 'published' },
+          { status: 'scheduled', scheduledPublishDate: { $lte: expect.any(Date) } }
+        ]
+      });
       expect(res.body).toEqual(mockPosts);
     });
   });
 
   describe('GET /api/posts/:id', () => {
-    it('should return a single post if found', async () => {
-        const mockPost = { _id: '60d21b4667d0d8992e610c85', title: 'Found Post' };
+    it('should return a single post if found by ID', async () => {
+        const mockPost = { _id: '60d21b4667d0d8992e610c85', title: 'Found Post', status: 'published' };
         // Mock the static method isValid of mongoose.Types.ObjectId
         jest.spyOn(mongoose.Types.ObjectId, 'isValid').mockReturnValue(true);
         BlogPost.findById.mockResolvedValue(mockPost);
-    
+
         const res = await request(app).get('/api/posts/60d21b4667d0d8992e610c85');
+        expect(res.statusCode).toEqual(200);
+        expect(res.body).toEqual(mockPost);
+    });
+
+    it('should return a single post if found by slug', async () => {
+        const mockPost = { _id: '60d21b4667d0d8992e610c85', title: 'Found Post', slug: 'found-post', status: 'published' };
+        // Mock the static method isValid of mongoose.Types.ObjectId to return false for slug
+        jest.spyOn(mongoose.Types.ObjectId, 'isValid').mockReturnValue(false);
+        BlogPost.findById.mockResolvedValue(null);
+        BlogPost.findOne.mockResolvedValue(mockPost);
+
+        const res = await request(app).get('/api/posts/found-post');
         expect(res.statusCode).toEqual(200);
         expect(res.body).toEqual(mockPost);
     });
@@ -66,17 +114,20 @@ describe('Posts API', () => {
     it('should return 404 if post not found', async () => {
         jest.spyOn(mongoose.Types.ObjectId, 'isValid').mockReturnValue(true);
         BlogPost.findById.mockResolvedValue(null);
+        BlogPost.findOne.mockResolvedValue(null);
 
         const res = await request(app).get('/api/posts/60d21b4667d0d8992e610c85');
         expect(res.statusCode).toEqual(404);
         expect(res.body.message).toEqual('Post not found');
     });
 
-    it('should return 400 for an invalid post ID', async () => {
+    it('should return 404 for an invalid post ID/slug', async () => {
         jest.spyOn(mongoose.Types.ObjectId, 'isValid').mockReturnValue(false);
+        BlogPost.findById.mockResolvedValue(null);
+        BlogPost.findOne.mockResolvedValue(null);
         const res = await request(app).get('/api/posts/invalid-id');
-        expect(res.statusCode).toEqual(400);
-        expect(res.body.message).toEqual('Invalid post ID');
+        expect(res.statusCode).toEqual(404);
+        expect(res.body.message).toEqual('Post not found');
     });
   });
 
@@ -131,16 +182,33 @@ describe('Posts API', () => {
     };
 
     it('should create a new post with valid authentication', async () => {
-      const mockSavedPost = { _id: '60d21b4667d0d8992e610c85', ...validPostData, tags: [] };
-      const mockPostInstance = { ...validPostData, tags: [] };
-      BlogPost.mockImplementation((data) => {
-        Object.assign(mockPostInstance, data);
-        mockPostInstance.save = jest.fn().mockImplementation(async () => {
-          Object.assign(mockPostInstance, mockSavedPost);
-          return mockPostInstance;
-        });
-        return mockPostInstance;
-      });
+      const mockSavedPost = {
+        _id: '60d21b4667d0d8992e610c85',
+        ...validPostData,
+        tags: [],
+        slug: 'test-post',
+        status: 'draft',
+        version: 0
+      };
+
+      // Mock BlogPost.find for slug generation - return empty array
+      BlogPost.find.mockResolvedValue([]);
+
+      // Mock the BlogPost constructor
+      const mockPostInstance = {
+        ...validPostData,
+        tags: [],
+        slug: 'test-post',
+        status: 'draft',
+        version: 0,
+        save: jest.fn().mockImplementation(async function() {
+          // Assign the _id to the instance itself
+          Object.assign(this, mockSavedPost);
+          return this;
+        })
+      };
+
+      BlogPost.mockImplementation((data) => mockPostInstance);
 
       const token = createTestToken();
       const res = await request(app)
@@ -192,9 +260,20 @@ describe('Posts API', () => {
     };
 
     it('should update a post with valid authentication', async () => {
-      const mockUpdatedPost = { _id: '60d21b4667d0d8992e610c85', ...updateData };
+      const mockExistingPost = {
+        _id: '60d21b4667d0d8992e610c85',
+        title: 'Original Post',
+        content: 'Original content',
+        summary: 'Original summary',
+        coverPhotoUrl: 'https://example.com/original.jpg',
+        version: 0
+      };
+      const mockUpdatedPost = { _id: '60d21b4667d0d8992e610c85', ...updateData, version: 1 };
+
       jest.spyOn(mongoose.Types.ObjectId, 'isValid').mockReturnValue(true);
+      BlogPost.findById.mockResolvedValue(mockExistingPost);
       BlogPost.findByIdAndUpdate.mockResolvedValue(mockUpdatedPost);
+      BlogPost.find.mockResolvedValue([]); // For slug uniqueness check
 
       const token = createTestToken();
       const res = await request(app)

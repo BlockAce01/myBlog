@@ -4,46 +4,9 @@ const API_URL = typeof window === 'undefined'
   ? "http://backend:3003/api" // Server-side (inside Docker)
   : "http://localhost:3003/api"; // Client-side (in browser)
 
-// Mock data for development
-export const posts: BlogPost[] = [
-  {
-    id: "1",
-    title: "Getting Started with Next.js",
-    summary: "Learn the basics of Next.js and how to build modern web applications.",
-    content: "Next.js is a powerful React framework that makes building web applications easier and more efficient. In this post, we'll explore the key features and best practices for getting started with Next.js development.",
-    publicationDate: "2024-01-15",
-    viewCount: 1250,
-    likeCount: 45,
-    tags: ["nextjs", "react", "web-development"]
-  },
-  {
-    id: "2",
-    title: "Understanding TypeScript",
-    summary: "A comprehensive guide to TypeScript fundamentals and advanced concepts.",
-    content: "TypeScript is a superset of JavaScript that adds static typing to the language. This post covers everything from basic types to advanced features like generics and decorators.",
-    publicationDate: "2024-01-20",
-    viewCount: 980,
-    likeCount: 32,
-    tags: ["typescript", "javascript", "programming"]
-  }
-];
-
-export const comments: Comment[] = [
-  {
-    id: "1",
-    postId: "1",
-    authorName: "John Doe",
-    commentText: "Great article! Very helpful for beginners.",
-    createdAt: "2024-01-16T10:30:00Z"
-  },
-  {
-    id: "2",
-    postId: "1",
-    authorName: "Jane Smith",
-    commentText: "I learned a lot from this. Thanks for sharing!",
-    createdAt: "2024-01-17T14:20:00Z"
-  }
-];
+// Mock data removed - using API only
+export const posts: BlogPost[] = [];
+export const comments: Comment[] = [];
 
 // Authentication functions
 export interface LoginRequest {
@@ -152,12 +115,15 @@ export interface CreateBlogPostRequest {
   title: string;
   content: string;
   excerpt: string;
+  coverPhotoUrl: string;
   tags: string[];
-  published: boolean;
+  status: 'draft' | 'published' | 'hidden' | 'scheduled';
+  scheduledPublishDate?: string;
 }
 
 export interface UpdateBlogPostRequest extends CreateBlogPostRequest {
   id: string;
+  version?: number;
 }
 
 export async function createBlogPost(postData: CreateBlogPostRequest): Promise<BlogPost | null> {
@@ -175,9 +141,10 @@ export async function createBlogPost(postData: CreateBlogPostRequest): Promise<B
         title: postData.title,
         content: postData.content,
         summary: postData.excerpt, // Backend expects 'summary' not 'excerpt'
-        coverPhotoUrl: "https://via.placeholder.com/800x400?text=No+Image", // Backend requires this field
+        coverPhotoUrl: postData.coverPhotoUrl || "https://via.placeholder.com/800x400?text=No+Image",
         tags: postData.tags,
-        // Remove 'published' field as backend doesn't use it
+        status: postData.status,
+        scheduledPublishDate: postData.scheduledPublishDate || undefined,
       }),
     });
     if (!res.ok) {
@@ -205,9 +172,11 @@ export async function updateBlogPost(postData: UpdateBlogPostRequest): Promise<B
         title: postData.title,
         content: postData.content,
         summary: postData.excerpt, // Map 'excerpt' to 'summary' for backend
-        coverPhotoUrl: "https://via.placeholder.com/800x400?text=No+Image", // Backend requires this field
+        coverPhotoUrl: postData.coverPhotoUrl || "https://via.placeholder.com/800x400?text=No+Image",
         tags: postData.tags,
-        // Remove 'published' field as backend doesn't use it
+        status: postData.status,
+        scheduledPublishDate: postData.scheduledPublishDate || undefined,
+        version: postData.version || 0,
       }),
     });
     if (!res.ok) {
@@ -240,9 +209,10 @@ export async function deleteBlogPost(id: string): Promise<boolean> {
   }
 }
 
-export async function getPosts(): Promise<BlogPost[]> {
+export async function getPosts(admin: boolean = false): Promise<BlogPost[]> {
   try {
-    const res = await fetch(`${API_URL}/posts`);
+    const url = admin ? `${API_URL}/posts?admin=true` : `${API_URL}/posts`;
+    const res = await fetch(url);
     if (!res.ok) {
       throw new Error("Failed to fetch posts");
     }
@@ -253,11 +223,12 @@ export async function getPosts(): Promise<BlogPost[]> {
   }
 }
 
-export async function getPost(id: string): Promise<BlogPost | null> {
+export async function getPost(idOrSlug: string, admin: boolean = false): Promise<BlogPost | null> {
   try {
-    const res = await fetch(`${API_URL}/posts/${id}`);
+    const url = admin ? `${API_URL}/posts/${idOrSlug}?admin=true` : `${API_URL}/posts/${idOrSlug}`;
+    const res = await fetch(url);
     if (!res.ok) {
-      throw new Error(`Failed to fetch post with id ${id}`);
+      throw new Error(`Failed to fetch post with id/slug ${idOrSlug}`);
     }
     return res.json();
   } catch (error) {
@@ -321,13 +292,23 @@ export async function likePost(postId: string): Promise<{ likeCount: number; isL
     });
 
     if (!res.ok) {
-      throw new Error("Failed to like post");
+      // Try to get detailed error message from response
+      let errorMessage = "Failed to like post";
+      try {
+        const errorData = await res.json();
+        errorMessage = errorData.message || errorMessage;
+      } catch {
+        // If we can't parse the error response, use the status text
+        errorMessage = res.statusText || errorMessage;
+      }
+      throw new Error(errorMessage);
     }
 
     return res.json();
   } catch (error) {
-    console.error(error);
-    return null;
+    console.error("Like post error:", error);
+    // Re-throw the error so the calling component can handle it
+    throw error;
   }
 }
 
@@ -337,9 +318,11 @@ export async function incrementViewCount(postId: string): Promise<void> {
       method: "POST",
     });
     if (!res.ok) {
-      throw new Error("Failed to increment view count");
+      const errorText = await res.text();
+      throw new Error(`Failed to increment view count: ${res.status} ${errorText}`);
     }
   } catch (error) {
-    console.error(error);
+    console.error('Error incrementing view count:', error);
+    throw error; // Re-throw so calling code can handle it
   }
 }
