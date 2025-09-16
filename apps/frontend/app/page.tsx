@@ -32,23 +32,23 @@ export default function HomePage() {
 
   return (
     <Layout>
-      <div className="space-y-8">
+      <div className="space-y-6 sm:space-y-8 px-0 sm:px-6 lg:px-8">
         <div className="text-center">
-          <h1 className="text-4xl font-bold font-sans text-foreground mb-4">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold font-sans text-foreground mb-3 sm:mb-4">
             Recent Posts
           </h1>
-          <p className="text-muted-foreground font-serif text-lg max-w-2xl mx-auto">
+          <p className="text-muted-foreground font-serif text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
             Exploring modern web development, best practices, and the latest
             technologies in the ever-evolving world of software engineering.
           </p>
         </div>
 
         {/* Tag Filter Section */}
-        <div className="flex flex-wrap justify-center gap-2 mb-8">
+        <div className="flex flex-wrap justify-center gap-2 mb-6 sm:mb-8">
           <Badge
             variant={selectedTag === null ? "default" : "outline"}
             onClick={() => setSelectedTag(null)}
-            className="cursor-pointer"
+            className="cursor-pointer text-xs sm:text-sm"
           >
             All
           </Badge>
@@ -57,7 +57,7 @@ export default function HomePage() {
               key={tag}
               variant={selectedTag === tag ? "default" : "outline"}
               onClick={() => setSelectedTag(tag)}
-              className="cursor-pointer"
+              className="cursor-pointer text-xs sm:text-sm"
             >
               {tag}
             </Badge>
@@ -65,9 +65,9 @@ export default function HomePage() {
         </div>
 
         {loading ? (
-          <div className="text-center">Loading...</div>
+          <div className="text-center py-8">Loading...</div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
             {filteredPosts.map((post) => (
               <PostCard key={post.id} post={post} />
             ))}
