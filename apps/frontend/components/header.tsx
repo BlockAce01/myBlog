@@ -14,7 +14,7 @@ export function Header() {
       <div className="max-w-4xl mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <Link href="/" className="text-lg sm:text-xl font-bold font-sans text-foreground hover:text-accent transition-colors">
-            Yugan's Tech Blog
+            My Blog
           </Link>
 
           {/* Desktop Navigation */}
