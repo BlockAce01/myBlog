@@ -139,11 +139,35 @@
   .prose h4,
   .prose h5,
   .prose h6 {
-    @apply text-foreground font-sans;
+    @apply text-foreground font-sans font-semibold;
+  }
+
+  .prose h1 {
+    @apply text-3xl md:text-4xl font-bold mb-6 mt-8 first:mt-0;
+  }
+
+  .prose h2 {
+    @apply text-2xl md:text-3xl font-bold mb-4 mt-6;
+  }
+
+  .prose h3 {
+    @apply text-xl md:text-2xl font-semibold mb-3 mt-5;
+  }
+
+  .prose h4 {
+    @apply text-lg md:text-xl font-semibold mb-2 mt-4;
+  }
+
+  .prose h5 {
+    @apply text-base md:text-lg font-semibold mb-2 mt-3;
+  }
+
+  .prose h6 {
+    @apply text-sm md:text-base font-semibold mb-2 mt-3;
   }
 
   .prose p {
-    @apply text-foreground/90 font-serif leading-relaxed;
+    @apply text-foreground/90 font-serif leading-relaxed mb-4 last:mb-0;
   }
 
   .prose blockquote {
@@ -227,6 +251,51 @@
       font-size: 0.8125rem;
       line-height: 1.5;
     }
+  }
+
+  .prose ul,
+  .prose ol {
+    @apply pl-4 sm:pl-6 my-4 space-y-1 text-foreground;
+  }
+
+  .prose li {
+    @apply leading-relaxed text-foreground/90;
+  }
+
+  .prose ul > li {
+    @apply list-disc;
+  }
+
+  .prose ol > li {
+    @apply list-decimal;
+  }
+
+  /* Dark mode list styling */
+  .dark .prose ul,
+  .dark .prose ol {
+    @apply text-foreground;
+  }
+
+  .dark .prose li {
+    @apply text-foreground/90;
+  }
+
+  /* Nested list styling */
+  .prose ul ul,
+  .prose ol ol,
+  .prose ul ol,
+  .prose ol ul {
+    @apply mt-2 mb-2;
+  }
+
+  .prose ul ul > li,
+  .prose ol ol > li {
+    @apply list-disc sm:list-disc;
+  }
+
+  .prose ul ol > li,
+  .prose ol ul > li {
+    @apply list-decimal sm:list-decimal;
   }
 
   .prose a {
