@@ -3,7 +3,7 @@ require('dotenv').config();
 const express = require('express');
 const cron = require('node-cron');
 const { connectDB, disconnectDB } = require('./utils/db');
-const { getConnected } = require('./utils/connection-status');
+const mongoose = require('mongoose');
 const helloRouter = require('./api/hello');
 const postsRouter = require('./api/posts');
 const imagesRouter = require('./api/images');
@@ -42,8 +42,10 @@ const startServer = async () => {
     cron.schedule('* * * * *', async () => {
       try {
         // Check if MongoDB is connected before executing database operations
-        const isConnected = getConnected();
-        console.log('Cron job running - DB connected status:', isConnected);
+        // readyState: 0 = disconnected, 1 = connected, 2 = connecting, 3 = disconnecting
+        const isConnected = mongoose.connection.readyState === 1;
+        console.log('Cron job running - DB connected status:', isConnected, '(readyState:', mongoose.connection.readyState + ')');
+
         if (!isConnected) {
           console.log('Skipping scheduled publishing - MongoDB not connected');
           return;
@@ -69,9 +71,7 @@ const startServer = async () => {
         }
       } catch (error) {
         console.error('Error in scheduled publishing:', error);
-        // Reset connection flag on database error
-        const { setConnected } = require('./utils/connection-status');
-        setConnected(false);
+        // Note: No need to manually reset connection status - Mongoose handles this
       }
     });
 
