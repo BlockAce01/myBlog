@@ -3,6 +3,7 @@
 import { Editor } from '@tinymce/tinymce-react';
 import { useRef } from 'react';
 import DOMPurify from 'dompurify';
+import { useImageUpload } from '@/hooks/use-image-upload';
 
 interface RichTextEditorProps {
   value: string;
@@ -20,34 +21,12 @@ export default function RichTextEditor({
   height = 400
 }: RichTextEditorProps) {
   const editorRef = useRef<any>(null);
+  const { uploadImage } = useImageUpload();
 
   const handleEditorChange = (content: string) => {
-    // Pass raw HTML content to parent - sanitization will happen in HTMLRenderer
-    onChange(content);
-  };
-
-  const handleImageUpload = (blobInfo: any): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const formData = new FormData();
-      formData.append('file', blobInfo.blob(), blobInfo.filename());
-
-      // Upload to Postimages.org
-      fetch('https://postimages.org/json/rr', {
-        method: 'POST',
-        body: formData
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.status === 200 && data.url) {
-          resolve(data.url);
-        } else {
-          reject('Image upload failed');
-        }
-      })
-      .catch(() => {
-        reject('Image upload failed');
-      });
-    });
+    // Sanitize HTML content before passing to parent for security
+    const cleanContent = DOMPurify.sanitize(content);
+    onChange(cleanContent);
   };
 
   return (
@@ -115,7 +94,7 @@ export default function RichTextEditor({
               font-size: 0.875em;
             }
           `,
-          images_upload_handler: handleImageUpload,
+          images_upload_handler: uploadImage,
           automatic_uploads: true,
           file_picker_types: 'image',
           paste_data_images: true,
