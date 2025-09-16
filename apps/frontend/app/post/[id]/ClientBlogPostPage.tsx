@@ -1,12 +1,15 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { notFound } from "next/navigation"
 import { Layout } from "@/components/layout"
 import { LikeButton } from "@/components/like-button"
 import { CommentCard } from "@/components/comment-card"
 import { CommentForm } from "@/components/comment-form"
 import { CodeBlock } from "@/components/code-block"
-import { posts, comments } from "@/lib/data"
+import HTMLRenderer from "@/components/HTMLRenderer"
+import { getPost, getComments, createComment } from "@/lib/data"
+import type { BlogPost, Comment } from "@/lib/types"
 
 interface BlogPostPageProps {
   params: {
@@ -15,6 +18,15 @@ interface BlogPostPageProps {
 }
 
 function renderContent(content: string) {
+  // Check if content contains HTML tags (indicating it's from TinyMCE)
+  const hasHTMLTags = /<[^>]*>/.test(content);
+
+  if (hasHTMLTags) {
+    // Render as HTML using HTMLRenderer
+    return <HTMLRenderer html={content} />;
+  }
+
+  // Legacy Markdown-style rendering for existing content
   // Split content by code blocks (```language\ncode\n```)
   const parts = content.split(/(```[\s\S]*?```)/g);
 
@@ -49,14 +61,77 @@ function renderContent(content: string) {
 }
 
 export default function ClientBlogPostPage({ params }: BlogPostPageProps) {
-  const post = posts.find((p) => p.id === params.id)
+  const [post, setPost] = useState<BlogPost | null>(null);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  if (!post) {
-    notFound()
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const [postData, commentsData] = await Promise.all([
+          getPost(params.id),
+          getComments(params.id)
+        ]);
+
+        if (!postData) {
+          notFound();
+          return;
+        }
+
+
+
+        setPost(postData);
+        setComments(commentsData);
+      } catch (err) {
+        console.error('Error fetching data:', err);
+        setError('Failed to load post');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [params.id]);
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="max-w-3xl mx-auto flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+        </div>
+      </Layout>
+    );
   }
 
-  // Filter comments for this specific post
-  const postComments = comments.filter((comment) => comment.postId === post.id)
+  if (error) {
+    return (
+      <Layout>
+        <div className="max-w-3xl mx-auto">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <p className="text-red-800">{error}</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (!post) {
+    notFound();
+    return null;
+  }
+
+  const handleCommentSubmit = async (name: string, commentText: string) => {
+    try {
+      const newComment = await createComment(post.id, { authorName: name, commentText });
+      if (newComment) {
+        setComments(prev => [...prev, newComment]);
+      }
+    } catch (err) {
+      console.error('Error creating comment:', err);
+    }
+  };
 
   return (
     <Layout>
@@ -68,10 +143,8 @@ export default function ClientBlogPostPage({ params }: BlogPostPageProps) {
         </header>
 
         {/* Post Content */}
-        <div className="prose prose-gray dark:prose-invert max-w-none mb-8">
-          <div className="font-serif leading-relaxed">
-            {renderContent(post.content)}
-          </div>
+        <div className="mb-8">
+          {renderContent(post.content)}
         </div>
 
         {/* Like Button */}
@@ -84,9 +157,9 @@ export default function ClientBlogPostPage({ params }: BlogPostPageProps) {
           <h2 className="text-2xl font-serif font-semibold text-foreground">Comments</h2>
 
           {/* Existing Comments */}
-          {postComments.length > 0 ? (
+          {comments.length > 0 ? (
             <div className="space-y-6">
-              {postComments.map((comment) => (
+              {comments.map((comment) => (
                 <CommentCard key={comment.id} comment={comment} />
               ))}
             </div>
@@ -98,10 +171,7 @@ export default function ClientBlogPostPage({ params }: BlogPostPageProps) {
           <div className="border-t border-border pt-8">
             <h3 className="text-lg font-semibold text-foreground mb-4">Leave a Comment</h3>
             <CommentForm
-              onSubmit={(name, comment) => {
-                console.log("New comment:", { name, comment, postId: post.id })
-                // In a real app, this would save the comment to a database
-              }}
+              onSubmit={handleCommentSubmit}
             />
           </div>
         </section>

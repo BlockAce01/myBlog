@@ -14,6 +14,7 @@ import { Loader2, ArrowLeft, Save, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { getPost, updateBlogPost } from '@/lib/data';
 import type { BlogPost } from '@/lib/types';
+import RichTextEditor from '@/components/RichTextEditor';
 
 export default function EditBlogPostPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
@@ -317,25 +318,22 @@ export default function EditBlogPostPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Content</CardTitle>
-                <CardDescription>Update the main content of your blog post</CardDescription>
+                <CardDescription>Update the main content of your blog post using the rich text editor</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
                   <Label htmlFor="content">Content *</Label>
-                  <Textarea
-                    id="content"
+                  <RichTextEditor
                     value={formData.content}
-                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleInputChange('content', e.target.value)}
-                    className={errors.content ? 'border-red-500' : ''}
-                    placeholder="Write your blog post content here..."
-                    rows={15}
+                    onChange={(value) => handleInputChange('content', value)}
                     disabled={isSubmitting}
+                    height={500}
                   />
                   {errors.content && (
                     <p className="text-sm text-red-500">{errors.content}</p>
                   )}
                   <p className="text-sm text-gray-500">
-                    {formData.content.length}/50,000 characters
+                    {formData.content.replace(/<[^>]*>/g, '').length}/50,000 characters (HTML tags excluded)
                   </p>
                 </div>
               </CardContent>
