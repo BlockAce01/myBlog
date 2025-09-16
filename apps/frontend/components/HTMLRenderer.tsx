@@ -22,10 +22,13 @@ export default function HTMLRenderer({ html, className = '' }: HTMLRendererProps
     const parts = html.split(/(<pre[^>]*>[\s\S]*?<\/pre>)/g);
 
     return (
-      <div className={`prose prose-lg max-w-none ${className}`} style={{
+      <div className={`prose prose-lg max-w-none ${className} w-full overflow-hidden`} style={{
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif',
         lineHeight: '1.7',
-        color: '#374151'
+        color: '#374151',
+        width: '100%',
+        maxWidth: '100%',
+        boxSizing: 'border-box'
       }}>
         {parts.map((part, index) => {
           // Check if this part is a code block
@@ -72,12 +75,15 @@ export default function HTMLRenderer({ html, className = '' }: HTMLRendererProps
 
   return (
     <div
-      className={`prose prose-lg max-w-none ${className}`}
+      className={`prose prose-lg max-w-none ${className} w-full overflow-hidden`}
       dangerouslySetInnerHTML={{ __html: sanitizedHTML }}
       style={{
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif',
         lineHeight: '1.7',
-        color: '#374151'
+        color: '#374151',
+        width: '100%',
+        maxWidth: '100%',
+        boxSizing: 'border-box'
       }}
     />
   );
