@@ -197,8 +197,8 @@ export function HTMLCodeBlock({ htmlContent, className = '' }: HTMLCodeBlockProp
     <div className={cn("code-block-container relative group my-4 rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200", className)}>
       {/* Header */}
       <div className="code-block-header">
-        <div className="flex items-center justify-between w-full">
-          <div className="flex items-center space-x-2 min-w-0 flex-1">
+        <div className="flex items-center justify-between w-full gap-2">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
             <Code2 className="h-4 w-4 text-gray-500 flex-shrink-0" />
             {title && (
               <span className="code-block-title truncate">{title}</span>
