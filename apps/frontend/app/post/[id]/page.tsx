@@ -127,32 +127,34 @@ export default function PostPage() {
 
   return (
     <Layout>
-      <article className="max-w-3xl mx-auto">
+      <article className="w-full max-w-4xl mx-auto px-0 sm:px-6 lg:px-8">
         {/* Cover Photo */}
-        {post.coverPhotoUrl && post.coverPhotoUrl !== "https://via.placeholder.com/800x400?text/No+Image" && (
-          <div className="mb-8 rounded-lg overflow-hidden">
+        {post.coverPhotoUrl && post.coverPhotoUrl !== "https://via.placeholder.com/800x400?text=No+Image" && (
+          <div className="mb-6 sm:mb-8 rounded-lg overflow-hidden">
             <img
               src={post.coverPhotoUrl}
               alt={post.title}
-              className="w-full h-auto object-contain"
+              className="w-full h-auto object-cover max-h-64 sm:max-h-80 lg:max-h-96"
             />
           </div>
         )}
 
         {/* Post Header */}
-        <header className="mb-8">
-          <h1 className="text-4xl font-bold font-sans text-foreground mb-4">{post.title}</h1>
-          <div className="flex items-center space-x-4 text-muted-foreground text-sm">
+        <header className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold font-sans text-foreground mb-3 sm:mb-4 leading-tight">{post.title}</h1>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-2 sm:space-y-0 text-muted-foreground text-sm">
             <span>{formattedDate}</span>
-            <div className="flex items-center space-x-1">
-              <Eye className="w-4 h-4" />
-              <span>{post.viewCount}</span>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-1">
+                <Eye className="w-4 h-4" />
+                <span>{post.viewCount}</span>
+              </div>
             </div>
           </div>
           {post.tags && post.tags.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-4">
+            <div className="flex flex-wrap gap-2 mt-3 sm:mt-4">
               {post.tags.map((tag) => (
-                <Badge key={tag} variant="secondary">
+                <Badge key={tag} variant="secondary" className="text-xs">
                   {tag}
                 </Badge>
               ))}
