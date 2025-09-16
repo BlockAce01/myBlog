@@ -68,6 +68,28 @@ router.post('/posts', authenticateToken, async (req, res) => {
   }
 });
 
+// GET /api/posts/search - Search blog posts by keywords and tags
+router.get('/posts/search', async (req, res) => {
+  try {
+    const { q, tag } = req.query;
+    let filter = { status: 'published' };
+
+    if (q) {
+      filter.$text = { $search: q };
+    }
+
+    if (tag) {
+      filter.tags = tag;
+    }
+
+    const posts = await BlogPost.find(filter).sort({ publicationDate: -1 });
+    res.status(200).json(posts);
+  } catch (error) {
+    console.error('Error searching posts:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // GET /api/posts - Retrieve a list of all blog posts (AC: 1, 5, 6)
 router.get('/posts', async (req, res) => {
   try {

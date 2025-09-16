@@ -209,9 +209,13 @@ export async function deleteBlogPost(id: string): Promise<boolean> {
   }
 }
 
-export async function getPosts(admin: boolean = false): Promise<BlogPost[]> {
+export async function getPosts(tags?: string[], admin: boolean = false): Promise<BlogPost[]> {
   try {
-    const url = admin ? `${API_URL}/posts?admin=true` : `${API_URL}/posts`;
+    const tagQuery = tags && tags.length > 0 ? `tags=${tags.join(',')}` : '';
+    const adminQuery = admin ? `admin=true` : '';
+    const queryString = [tagQuery, adminQuery].filter(Boolean).join('&');
+    const url = `${API_URL}/posts${queryString ? `?${queryString}` : ''}`;
+    
     const res = await fetch(url);
     if (!res.ok) {
       throw new Error("Failed to fetch posts");
@@ -309,6 +313,25 @@ export async function likePost(postId: string): Promise<{ likeCount: number; isL
     console.error("Like post error:", error);
     // Re-throw the error so the calling component can handle it
     throw error;
+  }
+}
+
+export async function searchPosts(query: string, tags?: string[]): Promise<BlogPost[]> {
+  try {
+    const tagQuery = tags && tags.length > 0 ? `&tag=${tags.join(',')}` : '';
+    const searchQuery = query ? `q=${encodeURIComponent(query)}` : '';
+    const url = `${API_URL}/posts/search?${searchQuery}${tagQuery}`;
+    
+    const res = await fetch(url);
+    if (!res.ok) {
+      const errorData = await res.json();
+      
+      throw new Error(`Failed to search posts: ${errorData.message || res.statusText}`);
+    }
+    return res.json();
+  } catch (error) {
+
+    return [];
   }
 }
 
