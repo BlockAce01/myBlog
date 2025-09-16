@@ -304,22 +304,22 @@
 
   /* Light mode gradient for PostCard */
   .post-card-gradient {
-    background: linear-gradient(0deg, rgb(232, 245, 245, 0.96) 50%, rgba(237, 221, 83, 0) 100%);
+    background: linear-gradient(0deg, rgb(232, 245, 245, 0.96) 30%, rgba(237, 221, 83, 0) 100%);
   }
 
   /* Light mode hover gradient for PostCard */
   .post-card-gradient-hover {
-    background: linear-gradient(0deg, rgba(235, 244, 244, 1) 10%, rgba(255, 255, 255, 0) 100%);
+    background: linear-gradient(0deg, rgba(235, 244, 244, 1) 0%, rgba(255, 255, 255, 0) 100%);
   }
 
   /* Dark mode gradient for PostCard */
   .dark .post-card-gradient {
-    background: linear-gradient(0deg, rgba(7, 12, 14, 0.96) 50%, rgba(237, 221, 83, 0) 100%);
+    background: linear-gradient(0deg, rgba(7, 12, 14, 0.96) 30%, rgba(237, 221, 83, 0) 100%);
   }
 
   /* Dark mode hover gradient for PostCard */
   .dark .post-card-gradient-hover {
-    background: linear-gradient(0deg, rgba(7, 12, 14, 1) 10%, rgba(255, 255, 255, 0) 100%);
+    background: linear-gradient(0deg, rgba(7, 12, 14, 1) 0%, rgba(255, 255, 255, 0) 100%);
   }
 
   /* Cover photo responsive styling */
