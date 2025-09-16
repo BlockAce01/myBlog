@@ -321,4 +321,19 @@
   .dark .post-card-gradient-hover {
     background: linear-gradient(0deg, rgba(7, 12, 14, 1) 10%, rgba(255, 255, 255, 0) 100%);
   }
+
+  /* Cover photo responsive styling */
+  .cover-photo {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Desktop: maintain original size */
+  @media (min-width: 768px) {
+    .cover-photo {
+      width: auto;
+      max-width: none;
+      height: auto;
+    }
+  }
 }
