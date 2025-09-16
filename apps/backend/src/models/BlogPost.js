@@ -23,4 +23,11 @@ const blogPostSchema = new mongoose.Schema({
   toJSON: { virtuals: true }
 });
 
+blogPostSchema.index({
+  title: 'text',
+  summary: 'text',
+  content: 'text',
+  tags: 'text'
+});
+
 module.exports = mongoose.model('BlogPost', blogPostSchema);
