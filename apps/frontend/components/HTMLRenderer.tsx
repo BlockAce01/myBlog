@@ -14,12 +14,21 @@ export default function HTMLRenderer({ html, className = '' }: HTMLRendererProps
     return <div className={className}>No content to display</div>;
   }
 
+  // Process HTML to identify cover photo (first image)
+  const processedHtml = html.replace(/<img([^>]*)>/, (match, attrs) => {
+    // Check if this is the first image and doesn't already have cover-photo class
+    if (!attrs.includes('cover-photo')) {
+      return `<img${attrs} class="cover-photo">`;
+    }
+    return match;
+  });
+
   // Check if content contains code blocks
-  const hasCodeBlocks = /<pre[^>]*>[\s\S]*?<\/pre>/g.test(html);
+  const hasCodeBlocks = /<pre[^>]*>[\s\S]*?<\/pre>/g.test(processedHtml);
 
   if (hasCodeBlocks) {
     // Split content by code blocks and render them separately
-    const parts = html.split(/(<pre[^>]*>[\s\S]*?<\/pre>)/g);
+    const parts = processedHtml.split(/(<pre[^>]*>[\s\S]*?<\/pre>)/g);
 
     return (
       <div className={`prose prose-lg max-w-none ${className} w-full overflow-hidden`} style={{
@@ -60,7 +69,7 @@ export default function HTMLRenderer({ html, className = '' }: HTMLRendererProps
   }
 
   // Sanitize HTML content for security
-  const sanitizedHTML = DOMPurify.sanitize(html, {
+  const sanitizedHTML = DOMPurify.sanitize(processedHtml, {
     ALLOWED_TAGS: [
       'p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
       'ul', 'ol', 'li', 'blockquote', 'code', 'pre', 'a', 'img', 'div', 'span'
