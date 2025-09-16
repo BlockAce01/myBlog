@@ -90,7 +90,8 @@ export function PostCard({ post }: PostCardProps) {
         {/* Content covering entire card */}
         <div className="flex-1 flex flex-col justify-end">
           {/* Custom gradient fade from bottom to top */}
-          <div className="absolute inset-0 post-card-gradient group-hover:post-card-gradient-hover" />
+          <div className="absolute inset-0 post-card-gradient transition-opacity duration-300" />
+          <div className="absolute inset-0 post-card-gradient-hover opacity-100 group-hover:opacity-10 transition-opacity duration-300" />
 
           {/* Content above the backgrounds */}
           <div className="relative z-10">
