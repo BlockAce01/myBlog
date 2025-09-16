@@ -1,5 +1,5 @@
 import { Layout } from "@/components/layout"
-import { Mail, Github, Linkedin, Twitter } from "lucide-react"
+import { Mail, Github, Linkedin, Briefcase } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarImage } from "@/components/ui/avatar"
 
@@ -104,28 +104,36 @@ export default function AboutPage() {
 
         {/* Contact Section */}
         <section className="bg-card border border-border rounded-lg p-8 text-center">
-          <h2 className="text-2xl font-bold font-sans text-foreground mb-4">Lets Connect</h2>
+          <h2 className="text-2xl font-bold font-sans text-foreground mb-4">Let's Connect</h2>
           <p className="text-foreground/90 font-serif leading-relaxed mb-6">
             I'm always interested in connecting with fellow developers, discussing new opportunities, or collaborating
             on interesting projects.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Button variant="outline" size="lg" className="flex items-center space-x-2 bg-transparent">
-              <Mail className="w-5 h-5" />
-              <span>yugan.doe@example.com</span>
-            </Button>
-            <Button variant="outline" size="lg" className="flex items-center space-x-2 bg-transparent">
-              <Github className="w-5 h-5" />
-              <span>GitHub</span>
-            </Button>
-            <Button variant="outline" size="lg" className="flex items-center space-x-2 bg-transparent">
-              <Linkedin className="w-5 h-5" />
-              <span>LinkedIn</span>
-            </Button>
-            <Button variant="outline" size="lg" className="flex items-center space-x-2 bg-transparent">
-              <Twitter className="w-5 h-5" />
-              <span>Twitter</span>
-            </Button>
+            <a href="mailto:yugankavinda@gmail.com" target="_blank" rel="noopener noreferrer">
+              <Button variant="outline" size="lg" className="flex items-center space-x-2 bg-transparent">
+                <Mail className="w-5 h-5" />
+                <span>yugankavinda@gmail.com</span>
+              </Button>
+            </a>
+            <a href="https://github.com/BlockAce01" target="_blank" rel="noopener noreferrer">
+              <Button variant="outline" size="lg" className="flex items-center space-x-2 bg-transparent">
+                <Github className="w-5 h-5" />
+                <span>GitHub</span>
+              </Button>
+            </a>
+            <a href="https://www.linkedin.com/in/theekshana-yugan" target="_blank" rel="noopener noreferrer">
+              <Button variant="outline" size="lg" className="flex items-center space-x-2 bg-transparent">
+                <Linkedin className="w-5 h-5" />
+                <span>LinkedIn</span>
+              </Button>
+            </a>
+            <a href="https://www.fiverr.com/yugan_3d" target="_blank" rel="noopener noreferrer">
+              <Button variant="outline" size="lg" className="flex items-center space-x-2 bg-transparent">
+                <Briefcase className="w-5 h-5" />
+                <span>Fiverr</span>
+              </Button>
+            </a>
           </div>
         </section>
       </div>
