@@ -1,7 +1,8 @@
 import Link from "next/link"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import type { BlogPost } from "@/lib/types"
 import { Eye, Heart } from "lucide-react"
+import { likePost } from "@/lib/data"
 
 interface PostCardProps {
   post: BlogPost
@@ -9,6 +10,9 @@ interface PostCardProps {
 
 export function PostCard({ post }: PostCardProps) {
   const [imageError, setImageError] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(post.likeCount);
+  const [userId, setUserId] = useState<string | null>(null);
 
   const formattedDate = new Date(post.publicationDate).toLocaleDateString("en-US", {
     year: "numeric",
@@ -20,6 +24,49 @@ export function PostCard({ post }: PostCardProps) {
   const postUrl = post.slug ? `/post/${post.slug}` : `/post/${post.id}`;
 
   const hasCoverPhoto = post.coverPhotoUrl && post.coverPhotoUrl !== "https://via.placeholder.com/800x400?text=No+Image" && !imageError;
+
+  // Generate or retrieve user ID from localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      let id = localStorage.getItem('userId')
+      if (!id) {
+        id = 'user_' + Math.random().toString(36).substr(2, 9)
+        localStorage.setItem('userId', id)
+      }
+      setUserId(id)
+    }
+  }, [])
+
+  // Check if user has already liked this post
+  useEffect(() => {
+    if (userId && post.likedBy?.includes(userId)) {
+      setIsLiked(true)
+    } else {
+      setIsLiked(false)
+    }
+  }, [userId, post.likedBy])
+
+  // Update like count when post prop changes
+  useEffect(() => {
+    setLikeCount(post.likeCount)
+  }, [post.likeCount])
+
+  const handleLike = async (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent navigation to post page
+    e.stopPropagation(); // Prevent event bubbling
+
+    if (!userId) return
+
+    try {
+      const result = await likePost(post.id)
+      if (result) {
+        setIsLiked(result.isLiked)
+        setLikeCount(result.likeCount)
+      }
+    } catch (error) {
+      console.error("Failed to like post:", error)
+    }
+  }
 
   return (
     <article className="group rounded-lg border border-borde overflow-hidden hover:shadow-lg hover:shadow-black/10 dark:hover:shadow-black/40 transition-all duration-300 hover:scale-[1.02] min-h-[300px] relative bg-card dark:bg-card">
@@ -83,10 +130,14 @@ export function PostCard({ post }: PostCardProps) {
                   <Eye className="w-4 h-4" />
                   <span>{post.viewCount}</span>
                 </div>
-                <div className="flex items-center space-x-1">
-                  <Heart className="w-4 h-4" />
-                  <span>{post.likeCount}</span>
-                </div>
+                <button
+                  onClick={handleLike}
+                  className="flex items-center space-x-1 hover:text-accent transition-colors cursor-pointer"
+                  title={isLiked ? 'Unlike this post' : 'Like this post'}
+                >
+                  <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
+                  <span>{likeCount}</span>
+                </button>
               </div>
 
               <Link
