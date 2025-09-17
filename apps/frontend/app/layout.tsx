@@ -3,7 +3,7 @@ import type { Metadata, Viewport } from "next"
 import { Inter } from "next/font/google"
 import { Merriweather } from "next/font/google"
 import { Fira_Code } from "next/font/google"
-import { ThemeProvider } from "@/components/theme-provider"
+import { Providers } from "@/components/providers"
 import "./globals.css"
 
 const inter = Inter({
@@ -54,10 +54,9 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body>
-        {/* Added ThemeProvider wrapper */}
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange={false}>
+        <Providers>
           {children}
-        </ThemeProvider>
+        </Providers>
       </body>
     </html>
   )
