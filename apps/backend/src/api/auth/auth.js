@@ -162,7 +162,14 @@ router.post('/login', async (req, res) => {
 
 // Google OAuth routes
 router.get('/google',
-  passport.authenticate('google', { scope: ['profile', 'email'] })
+  (req, res, next) => {
+    // Pass callbackUrl as state parameter for OAuth flow
+    const state = req.query.callbackUrl || '/';
+    passport.authenticate('google', {
+      scope: ['profile', 'email'],
+      state: state
+    })(req, res, next);
+  }
 );
 
 router.get('/google/callback',
@@ -178,11 +185,10 @@ router.get('/google/callback',
       const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' });
 
       // Redirect to frontend with token
-      const frontendUrl = process.env.NODE_ENV === 'production'
-        ? process.env.PROD_URL
-        : 'http://localhost:3000';
+      const frontendUrl = process.env.NODE_ENV === 'production' ? process.env.PROD_URL : 'http://localhost:3000';
+      const redirectPath = req.query.state || '/'; // Retrieve callbackUrl from OAuth state
 
-      res.redirect(`${frontendUrl}/auth/callback?token=${token}`);
+      res.redirect(`${frontendUrl}/auth/callback?token=${token}&callbackUrl=${encodeURIComponent(redirectPath)}`);
     } catch (error) {
       console.error('Google OAuth callback error:', error);
       res.redirect('/login?error=oauth_callback_failed');

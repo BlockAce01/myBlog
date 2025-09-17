@@ -31,7 +31,7 @@ export default function AdminDashboardPage() {
     try {
       setIsLoading(true);
       setError('');
-      const fetchedPosts = await getPosts(true); // Pass true for admin to get all posts
+      const fetchedPosts = await getPosts([], true); // Pass true for admin to get all posts
       setPosts(fetchedPosts);
     } catch (err) {
       console.error('Failed to fetch posts:', err);

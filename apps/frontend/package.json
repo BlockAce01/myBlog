@@ -52,7 +52,7 @@
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.454.0",
     "next": "^15.2.4",
-    "next-auth": "^4.24.11",
+    
     "next-themes": "latest",
     "prismjs": "^1.30.0",
     "react": "^18.2.0",
