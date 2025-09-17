@@ -16,10 +16,12 @@ require('./models/User'); // Ensure User model is loaded
 
 
 
-const app = express();
+const app = express(); // Moved this line up
+
+const helmet = require('helmet'); // Import helmet
 const cors = require('cors');
 const path = require('path');
-const session = require('express-session');
+const session = require('express-session'); // Moved this line up
 
 // Initialize Passport
 app.use(session({
@@ -33,6 +35,20 @@ app.use(passport.session());
 
 app.use(cors());
 app.use(express.json());
+
+// Add Helmet middleware with CSP
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "www.gstatic.com", "accounts.google.com"],
+      styleSrc: ["'self'", "'unsafe-inline'", "www.gstatic.com"],
+      imgSrc: ["'self'", "data:", "www.gstatic.com"],
+      connectSrc: ["'self'", "https://accounts.google.com", "http://localhost:3003"],
+      frameSrc: ["'self'", "https://accounts.google.com"],
+    },
+  },
+}));
 const port = process.env.PORT || 3003;
 
 // Serve static files for uploaded images

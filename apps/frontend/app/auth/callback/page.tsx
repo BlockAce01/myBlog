@@ -2,30 +2,24 @@
 
 import { useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useSession } from 'next-auth/react'
 
 export default function AuthCallback() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { data: session, status } = useSession()
 
   useEffect(() => {
-    if (status === 'loading') return
-
     const token = searchParams.get('token')
+    const callbackUrl = searchParams.get('callbackUrl') // Retrieve callbackUrl
 
     if (token) {
       // Store the JWT token from backend
       localStorage.setItem('authToken', token)
-      router.push('/')
-    } else if (session) {
-      // NextAuth session is available
-      router.push('/')
+      router.push(callbackUrl || '/') // Use callbackUrl for redirection
     } else {
       // No authentication, redirect to home
       router.push('/')
     }
-  }, [status, session, router, searchParams])
+  }, [router, searchParams])
 
   return (
     <div className="min-h-screen flex items-center justify-center">
