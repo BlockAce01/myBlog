@@ -1,8 +1,74 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
+const passport = require('passport');
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const User = require('../../models/User');
 require('dotenv').config();
+
+// Configure Passport Google Strategy
+passport.use(new GoogleStrategy({
+  clientID: process.env.GOOGLE_CLIENT_ID,
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  callbackURL: `${process.env.NODE_ENV === 'production' ? process.env.PROD_URL : 'http://localhost:3003'}/api/auth/google/callback`
+},
+async (accessToken, refreshToken, profile, done) => {
+  try {
+    // Check if user already exists
+    let user = await User.findOne({ googleId: profile.id });
+
+    if (user) {
+      // Update user info if needed
+      user.name = profile.displayName;
+      user.email = profile.emails[0].value;
+      user.profilePicture = profile.photos[0].value;
+      await user.save();
+      return done(null, user);
+    }
+
+    // Check if user exists with same email (admin user)
+    const existingUser = await User.findOne({ email: profile.emails[0].value });
+
+    if (existingUser) {
+      // Link Google account to existing user
+      existingUser.googleId = profile.id;
+      existingUser.name = profile.displayName;
+      existingUser.profilePicture = profile.photos[0].value;
+      existingUser.role = 'admin'; // Keep admin role
+      await existingUser.save();
+      return done(null, existingUser);
+    }
+
+    // Create new user
+    const newUser = new User({
+      googleId: profile.id,
+      name: profile.displayName,
+      email: profile.emails[0].value,
+      profilePicture: profile.photos[0].value,
+      role: 'user'
+    });
+
+    await newUser.save();
+    return done(null, newUser);
+  } catch (error) {
+    return done(error, null);
+  }
+}));
+
+// Serialize user for session
+passport.serializeUser((user, done) => {
+  done(null, user._id);
+});
+
+// Deserialize user from session
+passport.deserializeUser(async (id, done) => {
+  try {
+    const user = await User.findById(id);
+    done(null, user);
+  } catch (error) {
+    done(error, null);
+  }
+});
 
 // Auth service
 router.get('/', (req, res) => {
@@ -92,6 +158,73 @@ router.post('/login', async (req, res) => {
     console.error('Login error:', error);
     res.status(500).json({ message: 'Server error' });
   }
+});
+
+// Google OAuth routes
+router.get('/google',
+  passport.authenticate('google', { scope: ['profile', 'email'] })
+);
+
+router.get('/google/callback',
+  passport.authenticate('google', { failureRedirect: '/login' }),
+  async (req, res) => {
+    try {
+      // Generate JWT token for the authenticated user
+      const payload = {
+        userId: req.user._id,
+        role: req.user.role
+      };
+
+      const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+      // Redirect to frontend with token
+      const frontendUrl = process.env.NODE_ENV === 'production'
+        ? process.env.PROD_URL
+        : 'http://localhost:3000';
+
+      res.redirect(`${frontendUrl}/auth/callback?token=${token}`);
+    } catch (error) {
+      console.error('Google OAuth callback error:', error);
+      res.redirect('/login?error=oauth_callback_failed');
+    }
+  }
+);
+
+// Get current user info
+router.get('/me', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ message: 'No token provided' });
+    }
+
+    const token = authHeader.substring(7);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const user = await User.findById(decoded.userId).select('-passwordHash');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.status(200).json({
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        profilePicture: user.profilePicture,
+        role: user.role
+      }
+    });
+  } catch (error) {
+    console.error('Get user error:', error);
+    res.status(401).json({ message: 'Invalid token' });
+  }
+});
+
+// Logout
+router.post('/logout', (req, res) => {
+  // For stateless JWT, logout is handled on frontend by removing token
+  res.status(200).json({ message: 'Logged out successfully' });
 });
 
 module.exports = router;

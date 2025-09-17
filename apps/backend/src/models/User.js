@@ -2,13 +2,38 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 
 const userSchema = new mongoose.Schema({
+  // Admin user fields (existing)
   username: {
     type: String,
-    required: true,
+    required: function() { return this.role === 'admin'; },
     unique: true,
+    sparse: true,
     trim: true,
     lowercase: true
   },
+  passwordHash: {
+    type: String,
+    required: function() { return this.role === 'admin'; }
+  },
+
+  // Public user fields (Google OAuth)
+  googleId: {
+    type: String,
+    required: false,
+    unique: true,
+    sparse: true
+  },
+  name: {
+    type: String,
+    required: false,
+    trim: true
+  },
+  profilePicture: {
+    type: String,
+    trim: true
+  },
+
+  // Common fields
   email: {
     type: String,
     required: true,
@@ -16,14 +41,10 @@ const userSchema = new mongoose.Schema({
     trim: true,
     lowercase: true
   },
-  passwordHash: {
-    type: String,
-    required: true
-  },
   role: {
     type: String,
-    enum: ['admin'],
-    default: 'admin'
+    enum: ['admin', 'user'],
+    default: 'user'
   }
 }, {
   timestamps: true

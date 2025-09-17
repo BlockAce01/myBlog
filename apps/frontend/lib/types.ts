@@ -1,3 +1,23 @@
+import { DefaultSession } from 'next-auth'
+
+declare module 'next-auth' {
+  interface Session {
+    accessToken?: string
+    backendToken?: string
+    user: {
+      id: string
+      name?: string | null
+      email?: string | null
+      image?: string | null
+    } & DefaultSession['user']
+  }
+
+  interface JWT {
+    accessToken?: string
+    backendToken?: string
+  }
+}
+
 export interface BlogPost {
   id: string
   title: string
@@ -16,10 +36,22 @@ export interface BlogPost {
   version?: number // Version for optimistic locking
 }
 
+export interface User {
+  id: string
+  name: string
+  email: string
+  profilePicture?: string
+  role: 'admin' | 'user'
+}
+
 export interface Comment {
   id: string
   postId: string
-  authorName: string
+  userId: User
   commentText: string
+  parentId?: string | null
+  depth: number
+  replies?: Comment[]
+  replyCount?: number
   createdAt: string
 }
