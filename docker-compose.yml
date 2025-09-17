@@ -19,9 +19,8 @@ services:
       dockerfile: apps/frontend/Dockerfile
     ports:
       - "3000:3000"
-    environment:
-      - NODE_ENV=development
-      - NEXT_PUBLIC_API_URL=http://backend:3003/api
+    env_file:
+      - ./apps/frontend/.env.local
     working_dir: /app/apps/frontend
     command: ["pnpm", "dev"]
     volumes:
@@ -43,7 +42,7 @@ services:
     ports:
       - "3003:3003"
     env_file:
-      - .env
+      - ./apps/backend/.env
     environment:
       - NODE_ENV=development
       - DB_CONNECT_RETRIES=5
