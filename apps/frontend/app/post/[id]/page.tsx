@@ -6,15 +6,15 @@ import { Layout } from "@/components/layout";
 import type { BlogPost, Comment } from "@/lib/types";
 import { Eye, Heart, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import HTMLRenderer from "@/components/HTMLRenderer";
+import { CommentForm } from "@/components/comment-form";
+import { CommentCard } from "@/components/comment-card";
+import { ReplyForm } from "@/components/reply-form";
 
 import {
   getPost,
   getComments,
-  createComment,
   likePost,
   incrementViewCount,
 } from "@/lib/data";
@@ -29,8 +29,9 @@ export default function PostPage() {
   const [comments, setComments] = useState<Comment[]>([]);
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
-  const [newComment, setNewComment] = useState({ name: "", comment: "" });
   const [loading, setLoading] = useState(true);
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [expandedReplies, setExpandedReplies] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (id && !hasViewed.current) {
@@ -102,18 +103,50 @@ export default function PostPage() {
     }
   };
 
-  const handleCommentSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (post && newComment.name && newComment.comment) {
-      const comment = await createComment(post.id, {
-        authorName: newComment.name,
-        commentText: newComment.comment,
-      });
-      if (comment) {
-        setComments([...comments, comment]);
-        setNewComment({ name: "", comment: "" });
+  const handleCommentAdded = async () => {
+    // Refresh comments after a new comment is added
+    if (post) {
+      const commentsData = await getComments(post.id);
+      setComments(commentsData);
+    }
+  };
+
+  const handleReply = (commentId: string) => {
+    console.log('handleReply called with:', commentId);
+    console.log('Current replyingTo:', replyingTo);
+    setReplyingTo(commentId);
+    console.log('Set replyingTo to:', commentId);
+  };
+
+  const handleReplyCancel = () => {
+    setReplyingTo(null);
+  };
+
+  const handleReplyAdded = async () => {
+    console.log('handleReplyAdded called - refreshing comments');
+    // Refresh comments after a reply is added
+    if (post) {
+      try {
+        const commentsData = await getComments(post.id);
+        console.log('Refreshed comments:', commentsData.length, 'comments');
+        setComments(commentsData);
+        // Clear any expanded reply states to reset the view
+        setExpandedReplies(new Set());
+      } catch (error) {
+        console.error('Error refreshing comments:', error);
       }
     }
+    setReplyingTo(null);
+  };
+
+  const handleToggleReplies = (commentId: string) => {
+    const newExpanded = new Set(expandedReplies);
+    if (newExpanded.has(commentId)) {
+      newExpanded.delete(commentId);
+    } else {
+      newExpanded.add(commentId);
+    }
+    setExpandedReplies(newExpanded);
   };
 
   if (loading) {
@@ -189,60 +222,44 @@ export default function PostPage() {
 
         {/* Comments Section */}
         <section className="border-t border-border pt-8">
-          <h2 className="text-2xl font-bold font-sans text-foreground mb-6 flex items-center">
-            <MessageCircle className="w-6 h-6 mr-2" />
-            Comments ({comments.length})
-          </h2>
+          <div className="max-w-2xl mx-auto">
+            <h2 className="text-xl sm:text-2xl font-bold font-sans text-foreground mb-6 flex items-center">
+              <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6 mr-2" />
+              Comments ({comments.length})
+            </h2>
 
           {/* Existing Comments */}
           <div className="space-y-6 mb-8">
-            {comments.map((comment) => (
-              <div key={comment.id} className="bg-card border border-border rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="font-semibold text-foreground">{comment.authorName}</h4>
-                  <span className="text-sm text-muted-foreground">
-                    {new Date(comment.createdAt).toLocaleDateString()}
-                  </span>
+            {comments.map((comment, index) => {
+              // Generate a unique key for React - use comment.id if available, otherwise create a unique temp ID
+              const uniqueKey = comment.id || `temp-comment-${index}-${Date.now()}-${Math.random()}`;
+              const commentId = comment.id || uniqueKey;
+
+              return (
+                <div key={`comment-${uniqueKey}`}>
+                  <CommentCard
+                    comment={{...comment, id: commentId}}
+                    onReply={handleReply}
+                    showReplies={expandedReplies.has(commentId)}
+                    onToggleReplies={handleToggleReplies}
+                  />
+                  {replyingTo === commentId && (
+                    <ReplyForm
+                      key={`reply-form-${uniqueKey}`}
+                      postId={post.id}
+                      parentCommentId={commentId}
+                      onReplyAdded={handleReplyAdded}
+                      onCancel={handleReplyCancel}
+                    />
+                  )}
                 </div>
-                <p className="text-foreground/90 font-serif">{comment.commentText}</p>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Comment Form */}
-          <form onSubmit={handleCommentSubmit} className="bg-card border border-border rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-foreground mb-4">Leave a Comment</h3>
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium text-foreground mb-2">
-                  Name
-                </label>
-                <Input
-                  id="name"
-                  value={newComment.name}
-                  onChange={(e) => setNewComment({ ...newComment, name: e.target.value })}
-                  placeholder="Your name"
-                  required
-                />
-              </div>
-              <div>
-                <label htmlFor="comment" className="block text-sm font-medium text-foreground mb-2">
-                  Comment
-                </label>
-                <Textarea
-                  id="comment"
-                  value={newComment.comment}
-                  onChange={(e) => setNewComment({ ...newComment, comment: e.target.value })}
-                  placeholder="Share your thoughts..."
-                  rows={4}
-                  required
-                />
-              </div>
-              <Button type="submit" className="w-full">
-                Post Comment
-              </Button>
-            </div>
-          </form>
+          <CommentForm postId={post.id} onCommentAdded={handleCommentAdded} />
+          </div>
         </section>
       </article>
     </Layout>
