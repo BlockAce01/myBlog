@@ -2,6 +2,7 @@
 require('dotenv').config();
 const express = require('express');
 const cron = require('node-cron');
+const passport = require('passport');
 const { connectDB, disconnectDB } = require('./utils/db');
 const mongoose = require('mongoose');
 const helloRouter = require('./api/hello');
@@ -18,6 +19,18 @@ require('./models/User'); // Ensure User model is loaded
 const app = express();
 const cors = require('cors');
 const path = require('path');
+const session = require('express-session');
+
+// Initialize Passport
+app.use(session({
+  secret: process.env.JWT_SECRET || 'your-secret-key',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: false } // Set to true in production with HTTPS
+}));
+app.use(passport.initialize());
+app.use(passport.session());
+
 app.use(cors());
 app.use(express.json());
 const port = process.env.PORT || 3003;
