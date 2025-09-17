@@ -13,7 +13,7 @@ web-bundles
 .husky/** */
 
 # Sensitive database files
-mongo-init/*
+mongo-init
 **/init-admin.js
 
 # API keys and secrets
