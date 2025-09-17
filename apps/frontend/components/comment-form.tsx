@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { useSession, signIn } from "next-auth/react"
+import { useRouter } from "next/navigation" // Import useRouter
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
@@ -14,34 +14,33 @@ interface CommentFormProps {
 }
 
 export function CommentForm({ postId, onCommentAdded }: CommentFormProps) {
-  const { data: session, status } = useSession()
+  const router = useRouter() // Initialize useRouter
   const [comment, setComment] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [authToken, setAuthToken] = useState<string | null>(null) // State to hold authToken
+
+  useEffect(() => {
+    setAuthToken(localStorage.getItem('authToken'))
+    console.log("NEXT_PUBLIC_BACKEND_BASE_URL:", process.env.NEXT_PUBLIC_BACKEND_BASE_URL)
+  }, [])
 
   const handleGoogleSignIn = () => {
-    signIn('google', { callbackUrl: window.location.href })
-  }
+    const currentUrl = window.location.href;
+    window.location.href = `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/auth/google?callbackUrl=${encodeURIComponent(currentUrl)}`;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!comment.trim() || !session) return
+    if (!comment.trim() || !authToken) return
 
     setIsSubmitting(true)
 
     try {
-      // Use the backend token from NextAuth session
-      const token = session.backendToken
-
-      if (!token) {
-        console.error('No backend token available')
-        return
-      }
-
-      const commentResponse = await fetch(`http://localhost:3003/api/posts/${postId}/comments`, {
+      const commentResponse = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/posts/${postId}/comments`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${authToken}`,
         },
         body: JSON.stringify({ commentText: comment }),
       })
@@ -59,11 +58,7 @@ export function CommentForm({ postId, onCommentAdded }: CommentFormProps) {
     }
   }
 
-  if (status === 'loading') {
-    return <div>Loading...</div>
-  }
-
-  if (!session) {
+  if (!authToken) {
     return (
       <Card>
         <CardHeader>
