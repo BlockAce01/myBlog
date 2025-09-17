@@ -7,5 +7,22 @@
 web-bundles
 .bmad-infrastructure-devops
 .env
+.env.local
+.env.production
 .pnpm-store/
 .husky/** */
+
+# Sensitive database files
+mongo-init
+**/init-admin.js
+
+# API keys and secrets
+*.key
+*.pem
+secrets.json
+config/secrets.json
+
+# Database dumps
+*.sql
+*.dump
+database_backup/
