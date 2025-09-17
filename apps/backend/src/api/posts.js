@@ -1,10 +1,12 @@
 const express = require('express');
 const router = express.Router();
+const jwt = require('jsonwebtoken');
 const BlogPost = require('../models/BlogPost'); // Import the BlogPost model
 const Comment = require('../models/Comment'); // Import the Comment model
 const mongoose = require('mongoose');
 const { authenticateToken } = require('../middleware/auth'); // Import authentication middleware
 const { generateSlug, generateUniqueSlug } = require('../utils/slug'); // Import slug utilities
+require('dotenv').config();
 
 // POST /api/posts - Create a new blog post (AC: 1, 3, 4, 6)
 router.post('/posts', authenticateToken, async (req, res) => {
@@ -300,28 +302,134 @@ router.delete('/posts/:id', authenticateToken, async (req, res) => {
 // POST /api/posts/:postId/comments - Add a new comment to a post (AC: 2, 6)
 router.post('/posts/:postId/comments', async (req, res) => {
   try {
+    console.log('=== COMMENT CREATION START ===');
     const { postId } = req.params;
-    const { authorName, commentText } = req.body;
+    const { commentText } = req.body;
+    console.log('PostId:', postId);
+    console.log('CommentText:', commentText);
 
-    if (!authorName || !commentText) {
-      return res.status(400).json({ message: 'Missing required fields: authorName, commentText' });
+    // Extract user ID from JWT token
+    const authHeader = req.headers.authorization;
+    console.log('Auth header:', authHeader ? 'present' : 'missing');
+
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.log('No auth header or not Bearer token');
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+
+    const token = authHeader.substring(7);
+    console.log('Token length:', token.length);
+
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+      console.log('Decoded JWT token:', JSON.stringify(decoded, null, 2));
+    } catch (error) {
+      console.error('JWT verification failed:', error.message);
+      return res.status(401).json({ message: 'Invalid token' });
+    }
+
+    if (!commentText) {
+      console.log('Missing comment text');
+      return res.status(400).json({ message: 'Missing required field: commentText' });
     }
 
     if (!mongoose.Types.ObjectId.isValid(postId)) {
+      console.log('Invalid post ID:', postId);
       return res.status(400).json({ message: 'Invalid post ID' });
     }
 
+    // Verify user exists - handle both MongoDB ObjectId and Google ID
+    const User = require('../models/User');
+    console.log('Looking for user with ID:', decoded.userId);
+
+    let user;
+    let finalUserId;
+
+    // Check if the userId is a valid MongoDB ObjectId
+    if (mongoose.Types.ObjectId.isValid(decoded.userId)) {
+      console.log('userId is valid ObjectId, looking up by _id');
+      user = await User.findById(decoded.userId);
+      if (user) {
+        console.log('Found user by ObjectId:', { id: user._id, name: user.name, email: user.email, role: user.role });
+        finalUserId = user._id;
+      }
+    }
+
+    // If not found by ObjectId, try to find by googleId
+    if (!user) {
+      console.log('Trying to find by googleId:', decoded.userId);
+      const googleUser = await User.findOne({ googleId: decoded.userId });
+      console.log('Found Google user:', googleUser ? 'YES' : 'NO');
+      if (googleUser) {
+        console.log('Google user details:', { id: googleUser._id, name: googleUser.name, email: googleUser.email });
+        user = googleUser;
+        finalUserId = googleUser._id;
+      }
+    }
+
+    // If still not found, create a new user
+    if (!user) {
+      console.log('No user found, creating new user...');
+      try {
+        // Generate a unique username for Google users
+        const baseUsername = decoded.email.split('@')[0].toLowerCase();
+        let uniqueUsername = baseUsername;
+        let counter = 1;
+
+        // Check if username already exists
+        while (await User.findOne({ username: uniqueUsername })) {
+          uniqueUsername = `${baseUsername}${counter}`;
+          counter++;
+        }
+
+        const newUser = new User({
+          username: uniqueUsername, // Set unique username for Google users
+          googleId: decoded.userId,
+          name: decoded.name,
+          email: decoded.email,
+          role: decoded.role || 'user'
+        });
+        user = await newUser.save();
+        console.log('Created new user:', { id: user._id, name: user.name, email: user.email, googleId: user.googleId, username: user.username });
+        finalUserId = user._id;
+      } catch (createError) {
+        console.error('Error creating user:', createError);
+        return res.status(500).json({ message: 'Error creating user' });
+      }
+    }
+
+    if (!finalUserId) {
+      console.log('No finalUserId available');
+      return res.status(500).json({ message: 'User ID not available' });
+    }
+
+    console.log('Creating comment with userId:', finalUserId);
     const newComment = new Comment({
       postId,
-      authorName,
+      userId: finalUserId,
       commentText,
     });
 
+    console.log('Saving comment...');
     const savedComment = await newComment.save();
+    console.log('Comment saved successfully:', savedComment._id);
+
+    // Populate user information
+    console.log('Populating user information...');
+    await savedComment.populate('userId', 'name profilePicture');
+    console.log('Population successful');
+
+    console.log('=== COMMENT CREATION END ===');
     res.status(201).json(savedComment);
   } catch (error) {
     console.error('Error adding comment:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Error details:', error.message);
+    console.error('Stack trace:', error.stack);
+    res.status(500).json({
+      message: 'Server error',
+      error: error.message
+    });
   }
 });
 
@@ -334,10 +442,163 @@ router.get('/posts/:id/comments', async (req, res) => {
       return res.status(400).json({ message: 'Invalid post ID' });
     }
 
-    const comments = await Comment.find({ postId: id }).sort({ createdAt: -1 });
-    res.status(200).json(comments);
+    // Get top-level comments (no parent)
+    const comments = await Comment.find({ postId: id, parentId: null })
+      .populate('userId', 'name profilePicture')
+      .sort({ createdAt: -1 });
+
+    // For each comment, get reply count
+    const commentsWithReplies = await Promise.all(
+      comments.map(async (comment) => {
+        const replyCount = await Comment.countDocuments({
+          postId: id,
+          parentId: comment._id
+        });
+        const commentObj = comment.toObject();
+        // Ensure id field is properly set
+        commentObj.id = commentObj._id.toString();
+        return {
+          ...commentObj,
+          replyCount
+        };
+      })
+    );
+
+    res.status(200).json(commentsWithReplies);
   } catch (error) {
     console.error('Error fetching comments:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// POST /api/posts/:postId/comments/:commentId/replies - Create a reply to a comment
+router.post('/posts/:postId/comments/:commentId/replies', async (req, res) => {
+  try {
+    const { postId, commentId } = req.params;
+    const { commentText } = req.body;
+
+    // Extract user ID from JWT token
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+
+    const token = authHeader.substring(7);
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (error) {
+      console.error('JWT verification failed:', error.message);
+      return res.status(401).json({ message: 'Invalid token' });
+    }
+
+    if (!commentText) {
+      return res.status(400).json({ message: 'Missing required field: commentText' });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(postId) || !mongoose.Types.ObjectId.isValid(commentId)) {
+      return res.status(400).json({ message: 'Invalid post ID or comment ID' });
+    }
+
+    // Verify parent comment exists
+    const parentComment = await Comment.findById(commentId);
+    if (!parentComment) {
+      return res.status(404).json({ message: 'Parent comment not found' });
+    }
+
+    // Verify user exists (reuse logic from main comment creation)
+    const User = require('../models/User');
+    let user;
+    let finalUserId;
+
+    if (mongoose.Types.ObjectId.isValid(decoded.userId)) {
+      user = await User.findById(decoded.userId);
+      if (user) {
+        finalUserId = user._id;
+      }
+    }
+
+    if (!user) {
+      const googleUser = await User.findOne({ googleId: decoded.userId });
+      if (googleUser) {
+        user = googleUser;
+        finalUserId = googleUser._id;
+      }
+    }
+
+    if (!user) {
+      // Create new user if needed
+      const baseUsername = decoded.email.split('@')[0].toLowerCase();
+      let uniqueUsername = baseUsername;
+      let counter = 1;
+
+      while (await User.findOne({ username: uniqueUsername })) {
+        uniqueUsername = `${baseUsername}${counter}`;
+        counter++;
+      }
+
+      const newUser = new User({
+        username: uniqueUsername,
+        googleId: decoded.userId,
+        name: decoded.name,
+        email: decoded.email,
+        role: decoded.role || 'user'
+      });
+      user = await newUser.save();
+      finalUserId = user._id;
+    }
+
+    // Calculate depth for reply
+    const replyDepth = (parentComment.depth || 0) + 1;
+    if (replyDepth > 3) {
+      return res.status(400).json({ message: 'Maximum reply depth exceeded' });
+    }
+
+    const reply = new Comment({
+      postId,
+      userId: finalUserId,
+      commentText,
+      parentId: commentId,
+      depth: replyDepth,
+    });
+
+    const savedReply = await reply.save();
+    await savedReply.populate('userId', 'name profilePicture');
+
+    // Add id field for frontend compatibility
+    const replyObj = savedReply.toObject();
+    replyObj.id = replyObj._id;
+
+    res.status(201).json(replyObj);
+  } catch (error) {
+    console.error('Error creating reply:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// GET /api/posts/:postId/comments/:commentId/replies - Get replies for a specific comment
+router.get('/posts/:postId/comments/:commentId/replies', async (req, res) => {
+  try {
+    const { postId, commentId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(postId) || !mongoose.Types.ObjectId.isValid(commentId)) {
+      return res.status(400).json({ message: 'Invalid post ID or comment ID' });
+    }
+
+    const replies = await Comment.find({ postId, parentId: commentId })
+      .populate('userId', 'name profilePicture')
+      .sort({ createdAt: 1 }); // Oldest first for replies
+
+    // Add id field for frontend compatibility
+    const repliesWithId = replies.map(reply => {
+      const replyObj = reply.toObject();
+      replyObj.id = replyObj._id;
+      return replyObj;
+    });
+
+    res.status(200).json(repliesWithId);
+  } catch (error) {
+    console.error('Error fetching replies:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
