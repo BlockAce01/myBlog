@@ -1,0 +1,54 @@
+schema: 1
+story: "2.7"
+story_title: "Implement Google Sign-In for Commenting"
+gate: CONCERNS
+status_reason: "Core functionality implemented and working, but test failures need resolution before full confidence"
+reviewer: "Quinn (Test Architect)"
+updated: "2025-09-17T12:43:00Z"
+
+waiver: { active: false }
+
+top_issues:
+  - id: "TEST-001"
+    severity: medium
+    finding: "Comment API tests fail due to missing authentication headers (expected but need updates)"
+    suggested_action: "Update comment tests to include JWT authentication headers"
+  - id: "TEST-002"
+    severity: medium
+    finding: "Comment population error in GET /comments endpoint (.populate is not a function)"
+    suggested_action: "Fix Comment model import or populate method issue"
+  - id: "MODEL-001"
+    severity: low
+    finding: "User model test expects admin role but gets user role for new users"
+    suggested_action: "Update User model test to expect correct default role"
+
+evidence:
+  tests_reviewed: 45
+  risks_identified: 3
+  trace:
+    ac_covered: [1, 2, 3, 4, 5, 6, 7]
+    ac_gaps: []
+
+nfr_validation:
+  security:
+    status: PASS
+    notes: "JWT authentication properly implemented, Google OAuth secure"
+  performance:
+    status: PASS
+    notes: "Proper database indexing, efficient queries"
+  reliability:
+    status: CONCERNS
+    notes: "Test failures indicate potential runtime issues with comment population"
+  maintainability:
+    status: PASS
+    notes: "Clean code structure, good error handling"
+
+recommendations:
+  immediate:
+    - action: "Fix Comment model populate issue in GET /comments endpoint"
+      refs: ["apps/backend/src/api/posts.js:447"]
+    - action: "Update comment API tests to include authentication headers"
+      refs: ["apps/backend/src/api/posts.test.js"]
+  future:
+    - action: "Add rate limiting to comment endpoints for production"
+      refs: ["apps/backend/src/api/posts.js"]
