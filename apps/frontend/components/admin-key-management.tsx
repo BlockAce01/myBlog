@@ -26,33 +26,10 @@ export const AdminKeyManagement: React.FC<KeyManagementProps> = ({ email: initia
   const [isGenerating, setIsGenerating] = useState(false);
   const [email, setEmail] = useState(initialEmail || '');
 
-  const { isLoading, error, exportPrivateKey, importPrivateKeyFromBackup, hasPrivateKey } = useCryptoAuth();
+  const { isLoading, error, generateKeyPair, registerPublicKey, exportPrivateKey, importPrivateKeyFromBackup, hasPrivateKey } = useCryptoAuth();
   const { toast } = useToast();
 
-  // Store private key in IndexedDB
-  const storePrivateKey = async (privateKey: string): Promise<void> => {
-    return new Promise((resolve, reject) => {
-      const request = indexedDB.open('CryptoAuthDB', 2);
 
-      request.onerror = () => reject(request.error);
-      request.onsuccess = () => {
-        const db = request.result;
-        const transaction = db.transaction(['keys'], 'readwrite');
-        const store = transaction.objectStore('keys');
-        const putRequest = store.put({ id: 'admin-private-key', key: privateKey });
-
-        putRequest.onerror = () => reject(putRequest.error);
-        putRequest.onsuccess = () => resolve();
-      };
-
-      request.onupgradeneeded = (event) => {
-        const db = (event.target as IDBOpenDBRequest).result;
-        if (!db.objectStoreNames.contains('keys')) {
-          db.createObjectStore('keys', { keyPath: 'id' });
-        }
-      };
-    });
-  };
 
   useEffect(() => {
     checkExistingKeys();
@@ -75,40 +52,45 @@ export const AdminKeyManagement: React.FC<KeyManagementProps> = ({ email: initia
 
     setIsGenerating(true);
     try {
-      // Generate key pair using backend (Node.js crypto for compatibility)
-      const response = await fetch('/api/admin/keygen', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: email,
-        }),
-      });
+      // Generate key pair client-side using Web Crypto API
+      const keyPair = await generateKeyPair();
 
-      if (response.ok) {
-        const data = await response.json();
+      if (!keyPair) {
+        throw new Error('Failed to generate key pair');
+      }
 
-        // Store the private key returned from backend
-        await storePrivateKey(data.privateKey);
+      // Try to register the public key with the server
+      const registrationSuccess = await registerPublicKey(email, keyPair.publicKey);
 
+      if (registrationSuccess) {
         setHasKeys(true);
         toast({
           title: 'Keys Generated',
-          description: 'Cryptographic keys have been generated and stored securely.',
+          description: 'Cryptographic keys have been generated and stored securely. Public key registered with server.',
         });
         onKeyGenerated?.();
       } else {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to generate keys');
+        throw new Error('Failed to register public key with server');
       }
     } catch (err) {
       console.error('Key generation error:', err);
-      toast({
-        title: 'Key Generation Failed',
-        description: err instanceof Error ? err.message : 'An error occurred while generating keys.',
-        variant: 'destructive',
-      });
+
+      // Check if the error is because keys already exist
+      if (err instanceof Error && err.message.includes('already has a registered public key')) {
+        toast({
+          title: 'Keys Already Exist',
+          description: 'You already have cryptographic keys registered. Use the key rotation feature if you need to update them.',
+          variant: 'default',
+        });
+        setHasKeys(true); // Update UI to show keys exist
+        onKeyGenerated?.();
+      } else {
+        toast({
+          title: 'Key Generation Failed',
+          description: err instanceof Error ? err.message : 'An error occurred while generating keys.',
+          variant: 'destructive',
+        });
+      }
     } finally {
       setIsGenerating(false);
     }

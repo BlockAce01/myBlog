@@ -8,12 +8,14 @@ const path = require('path');
 
 class AuditLogger {
   constructor(options = {}) {
-    this.logFile = options.logFile || 'audit.log';
+    // Use environment variable for log file path, fallback to default
+    this.logFile = options.logFile || process.env.AUDIT_LOG_FILE || 'audit.log';
     this.maxFileSize = options.maxFileSize || 10 * 1024 * 1024; // 10MB
     this.maxFiles = options.maxFiles || 5;
     this.logLevel = options.logLevel || 'info';
     this.enableConsole = options.enableConsole !== false;
-    this.enableFile = options.enableFile !== false;
+    // Allow disabling file logging in production for security
+    this.enableFile = options.enableFile !== false && process.env.DISABLE_AUDIT_FILE_LOGGING !== 'true';
 
     // Create logs directory if it doesn't exist
     this.logsDir = path.dirname(this.logFile);
@@ -423,6 +425,19 @@ const audit = {
   logSuspiciousActivity: (ip, reason, details) =>
     auditLogger.log(AuditLogger.EVENTS.SUSPICIOUS_ACTIVITY, AuditLogger.CATEGORIES.SECURITY,
       { reason, details }, { ip }),
+
+  // Key management events
+  logKeyRegistration: (userId, ip, type) =>
+    auditLogger.log(AuditLogger.EVENTS.KEY_GENERATION, AuditLogger.CATEGORIES.SECURITY,
+      { type }, { userId, ip }),
+
+  logKeyRotation: (userId, ip, type) =>
+    auditLogger.log(AuditLogger.EVENTS.KEY_ROTATION, AuditLogger.CATEGORIES.SECURITY,
+      { type }, { userId, ip }),
+
+  logKeyRotationFailure: (userId, ip, reason) =>
+    auditLogger.log(AuditLogger.EVENTS.LOGIN_FAILURE, AuditLogger.CATEGORIES.SECURITY,
+      { reason, context: 'key_rotation' }, { userId, ip }),
 
   // Query methods
   queryLogs: (filters) => auditLogger.queryLogs(filters),
