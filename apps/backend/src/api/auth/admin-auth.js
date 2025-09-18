@@ -7,15 +7,24 @@ const { audit } = require('../../utils/auditLogger');
 
 const router = express.Router();
 
-// POST /admin/keygen - Generate key pair for admin user
-router.post('/keygen', keyManagementLimiter, async (req, res) => {
+// POST /admin/register-key - Register public key for admin user
+router.post('/register-key', keyManagementLimiter, async (req, res) => {
   try {
-    const { email } = req.body;
+    const { email, publicKey } = req.body;
 
-    if (!email) {
+    if (!email || !publicKey) {
       return res.status(400).json({
         error: 'Bad Request',
-        message: 'Email is required to generate keys'
+        message: 'Email and publicKey are required'
+      });
+    }
+
+    // Validate public key format (basic PEM validation)
+    if (!publicKey.includes('-----BEGIN PUBLIC KEY-----') ||
+        !publicKey.includes('-----END PUBLIC KEY-----')) {
+      return res.status(400).json({
+        error: 'Bad Request',
+        message: 'Invalid public key format'
       });
     }
 
@@ -24,41 +33,103 @@ router.post('/keygen', keyManagementLimiter, async (req, res) => {
     if (!user || user.role !== 'admin') {
       return res.status(403).json({
         error: 'Forbidden',
-        message: 'Only admin users can generate cryptographic keys'
+        message: 'Only admin users can register cryptographic keys'
       });
     }
 
-    // Generate ECDSA P-256 key pair
-    const { publicKey, privateKey } = crypto.generateKeyPairSync('ec', {
-      namedCurve: 'P-256',
-      publicKeyEncoding: {
-        type: 'spki',
-        format: 'pem'
-      },
-      privateKeyEncoding: {
-        type: 'pkcs8',
-        format: 'pem'
-      }
-    });
+    // Check if user already has a public key
+    if (user.publicKey) {
+      return res.status(409).json({
+        error: 'Conflict',
+        message: 'User already has a registered public key. Use key rotation endpoint instead.'
+      });
+    }
 
     // Store public key in database
     await User.findByIdAndUpdate(user._id, {
-      publicKey: publicKey
+      publicKey: publicKey.trim()
     });
 
-    // Return both keys to client (client will store private key securely)
+    // Audit the key registration
+    await audit.logKeyRegistration(user._id, req.ip, 'initial_registration');
+
     res.json({
       success: true,
-      publicKey: publicKey,
-      privateKey: privateKey,
-      message: 'Key pair generated successfully. Store the private key securely on your device.'
+      message: 'Public key registered successfully. You can now authenticate using cryptographic signatures.'
     });
 
   } catch (error) {
-    console.error('Key generation error:', error);
+    console.error('Key registration error:', error);
     res.status(500).json({
       error: 'Internal Server Error',
-      message: 'Failed to generate cryptographic keys'
+      message: 'Failed to register cryptographic key'
+    });
+  }
+});
+
+// POST /admin/rotate-key - Rotate public key for admin user
+router.post('/rotate-key', keyManagementLimiter, async (req, res) => {
+  try {
+    const { email, newPublicKey, signature, challenge } = req.body;
+
+    if (!email || !newPublicKey || !signature || !challenge) {
+      return res.status(400).json({
+        error: 'Bad Request',
+        message: 'Email, newPublicKey, signature, and challenge are required'
+      });
+    }
+
+    // Find and verify the admin user
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user || user.role !== 'admin' || !user.publicKey) {
+      return res.status(403).json({
+        error: 'Forbidden',
+        message: 'Invalid user or no existing key to rotate'
+      });
+    }
+
+    // Verify the signature with the old key to authorize rotation
+    const verifier = crypto.createVerify('SHA256');
+    verifier.update(challenge);
+
+    const signatureBuffer = Buffer.from(signature, 'hex');
+    const isValid = verifier.verify(user.publicKey, signatureBuffer);
+
+    if (!isValid) {
+      await audit.logKeyRotationFailure(user._id, req.ip, 'invalid_signature');
+      return res.status(401).json({
+        error: 'Unauthorized',
+        message: 'Invalid signature for key rotation'
+      });
+    }
+
+    // Validate new public key format
+    if (!newPublicKey.includes('-----BEGIN PUBLIC KEY-----') ||
+        !newPublicKey.includes('-----END PUBLIC KEY-----')) {
+      return res.status(400).json({
+        error: 'Bad Request',
+        message: 'Invalid new public key format'
+      });
+    }
+
+    // Update to new public key
+    await User.findByIdAndUpdate(user._id, {
+      publicKey: newPublicKey.trim()
+    });
+
+    // Audit the key rotation
+    await audit.logKeyRotation(user._id, req.ip, 'successful_rotation');
+
+    res.json({
+      success: true,
+      message: 'Public key rotated successfully.'
+    });
+
+  } catch (error) {
+    console.error('Key rotation error:', error);
+    res.status(500).json({
+      error: 'Internal Server Error',
+      message: 'Failed to rotate cryptographic key'
     });
   }
 });

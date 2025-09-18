@@ -26,3 +26,8 @@ config/secrets.json
 *.sql
 *.dump
 database_backup/
+
+# Audit logs (contain sensitive security information)
+apps/backend/audit.log
+audit.log
+*.log

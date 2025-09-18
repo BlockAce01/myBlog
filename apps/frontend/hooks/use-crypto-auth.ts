@@ -220,6 +220,35 @@ export const useCryptoAuth = () => {
     }
   };
 
+  // Register public key with server
+  const registerPublicKey = async (email: string, publicKey: string): Promise<boolean> => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const response = await fetch('/api/admin/register-key', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, publicKey }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to register public key');
+      }
+
+      return true;
+    } catch (err) {
+      console.error('Key registration error:', err);
+      setError(err instanceof Error ? err.message : 'Failed to register public key');
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Get authentication challenge from server
   const getChallenge = async (email: string): Promise<ChallengeResponse | null> => {
     try {
@@ -331,6 +360,7 @@ export const useCryptoAuth = () => {
     isLoading,
     error,
     generateKeyPair,
+    registerPublicKey,
     signChallenge,
     getChallenge,
     authenticate,
