@@ -19,9 +19,13 @@ const authenticateToken = (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     // Attach user information to request object
+    // Handle both old format (userId) and new format (id) for backward compatibility
     req.user = {
-      userId: decoded.userId,
-      role: decoded.role
+      id: decoded.id || decoded.userId,  // Support both id and userId fields
+      userId: decoded.id || decoded.userId,  // Keep userId for backward compatibility
+      email: decoded.email,
+      role: decoded.role,
+      permissions: decoded.permissions || []
     };
 
     next();
