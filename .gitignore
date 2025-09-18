@@ -26,3 +26,5 @@ config/secrets.json
 *.sql
 *.dump
 database_backup/
+
+apps/backend/audit.log
