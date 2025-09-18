@@ -10,6 +10,8 @@ const postsRouter = require('./api/posts');
 const imagesRouter = require('./api/images');
 const analyticsRouter = require('./api/analytics');
 const authRouter = require('./api/auth/auth'); // Import auth router
+const adminAuthRouter = require('./api/auth/admin-auth'); // Import admin auth router
+const apiKeysRouter = require('./api/api-keys'); // Import API keys router
 const BlogPost = require('./models/BlogPost');
 require('./models/Comment');
 require('./models/User'); // Ensure User model is loaded
@@ -59,6 +61,8 @@ app.use('/api', postsRouter);
 app.use('/api/images', imagesRouter);
 app.use('/api/analytics', analyticsRouter);
 app.use('/api/auth', authRouter); // Use auth router
+app.use('/api/admin', adminAuthRouter); // Use admin auth router
+app.use('/api/admin', apiKeysRouter.router); // Use API keys router
 
 const startServer = async () => {
   try {
