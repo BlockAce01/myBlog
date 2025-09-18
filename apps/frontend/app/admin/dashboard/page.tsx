@@ -7,10 +7,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Plus, Edit, Trash2, LogOut, Eye } from 'lucide-react';
+import { Loader2, Plus, Edit, Trash2, LogOut, Eye, Key, Shield } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useToastNotifications } from '@/hooks/use-toast-notifications';
 import { getPosts, deleteBlogPost } from '@/lib/data';
+import { AdminKeyManagement } from '@/components/admin-key-management';
+import { useCryptoAuth } from '@/hooks/use-crypto-auth';
 import type { BlogPost } from '@/lib/types';
 
 export default function AdminDashboardPage() {
@@ -20,8 +22,15 @@ export default function AdminDashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [adminEmail, setAdminEmail] = useState<string>('');
 
   useEffect(() => {
+    // Retrieve admin email from localStorage
+    const storedEmail = localStorage.getItem('adminEmail');
+    if (storedEmail) {
+      setAdminEmail(storedEmail);
+    }
+
     if (isAuthenticated && !authLoading) {
       fetchPosts();
     }
@@ -81,7 +90,44 @@ export default function AdminDashboardPage() {
   }
 
   if (!isAuthenticated) {
-    return null; // useRequireAuth will handle redirect
+    // Show key management interface for setting up cryptographic authentication
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <header className="bg-white shadow-sm border-b">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center py-4">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                  <Shield className="h-6 w-6" />
+                  Admin Setup
+                </h1>
+                <p className="text-sm text-gray-600">Set up secure cryptographic authentication</p>
+              </div>
+              <Link href="/admin/login">
+                <Button variant="outline">
+                  <Key className="h-4 w-4 mr-2" />
+                  Back to Login
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </header>
+
+        <main className="max-w-4xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+          <div className="mb-6">
+            <Alert>
+              <Shield className="h-4 w-4" />
+              <AlertDescription>
+                <strong>Secure Setup Required:</strong> You need to generate cryptographic keys to access the admin dashboard.
+                This ensures your admin account is protected with military-grade encryption.
+              </AlertDescription>
+            </Alert>
+          </div>
+
+          <AdminKeyManagement email={adminEmail} />
+        </main>
+      </div>
+    );
   }
 
   return (

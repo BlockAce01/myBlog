@@ -13,7 +13,7 @@ const userSchema = new mongoose.Schema({
   },
   passwordHash: {
     type: String,
-    required: function() { return this.role === 'admin'; }
+    required: false // We'll handle validation in pre-save middleware
   },
 
   // Public user fields (Google OAuth)
@@ -45,14 +45,29 @@ const userSchema = new mongoose.Schema({
     type: String,
     enum: ['admin', 'user'],
     default: 'user'
-  }
+  },
+
+  // Cryptographic authentication fields
+  publicKey: {
+    type: String,
+    required: false, // Only required for admin users using key auth
+    trim: true
+  },
+
+  // Role-based access control
+  permissions: [{
+    type: String,
+    enum: ['read', 'write', 'delete', 'admin', 'api_access'],
+    default: []
+  }]
 }, {
   timestamps: true
 });
 
 // Password hashing middleware
 userSchema.pre('save', async function(next) {
-  if (!this.isModified('passwordHash')) return next();
+  // Only hash password if it's provided and modified
+  if (!this.passwordHash || !this.isModified('passwordHash')) return next();
 
   try {
     const saltRounds = 12;
