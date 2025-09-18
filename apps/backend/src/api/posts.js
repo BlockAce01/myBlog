@@ -58,12 +58,9 @@ router.post('/posts', authenticateToken, adminCrudOnly, async (req, res) => {
       scheduledPublishDate: status === 'scheduled' ? new Date(scheduledPublishDate) : undefined
     });
 
-    console.log('Attempting to save new post:', newPost); // Added log
     await newPost.save();
-    console.log('New post saved successfully:', newPost); // Added log
     res.status(201).json(newPost);
   } catch (error) {
-    console.error('Error creating post:', error);
     res.status(500).json({
       message: 'Server error: ' + error.message,
       error: true
@@ -88,7 +85,6 @@ router.get('/posts/search', async (req, res) => {
     const posts = await BlogPost.find(filter).sort({ publicationDate: -1 });
     res.status(200).json(posts);
   } catch (error) {
-    console.error('Error searching posts:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -118,7 +114,6 @@ router.get('/posts', async (req, res) => {
     const posts = await BlogPost.find(filter).sort({ publicationDate: -1 });
     res.status(200).json(posts);
   } catch (error) {
-    console.error('Error fetching posts:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -158,7 +153,6 @@ router.get('/posts/:id', async (req, res) => {
 
     res.status(200).json(post);
   } catch (error) {
-    console.error('Error fetching post:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -258,7 +252,6 @@ router.put('/posts/:id', authenticateToken, adminCrudOnly, async (req, res) => {
       res.status(404).json({ message: 'Post not found' });
     }
   } catch (error) {
-    console.error('Error updating post:', error);
     if (error.name === 'ValidationError') {
       res.status(400).json({
         message: 'Validation error: ' + error.message,
@@ -292,8 +285,7 @@ router.delete('/posts/:id', authenticateToken, adminCrudOnly, async (req, res) =
       res.status(404).json({ message: 'Post not found' });
     }
   } catch (error) {
-    console.error('Error deleting post:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       message: 'Server error: ' + error.message,
       error: true
     });
@@ -303,67 +295,51 @@ router.delete('/posts/:id', authenticateToken, adminCrudOnly, async (req, res) =
 // POST /api/posts/:postId/comments - Add a new comment to a post (AC: 2, 6)
 router.post('/posts/:postId/comments', async (req, res) => {
   try {
-    console.log('=== COMMENT CREATION START ===');
     const { postId } = req.params;
     const { commentText } = req.body;
-    console.log('PostId:', postId);
-    console.log('CommentText:', commentText);
 
     // Extract user ID from JWT token
     const authHeader = req.headers.authorization;
-    console.log('Auth header:', authHeader ? 'present' : 'missing');
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      console.log('No auth header or not Bearer token');
       return res.status(401).json({ message: 'Authentication required' });
     }
 
     const token = authHeader.substring(7);
-    console.log('Token length:', token.length);
 
     let decoded;
     try {
       decoded = jwt.verify(token, process.env.JWT_SECRET);
-      console.log('Decoded JWT token:', JSON.stringify(decoded, null, 2));
     } catch (error) {
-      console.error('JWT verification failed:', error.message);
       return res.status(401).json({ message: 'Invalid token' });
     }
 
     if (!commentText) {
-      console.log('Missing comment text');
       return res.status(400).json({ message: 'Missing required field: commentText' });
     }
 
     if (!mongoose.Types.ObjectId.isValid(postId)) {
-      console.log('Invalid post ID:', postId);
       return res.status(400).json({ message: 'Invalid post ID' });
     }
 
     // Verify user exists - handle both MongoDB ObjectId and Google ID
     const User = require('../models/User');
-    console.log('Looking for user with ID:', decoded.userId);
 
     let user;
     let finalUserId;
 
     // Check if the userId is a valid MongoDB ObjectId
     if (mongoose.Types.ObjectId.isValid(decoded.userId)) {
-      console.log('userId is valid ObjectId, looking up by _id');
       user = await User.findById(decoded.userId);
       if (user) {
-        console.log('Found user by ObjectId:', { id: user._id, name: user.name, email: user.email, role: user.role });
         finalUserId = user._id;
       }
     }
 
     // If not found by ObjectId, try to find by googleId
     if (!user) {
-      console.log('Trying to find by googleId:', decoded.userId);
       const googleUser = await User.findOne({ googleId: decoded.userId });
-      console.log('Found Google user:', googleUser ? 'YES' : 'NO');
       if (googleUser) {
-        console.log('Google user details:', { id: googleUser._id, name: googleUser.name, email: googleUser.email });
         user = googleUser;
         finalUserId = googleUser._id;
       }
@@ -371,7 +347,6 @@ router.post('/posts/:postId/comments', async (req, res) => {
 
     // If still not found, create a new user
     if (!user) {
-      console.log('No user found, creating new user...');
       try {
         // Generate a unique username for Google users
         const baseUsername = decoded.email.split('@')[0].toLowerCase();
@@ -392,41 +367,28 @@ router.post('/posts/:postId/comments', async (req, res) => {
           role: decoded.role || 'user'
         });
         user = await newUser.save();
-        console.log('Created new user:', { id: user._id, name: user.name, email: user.email, googleId: user.googleId, username: user.username });
         finalUserId = user._id;
       } catch (createError) {
-        console.error('Error creating user:', createError);
         return res.status(500).json({ message: 'Error creating user' });
       }
     }
 
     if (!finalUserId) {
-      console.log('No finalUserId available');
       return res.status(500).json({ message: 'User ID not available' });
     }
 
-    console.log('Creating comment with userId:', finalUserId);
     const newComment = new Comment({
       postId,
       userId: finalUserId,
       commentText,
     });
 
-    console.log('Saving comment...');
     const savedComment = await newComment.save();
-    console.log('Comment saved successfully:', savedComment._id);
 
     // Populate user information
-    console.log('Populating user information...');
     await savedComment.populate('userId', 'name profilePicture');
-    console.log('Population successful');
-
-    console.log('=== COMMENT CREATION END ===');
     res.status(201).json(savedComment);
   } catch (error) {
-    console.error('Error adding comment:', error);
-    console.error('Error details:', error.message);
-    console.error('Stack trace:', error.stack);
     res.status(500).json({
       message: 'Server error',
       error: error.message
@@ -467,7 +429,6 @@ router.get('/posts/:id/comments', async (req, res) => {
 
     res.status(200).json(commentsWithReplies);
   } catch (error) {
-    console.error('Error fetching comments:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -489,7 +450,6 @@ router.post('/posts/:postId/comments/:commentId/replies', async (req, res) => {
     try {
       decoded = jwt.verify(token, process.env.JWT_SECRET);
     } catch (error) {
-      console.error('JWT verification failed:', error.message);
       return res.status(401).json({ message: 'Invalid token' });
     }
 
@@ -572,7 +532,6 @@ router.post('/posts/:postId/comments/:commentId/replies', async (req, res) => {
 
     res.status(201).json(replyObj);
   } catch (error) {
-    console.error('Error creating reply:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -599,7 +558,6 @@ router.get('/posts/:postId/comments/:commentId/replies', async (req, res) => {
 
     res.status(200).json(repliesWithId);
   } catch (error) {
-    console.error('Error fetching replies:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -645,7 +603,6 @@ router.post('/posts/:id/like', async (req, res) => {
       message: isLiked ? 'Post liked successfully' : 'Post unliked successfully'
     });
   } catch (error) {
-    console.error('Error liking post:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -675,7 +632,6 @@ router.get('/posts/slug/:slug', async (req, res) => {
 
     res.status(200).json(post);
   } catch (error) {
-    console.error('Error fetching post by slug:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -710,7 +666,6 @@ router.post('/posts/drafts', authenticateToken, async (req, res) => {
     await draftPost.save();
     res.status(201).json(draftPost);
   } catch (error) {
-    console.error('Error creating draft:', error);
     res.status(500).json({
       message: 'Server error: ' + error.message,
       error: true
@@ -784,7 +739,6 @@ router.put('/posts/drafts/:id', authenticateToken, async (req, res) => {
       res.status(404).json({ message: 'Draft not found' });
     }
   } catch (error) {
-    console.error('Error updating draft:', error);
     res.status(500).json({
       message: 'Server error: ' + error.message,
       error: true
@@ -809,7 +763,6 @@ router.get('/posts/drafts/:id', authenticateToken, async (req, res) => {
 
     res.status(200).json(draft);
   } catch (error) {
-    console.error('Error fetching draft:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

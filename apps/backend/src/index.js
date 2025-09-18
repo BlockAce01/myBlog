@@ -71,7 +71,7 @@ const startServer = async () => {
   try {
     await connectDB();
     const server = app.listen(port, () => {
-      console.log(`Server is running on port ${port}`);
+      // Server started successfully
     });
 
     // Scheduled publishing cron job - runs every minute
@@ -80,14 +80,11 @@ const startServer = async () => {
         // Check if MongoDB is connected before executing database operations
         // readyState: 0 = disconnected, 1 = connected, 2 = connecting, 3 = disconnecting
         const isConnected = mongoose.connection.readyState === 1;
-        console.log('Cron job running - DB connected status:', isConnected, '(readyState:', mongoose.connection.readyState + ')');
 
         if (!isConnected) {
-          console.log('Skipping scheduled publishing - MongoDB not connected');
           return;
         }
 
-        console.log('Executing scheduled publishing database operation...');
         const now = new Date();
         const result = await BlogPost.updateMany(
           {
@@ -99,26 +96,17 @@ const startServer = async () => {
             $unset: { scheduledPublishDate: 1 }
           }
         );
-
-        if (result.modifiedCount > 0) {
-          console.log(`Published ${result.modifiedCount} scheduled posts`);
-        } else {
-          console.log('No scheduled posts to publish');
-        }
       } catch (error) {
         console.error('Error in scheduled publishing:', error);
         // Note: No need to manually reset connection status - Mongoose handles this
       }
     });
 
-    console.log('Scheduled publishing cron job started');
-
     // Graceful shutdown
     process.on('SIGINT', async () => {
-      console.log('SIGINT signal received: closing HTTP server');
       await disconnectDB();
       server.close(() => {
-        console.log('HTTP server closed');
+        // HTTP server closed
       });
     });
   } catch (error) {

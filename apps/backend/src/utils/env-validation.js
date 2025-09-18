@@ -4,8 +4,9 @@ const { cleanEnv, str, url, port } = require('envalid');
  * Environment variable validation using envalid
  * Validates all required environment variables for the blog application
  */
-function validateEnvironment() {
+function validateEnvironment(options = {}) {
   const env = cleanEnv(process.env, {
+    ...options,
     // Database Configuration
     MONGODB_URI: url({
       desc: 'MongoDB Atlas connection string',

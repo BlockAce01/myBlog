@@ -112,10 +112,10 @@ export default function PostPage() {
   };
 
   const handleReply = (commentId: string) => {
-    console.log('handleReply called with:', commentId);
-    console.log('Current replyingTo:', replyingTo);
+    // console.log('handleReply called with:', commentId);
+    // console.log('Current replyingTo:', replyingTo);
     setReplyingTo(commentId);
-    console.log('Set replyingTo to:', commentId);
+    // console.log('Set replyingTo to:', commentId);
   };
 
   const handleReplyCancel = () => {
@@ -123,12 +123,12 @@ export default function PostPage() {
   };
 
   const handleReplyAdded = async () => {
-    console.log('handleReplyAdded called - refreshing comments');
+    // console.log('handleReplyAdded called - refreshing comments');
     // Refresh comments after a reply is added
     if (post) {
       try {
         const commentsData = await getComments(post.id);
-        console.log('Refreshed comments:', commentsData.length, 'comments');
+        // console.log('Refreshed comments:', commentsData.length, 'comments');
         setComments(commentsData);
         // Clear any expanded reply states to reset the view
         setExpandedReplies(new Set());

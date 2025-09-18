@@ -20,9 +20,7 @@ export function CommentForm({ postId, onCommentAdded }: CommentFormProps) {
   const [authToken, setAuthToken] = useState<string | null>(null) // State to hold authToken
 
   useEffect(() => {
-    setAuthToken(localStorage.getItem('authToken'))
-    console.log("NEXT_PUBLIC_BACKEND_BASE_URL:", process.env.NEXT_PUBLIC_BACKEND_BASE_URL)
-  }, [])
+    setAuthToken(localStorage.getItem('authToken'))  }, [])
 
   const handleGoogleSignIn = () => {
     const currentUrl = window.location.href;
