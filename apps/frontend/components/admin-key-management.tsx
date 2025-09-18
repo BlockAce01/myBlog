@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -29,6 +29,11 @@ export const AdminKeyManagement: React.FC<KeyManagementProps> = ({ email: initia
   const { isLoading, error, exportPrivateKey, importPrivateKeyFromBackup, hasPrivateKey } = useCryptoAuth();
   const { toast } = useToast();
 
+  const checkExistingKeys = useCallback(async () => {
+    const exists = await hasPrivateKey();
+    setHasKeys(exists);
+  }, [hasPrivateKey]);
+
   // Store private key in IndexedDB
   const storePrivateKey = async (privateKey: string): Promise<void> => {
     return new Promise((resolve, reject) => {
@@ -56,12 +61,7 @@ export const AdminKeyManagement: React.FC<KeyManagementProps> = ({ email: initia
 
   useEffect(() => {
     checkExistingKeys();
-  }, []);
-
-  const checkExistingKeys = async () => {
-    const exists = await hasPrivateKey();
-    setHasKeys(exists);
-  };
+  }, [checkExistingKeys]);
 
   const handleGenerateKeys = async () => {
     if (!email) {
@@ -125,7 +125,7 @@ export const AdminKeyManagement: React.FC<KeyManagementProps> = ({ email: initia
           description: 'Private key has been exported for backup. Store it securely!',
         });
       }
-    } catch (err) {
+    } catch (_err) { // eslint-disable-line @typescript-eslint/no-unused-vars
       toast({
         title: 'Export Failed',
         description: 'Failed to export private key.',
@@ -155,7 +155,7 @@ export const AdminKeyManagement: React.FC<KeyManagementProps> = ({ email: initia
         });
         onKeyGenerated?.();
       }
-    } catch (err) {
+    } catch (_err) { // eslint-disable-line @typescript-eslint/no-unused-vars
       toast({
         title: 'Import Failed',
         description: 'Failed to import private key. Please check the format.',
@@ -171,7 +171,7 @@ export const AdminKeyManagement: React.FC<KeyManagementProps> = ({ email: initia
         title: 'Copied',
         description: 'Key copied to clipboard.',
       });
-    } catch (err) {
+    } catch (_err) { // eslint-disable-line @typescript-eslint/no-unused-vars
       toast({
         title: 'Copy Failed',
         description: 'Failed to copy to clipboard.',

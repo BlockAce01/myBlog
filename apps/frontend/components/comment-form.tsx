@@ -2,7 +2,6 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation" // Import useRouter
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
@@ -14,7 +13,6 @@ interface CommentFormProps {
 }
 
 export function CommentForm({ postId, onCommentAdded }: CommentFormProps) {
-  const router = useRouter() // Initialize useRouter
   const [comment, setComment] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [authToken, setAuthToken] = useState<string | null>(null) // State to hold authToken

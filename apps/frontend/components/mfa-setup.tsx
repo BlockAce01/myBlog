@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Shield, Smartphone, Key, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import Image from 'next/image';
 
 interface MFASetupProps {
   onMFASetup?: (secret: string, backupCodes: string[]) => void;
@@ -293,9 +294,11 @@ export const MFASetup: React.FC<MFASetupProps> = ({
 
             {qrCodeUrl && (
               <div className="flex justify-center">
-                <img
+                <Image
                   src={qrCodeUrl}
                   alt="TOTP QR Code"
+                  width={200}
+                  height={200}
                   className="border rounded-lg p-2"
                 />
               </div>

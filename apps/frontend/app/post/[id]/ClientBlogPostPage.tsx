@@ -8,7 +8,7 @@ import { CommentCard } from "@/components/comment-card"
 import { CommentForm } from "@/components/comment-form"
 import { CodeBlock } from "@/components/code-block"
 import HTMLRenderer from "@/components/HTMLRenderer"
-import { getPost, getComments, createComment } from "@/lib/data"
+import { getPost, getComments } from "@/lib/data"
 import type { BlogPost, Comment } from "@/lib/types"
 
 interface BlogPostPageProps {
@@ -122,16 +122,7 @@ export default function ClientBlogPostPage({ params }: BlogPostPageProps) {
     return null;
   }
 
-  const handleCommentSubmit = async (name: string, commentText: string) => {
-    try {
-      const newComment = await createComment(post.id, { authorName: name, commentText });
-      if (newComment) {
-        setComments(prev => [...prev, newComment]);
-      }
-    } catch (err) {
-      console.error('Error creating comment:', err);
-    }
-  };
+
 
   return (
     <Layout>
@@ -171,7 +162,11 @@ export default function ClientBlogPostPage({ params }: BlogPostPageProps) {
           <div className="border-t border-border pt-8">
             <h3 className="text-lg font-semibold text-foreground mb-4">Leave a Comment</h3>
             <CommentForm
-              onSubmit={handleCommentSubmit}
+              postId={post.id}
+              onCommentAdded={() => {
+                // Refresh comments after adding a new one
+                getComments(params.id).then(setComments);
+              }}
             />
           </div>
         </section>

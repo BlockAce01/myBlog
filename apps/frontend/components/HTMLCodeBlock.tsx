@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import Prism from 'prismjs';
 import 'prismjs/themes/prism-okaidia.css';
 // Load common languages statically
@@ -72,7 +72,7 @@ export function HTMLCodeBlock({ htmlContent, className = '' }: HTMLCodeBlockProp
   const [language, setLanguage] = useState('javascript');
   const [title, setTitle] = useState('');
   const [showLineNumbers, setShowLineNumbers] = useState(false);
-  const [codeContent, setCodeContent] = useState('');
+
   const [highlightedCode, setHighlightedCode] = useState('');
 
   // Parse HTML content and highlight code after component mounts
@@ -113,13 +113,8 @@ export function HTMLCodeBlock({ htmlContent, className = '' }: HTMLCodeBlockProp
         if (titleMatch) {
           titleText = titleMatch[1].trim();
           // Remove title line from code
-          const actualCode = lines.slice(1).join('\n');
-          setCodeContent(actualCode);
-        } else {
-          setCodeContent(content);
+          // const actualCode = lines.slice(1).join('\n');
         }
-      } else {
-        setCodeContent(content);
       }
 
       setLanguage(lang);
@@ -145,7 +140,7 @@ export function HTMLCodeBlock({ htmlContent, className = '' }: HTMLCodeBlockProp
         } else {
           setHighlightedCode(highlighted);
         }
-      } catch (error) {
+      } catch {
         // Fallback to plain text if highlighting fails
         setHighlightedCode(content);
       }
@@ -173,7 +168,7 @@ export function HTMLCodeBlock({ htmlContent, className = '' }: HTMLCodeBlockProp
 
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
+    } catch {
       // Fallback for older browsers
       const textArea = document.createElement('textarea');
       const parser = new DOMParser();

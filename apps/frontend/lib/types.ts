@@ -1,4 +1,4 @@
-import { DefaultSession } from 'next-auth'
+
 
 declare module 'next-auth' {
   interface Session {
@@ -6,15 +6,16 @@ declare module 'next-auth' {
     backendToken?: string
     user: {
       id: string
-      name?: string | null
-      email?: string | null
-      image?: string | null
-    } & DefaultSession['user']
+      email: string
+      name: string
+      role: "admin" | "user"
+    }
   }
 
   interface JWT {
     accessToken?: string
     backendToken?: string
+    role: "admin" | "user"
   }
 }
 

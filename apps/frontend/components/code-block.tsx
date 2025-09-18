@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import Prism from 'prismjs';
 import 'prismjs/themes/prism-okaidia.css';
 // Load common languages statically
@@ -101,7 +101,7 @@ export function CodeBlock({
       } else {
         setHighlightedCode(highlighted);
       }
-    } catch (error) {
+    } catch {
       // Fallback to plain text if highlighting fails
       setHighlightedCode(code);
     }
@@ -112,7 +112,7 @@ export function CodeBlock({
       await navigator.clipboard.writeText(code);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
+    } catch {
       // Fallback for older browsers
       const textArea = document.createElement('textarea');
       textArea.value = code;

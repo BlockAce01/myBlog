@@ -1,7 +1,7 @@
 "use client";
 
 import { Layout } from "../components/layout";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { PostCard } from "../components/PostCard";
 import { Badge } from "../components/ui/badge";
 import { Input } from "../components/ui/input"; // Import Input component

@@ -78,7 +78,7 @@ interface ErrorBoundaryWrapperProps {
 }
 
 class ErrorBoundaryWrapper extends React.Component<ErrorBoundaryWrapperProps> {
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+  componentDidCatch(error: Error) {
     this.props.onError(error);
   }
 

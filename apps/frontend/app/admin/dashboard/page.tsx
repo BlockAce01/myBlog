@@ -12,12 +12,12 @@ import { useAuth } from '@/hooks/use-auth';
 import { useToastNotifications } from '@/hooks/use-toast-notifications';
 import { getPosts, deleteBlogPost } from '@/lib/data';
 import { AdminKeyManagement } from '@/components/admin-key-management';
-import { useCryptoAuth } from '@/hooks/use-crypto-auth';
+
 import type { BlogPost } from '@/lib/types';
 
 export default function AdminDashboardPage() {
   const { isAuthenticated, isLoading: authLoading, logout } = useAuth();
-  const { showSuccess, showError } = useToastNotifications();
+  const { showSuccess } = useToastNotifications();
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');

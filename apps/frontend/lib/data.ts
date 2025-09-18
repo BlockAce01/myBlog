@@ -329,7 +329,7 @@ export async function searchPosts(query: string, tags?: string[]): Promise<BlogP
       throw new Error(`Failed to search posts: ${errorData.message || res.statusText}`);
     }
     return res.json();
-  } catch (error) {
+  } catch {
 
     return [];
   }

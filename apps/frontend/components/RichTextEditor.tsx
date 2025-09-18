@@ -8,7 +8,6 @@ import { useImageUpload } from '@/hooks/use-image-upload';
 interface RichTextEditorProps {
   value: string;
   onChange: (value: string) => void;
-  placeholder?: string;
   disabled?: boolean;
   height?: number;
 }
@@ -16,11 +15,10 @@ interface RichTextEditorProps {
 export default function RichTextEditor({
   value,
   onChange,
-  placeholder = 'Write your blog post content here...',
   disabled = false,
   height = 400
 }: RichTextEditorProps) {
-  const editorRef = useRef<any>(null);
+  const editorRef = useRef<unknown>(null);
   const { uploadImage } = useImageUpload();
 
   const handleEditorChange = (content: string) => {
@@ -33,7 +31,7 @@ export default function RichTextEditor({
     <div className="w-full">
       <Editor
         apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY || 'no-api-key'}
-        onInit={(evt: any, editor: any) => editorRef.current = editor}
+        onInit={(evt: unknown, editor: unknown) => editorRef.current = editor}
         value={value}
         onEditorChange={handleEditorChange}
         disabled={disabled}
@@ -124,9 +122,10 @@ export default function RichTextEditor({
           contextmenu: 'link image table configurepermanentpen',
           skin: 'oxide',
           content_css: false,
-          setup: (editor: any) => {
-            editor.on('change', () => {
-              const content = editor.getContent();
+          setup: (editor: unknown) => {
+            const tinyEditor = editor as { on: (event: string, callback: () => void) => void; getContent: () => string };
+            tinyEditor.on('change', () => {
+              const content = tinyEditor.getContent();
               handleEditorChange(content);
             });
           }

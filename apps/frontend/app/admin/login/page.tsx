@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -22,14 +22,14 @@ export default function AdminLoginPage() {
   const router = useRouter();
   const { isLoading, error, getChallenge, signChallenge, authenticate, hasPrivateKey } = useCryptoAuth();
 
-  useEffect(() => {
-    checkExistingKeys();
-  }, []);
-
-  const checkExistingKeys = async () => {
+  const checkExistingKeys = useCallback(async () => {
     const exists = await hasPrivateKey();
     setHasKeys(exists);
-  };
+  }, [hasPrivateKey]);
+
+  useEffect(() => {
+    checkExistingKeys();
+  }, [checkExistingKeys]);
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,7 +48,7 @@ export default function AdminLoginPage() {
         setUserId(challengeResponse.userId);
         setStep('challenge');
       }
-    } catch (err) {
+    } catch {
       // Error is handled by the hook
     }
   };
@@ -76,7 +76,7 @@ export default function AdminLoginPage() {
         // Redirect to dashboard
         router.push('/admin/dashboard');
       }
-    } catch (err) {
+    } catch {
       // Error is handled by the hook
     }
   };

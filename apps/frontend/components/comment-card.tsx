@@ -2,6 +2,7 @@ import type { Comment } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import { MessageCircle, ChevronDown, ChevronUp } from "lucide-react"
 import { useState } from "react"
+import Image from "next/image"
 
 // Utility function to format relative time
 function formatRelativeTime(date: Date): string {
@@ -84,9 +85,11 @@ export function CommentCard({
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             {comment.userId.profilePicture && (
-              <img
+              <Image
                 src={comment.userId.profilePicture}
                 alt={comment.userId.name}
+                width={32}
+                height={32}
                 className="w-8 h-8 rounded-full"
               />
             )}
@@ -134,7 +137,7 @@ export function CommentCard({
             <div className="text-sm text-muted-foreground py-2">Loading replies...</div>
           ) : (
             <div className="space-y-3">
-              {replies.map((reply, index) => (
+              {replies.map((reply) => (
                 <div key={`reply-${reply.id}`} className="relative">
                   {/* Reply connector dot */}
                   <div className="absolute -left-6 top-3 w-2 h-2 bg-muted rounded-full"></div>

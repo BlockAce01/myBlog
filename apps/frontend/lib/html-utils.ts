@@ -28,8 +28,9 @@ export function sanitizeHtml(html: string): string {
 
   try {
     // Check if DOMPurify is available (will be imported where needed)
-    if (typeof (globalThis as any).DOMPurify !== 'undefined') {
-      return (globalThis as any).DOMPurify.sanitize(html);
+    const domPurify = (globalThis as { DOMPurify?: { sanitize: (html: string) => string } }).DOMPurify;
+    if (domPurify) {
+      return domPurify.sanitize(html);
     }
     // Fallback: return as-is if DOMPurify is not available
     console.warn('DOMPurify not available, returning unsanitized HTML');

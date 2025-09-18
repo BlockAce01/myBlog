@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -40,13 +40,7 @@ export default function EditBlogPostPage() {
   const [submitError, setSubmitError] = useState('');
   const [originalPost, setOriginalPost] = useState<BlogPost | null>(null);
 
-  useEffect(() => {
-    if (isAuthenticated && !authLoading && postId) {
-      fetchPost();
-    }
-  }, [isAuthenticated, authLoading, postId]);
-
-  const fetchPost = async () => {
+  const fetchPost = useCallback(async () => {
     try {
       setIsLoading(true);
       const post = await getPost(postId, true); // Pass true for admin to get any post regardless of status
@@ -71,7 +65,13 @@ export default function EditBlogPostPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [postId]);
+
+  useEffect(() => {
+    if (isAuthenticated && !authLoading && postId) {
+      fetchPost();
+    }
+  }, [isAuthenticated, authLoading, postId, fetchPost]);
 
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {};
