@@ -179,7 +179,10 @@ router.get('/google/callback',
       // Generate JWT token for the authenticated user
       const payload = {
         userId: req.user._id,
-        role: req.user.role
+        role: req.user.role,
+        name: req.user.name,
+        email: req.user.email,
+        profilePicture: req.user.profilePicture
       };
 
       const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' });

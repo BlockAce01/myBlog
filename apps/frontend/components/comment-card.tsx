@@ -83,12 +83,32 @@ export function CommentCard({
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            {comment.userId.profilePicture && (
-              <img
-                src={comment.userId.profilePicture}
-                alt={comment.userId.name}
-                className="w-8 h-8 rounded-full"
-              />
+            {comment.userId.profilePicture ? (
+              <>
+                <img
+                  src={`/api/avatar/${encodeURIComponent(comment.userId.profilePicture)}`}
+                  alt={comment.userId.name}
+                  className="w-8 h-8 rounded-full object-cover"
+                  onError={(e) => {
+                    // Fallback to initial avatar if cached image fails
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                    const fallback = target.nextElementSibling as HTMLElement;
+                    if (fallback) fallback.style.display = 'flex';
+                  }}
+                />
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center" style={{ display: 'none' }}>
+                  <span className="text-sm font-semibold text-primary">
+                    {comment.userId.name.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+              </>
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                <span className="text-sm font-semibold text-primary">
+                  {comment.userId.name.charAt(0).toUpperCase()}
+                </span>
+              </div>
             )}
             <p className="font-semibold text-foreground">{comment.userId.name}</p>
           </div>

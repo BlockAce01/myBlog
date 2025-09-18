@@ -389,14 +389,23 @@ router.post('/posts/:postId/comments', async (req, res) => {
           googleId: decoded.userId,
           name: decoded.name,
           email: decoded.email,
+          profilePicture: decoded.profilePicture, // Add Google profile picture
           role: decoded.role || 'user'
         });
         user = await newUser.save();
-        console.log('Created new user:', { id: user._id, name: user.name, email: user.email, googleId: user.googleId, username: user.username });
+        console.log('Created new user:', { id: user._id, name: user.name, email: user.email, googleId: user.googleId, username: user.username, profilePicture: user.profilePicture });
         finalUserId = user._id;
       } catch (createError) {
         console.error('Error creating user:', createError);
         return res.status(500).json({ message: 'Error creating user' });
+      }
+    } else {
+      // Update existing user's profile picture if it's missing and we have one from Google
+      if (!user.profilePicture && decoded.profilePicture) {
+        console.log('Updating existing user with Google profile picture...');
+        user.profilePicture = decoded.profilePicture;
+        await user.save();
+        console.log('Updated user profile picture:', user.profilePicture);
       }
     }
 
@@ -543,10 +552,17 @@ router.post('/posts/:postId/comments/:commentId/replies', async (req, res) => {
         googleId: decoded.userId,
         name: decoded.name,
         email: decoded.email,
+        profilePicture: decoded.profilePicture, // Add Google profile picture
         role: decoded.role || 'user'
       });
       user = await newUser.save();
       finalUserId = user._id;
+    } else {
+      // Update existing user's profile picture if it's missing and we have one from Google
+      if (!user.profilePicture && decoded.profilePicture) {
+        user.profilePicture = decoded.profilePicture;
+        await user.save();
+      }
     }
 
     // Calculate depth for reply
@@ -811,6 +827,55 @@ router.get('/posts/drafts/:id', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('Error fetching draft:', error);
     res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// GET /api/avatar/:url - Serve cached profile pictures to avoid Google rate limits
+router.get('/avatar/:url(*)', async (req, res) => {
+  try {
+    const imageUrl = decodeURIComponent(req.params.url);
+
+    // Validate that it's a Google profile picture URL
+    if (!imageUrl.includes('googleusercontent.com') && !imageUrl.includes('lh3.googleusercontent.com')) {
+      return res.status(400).json({ message: 'Invalid avatar URL' });
+    }
+
+    // Set cache headers (cache for 24 hours)
+    res.set({
+      'Cache-Control': 'public, max-age=86400', // 24 hours
+      'Expires': new Date(Date.now() + 86400000).toUTCString(),
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET',
+      'Access-Control-Allow-Headers': 'Content-Type'
+    });
+
+    // Fetch the image from Google with timeout and error handling
+    const fetch = require('node-fetch');
+    const response = await fetch(imageUrl, {
+      timeout: 5000, // 5 second timeout
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; BlogAvatar/1.0)'
+      }
+    });
+
+    if (!response.ok) {
+      // If Google blocks us, return a 404 so frontend can show fallback
+      return res.status(404).json({ message: 'Avatar not available' });
+    }
+
+    // Get the content type and pipe the image data
+    const contentType = response.headers.get('content-type');
+    if (contentType) {
+      res.set('Content-Type', contentType);
+    }
+
+    // Stream the image data to the response
+    response.body.pipe(res);
+
+  } catch (error) {
+    console.error('Error fetching avatar:', error.message);
+    // Return 404 so frontend shows fallback avatar
+    res.status(404).json({ message: 'Avatar temporarily unavailable' });
   }
 });
 
