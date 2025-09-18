@@ -1,0 +1,69 @@
+schema: 1
+story: "2.9"
+story_title: "Implement Secure Admin Authentication with Public/Private Key"
+gate: FAIL
+status_reason: "Critical security violations - private keys transmitted from server to client, violating core security requirements. Implementation contradicts 'private keys never leave client devices' requirement."
+reviewer: "Quinn (Test Architect)"
+updated: "2025-09-18T16:20:00Z"
+
+waiver:
+  active: false
+
+top_issues:
+  - id: "SEC-001"
+    severity: high
+    finding: "Server-side key generation transmits private keys to client"
+    suggested_action: "Implement client-side key generation and public key registration endpoint"
+  - id: "SEC-002"
+    severity: high
+    finding: "No CSRF protection on key management endpoints"
+    suggested_action: "Add CSRF tokens to key management operations"
+  - id: "SEC-003"
+    severity: medium
+    finding: "Password-based auth still present in User model"
+    suggested_action: "Remove password fields and related auth routes as per AC"
+  - id: "TEST-001"
+    severity: high
+    finding: "No test coverage for security-critical auth system"
+    suggested_action: "Implement comprehensive unit and integration tests for auth flow"
+  - id: "ARCH-001"
+    severity: medium
+    finding: "Challenge storage uses temporary in-memory (not Redis)"
+    suggested_action: "Implement proper Redis-based challenge storage for production"
+
+evidence:
+  tests_reviewed: 0
+  risks_identified: 5
+  trace:
+    ac_covered: []
+    ac_gaps: [1, 2, 3, 7, 8, 9]  # Password removal, keygen endpoint, tests, rate limiting, key rotation, session invalidation
+
+nfr_validation:
+  security:
+    status: FAIL
+    notes: "Private key transmission, missing CSRF protection, incomplete password removal"
+  performance:
+    status: PASS
+    notes: "Client-side crypto operations, rate limiting implemented"
+  reliability:
+    status: CONCERNS
+    notes: "Temporary challenge storage may cause issues in multi-instance deployment"
+  maintainability:
+    status: PASS
+    notes: "Clean code structure, good separation of concerns"
+
+recommendations:
+  immediate:
+    - action: "Fix server-side key generation to client-side generation + public key registration"
+      refs: ["apps/backend/src/api/auth/admin-auth.js", "apps/frontend/components/admin-key-management.tsx"]
+    - action: "Remove password-based auth completely"
+      refs: ["apps/backend/src/models/User.js", "apps/backend/src/api/auth/auth.js"]
+    - action: "Add comprehensive test coverage"
+      refs: ["apps/backend/src/api/auth/admin-auth.js", "apps/frontend/hooks/use-crypto-auth.ts"]
+  future:
+    - action: "Implement key rotation mechanism"
+      refs: ["apps/backend/src/api/auth/admin-auth.js"]
+    - action: "Add CSRF protection"
+      refs: ["apps/frontend/components/admin-key-management.tsx"]
+    - action: "Implement Redis-based challenge storage"
+      refs: ["apps/backend/src/api/auth/admin-auth.js"]
