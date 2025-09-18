@@ -47,3 +47,5 @@ security-scan.log
 database_backup/
 
 apps/backend/audit.log
+
+docs/
