@@ -28,7 +28,7 @@ A secure, full-stack blog application with cryptographic admin authentication, b
    Copy the environment files:
    ```bash
    cp apps/backend/.env.example apps/backend/.env
-   cp apps/frontend/.env.example apps/frontend/.env
+   cp apps/frontend/.env.example apps/frontend/.env.local
    ```
 
    Configure your environment variables in `apps/backend/.env`:
