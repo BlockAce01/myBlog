@@ -1,31 +1,4 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-# Secret scanning using detect-secrets
-echo "🔍 Scanning for potential secrets with detect-secrets..."
-
-# Run detect-secrets on staged files
-if git diff --cached --name-only | xargs pnpm exec detect-secrets-launcher scan 2>/dev/null; then
-  echo "⚠️  Potential secrets detected in staged files!"
-  echo "Please review and fix any detected secrets before committing."
-  echo ""
-  echo "💡 Common fixes:"
-  echo "   - Move secrets to environment variables"
-  echo "   - Add sensitive files to .gitignore"
-  echo "   - Use 'git reset HEAD <file>' to unstage problematic files"
-  echo "   - Generate new credentials/tokens if exposed"
-  exit 1
-fi
-
-# Fallback: Basic pattern scanning for common issues
-echo "🔍 Running additional pattern checks..."
-
-# Check for hardcoded MongoDB URIs (excluding .env files and .husky directory)
-if git diff --cached --name-only | xargs grep -l "mongodb+srv://" 2>/dev/null | grep -v "\.env$" | grep -v "\.husky/"; then
-  echo "⚠️  MongoDB URI detected in staged files!"
-  echo "Please ensure credentials are not hardcoded:"
-  git diff --cached --name-only | xargs grep -l "mongodb+srv://" 2>/dev/null | grep -v "\.env$" | grep -v "\.husky/"
-  exit 1
-fi
-
-echo "✅ No secrets detected - proceeding with commit"
+npx --no-install pre-commit run --all-files

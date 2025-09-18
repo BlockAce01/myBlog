@@ -22,6 +22,25 @@ mongo-init
 secrets.json
 config/secrets.json
 
+# Environment files (all variations)
+.env*
+!.env.example
+.env.local
+.env.development
+.env.test
+.env.production
+.env.staging
+
+# Secrets baseline and configuration
+.secrets.baseline
+
+# Pre-commit configuration
+.pre-commit-config.yaml
+
+# Security audit logs
+audit.log
+security-scan.log
+
 # Database dumps
 *.sql
 *.dump
