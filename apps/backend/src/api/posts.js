@@ -5,11 +5,12 @@ const BlogPost = require('../models/BlogPost'); // Import the BlogPost model
 const Comment = require('../models/Comment'); // Import the Comment model
 const mongoose = require('mongoose');
 const { authenticateToken } = require('../middleware/auth'); // Import authentication middleware
+const { adminCrudOnly } = require('../middleware/adminOnly'); // Import admin middleware
 const { generateSlug, generateUniqueSlug } = require('../utils/slug'); // Import slug utilities
 require('dotenv').config();
 
 // POST /api/posts - Create a new blog post (AC: 1, 3, 4, 6)
-router.post('/posts', authenticateToken, async (req, res) => {
+router.post('/posts', authenticateToken, adminCrudOnly, async (req, res) => {
   try {
     const { title, content, tags, summary, coverPhotoUrl, status, scheduledPublishDate } = req.body;
 
@@ -163,7 +164,7 @@ router.get('/posts/:id', async (req, res) => {
 });
 
 // PUT /api/posts/:id - Update a blog post by ID (AC: 1, 6)
-router.put('/posts/:id', authenticateToken, async (req, res) => {
+router.put('/posts/:id', authenticateToken, adminCrudOnly, async (req, res) => {
   try {
     const { id } = req.params;
     const { title, content, tags, summary, coverPhotoUrl, status, scheduledPublishDate, version } = req.body;
@@ -273,7 +274,7 @@ router.put('/posts/:id', authenticateToken, async (req, res) => {
 });
 
 // DELETE /api/posts/:id - Delete a blog post by ID (AC: 1, 6)
-router.delete('/posts/:id', authenticateToken, async (req, res) => {
+router.delete('/posts/:id', authenticateToken, adminCrudOnly, async (req, res) => {
   try {
     const { id } = req.params;
 
