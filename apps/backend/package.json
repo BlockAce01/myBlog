@@ -19,12 +19,15 @@
     "express-session": "^1.18.2",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
-    "mongodb": "^6.19.0",
     "mongoose": "^8.18.0",
     "multer": "^2.0.2",
     "myblog": "file:../..",
     "node-cron": "^4.2.1",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0"
+  },
+  "devDependencies": {
+    "mongodb-memory-server": "^10.2.1",
+    "supertest": "^7.1.4"
   }
 }
