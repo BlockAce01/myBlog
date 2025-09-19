@@ -10,7 +10,7 @@ interface BlogImageRendererProps {
 export function BlogImageRenderer({ html, className = '' }: BlogImageRendererProps) {
   // Helper function to parse style string into React CSSProperties
   const parseStyleString = (styleString: string): React.CSSProperties => {
-    const style: React.CSSProperties = {};
+    const style: Record<string, string> = {};
     if (!styleString) return style;
 
     const declarations = styleString.split(';').filter(decl => decl.trim());
@@ -19,11 +19,11 @@ export function BlogImageRenderer({ html, className = '' }: BlogImageRendererPro
       if (property && value) {
         // Convert CSS property names to camelCase for React
         const camelProperty = property.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
-        (style as any)[camelProperty] = value;
+        style[camelProperty] = value;
       }
     });
 
-    return style;
+    return style as React.CSSProperties;
   };
 
   // Parse HTML and extract image information

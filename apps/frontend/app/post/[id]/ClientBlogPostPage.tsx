@@ -6,7 +6,7 @@ import { Layout } from "@/components/layout"
 import { LikeButton } from "@/components/like-button"
 import { CommentCard } from "@/components/comment-card"
 import { CommentForm } from "@/components/comment-form"
-import { CodeBlock } from "@/components/code-block"
+
 import HTMLRenderer from "@/components/HTMLRenderer"
 import { getPost, getComments } from "@/lib/data"
 import type { BlogPost, Comment } from "@/lib/types"
