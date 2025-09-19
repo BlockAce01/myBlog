@@ -1,6 +1,7 @@
 'use client';
 
 import { OptimizedImage } from './OptimizedImage';
+import { HTMLCodeBlock } from './HTMLCodeBlock';
 
 interface BlogImageRendererProps {
   html: string;
@@ -87,7 +88,91 @@ export function BlogImageRenderer({ html, className = '' }: BlogImageRendererPro
   const { hasImages, processedHtml, imageData } = processHTML(html);
 
   if (!hasImages) {
+    // Check if content has code blocks even without images
+    const hasCodeBlocks = /<pre[^>]*>[\s\S]*?<\/pre>/g.test(html);
+    if (hasCodeBlocks) {
+      // Split content by code blocks and render them separately
+      const parts = html.split(/(<pre[^>]*>[\s\S]*?<\/pre>)/g);
+
+      return (
+        <div className={className}>
+          {parts.map((part, index) => {
+            // Check if this part is a code block
+            const codeBlockMatch = part.match(/^<pre[^>]*>([\s\S]*?)<\/pre>$/);
+            if (codeBlockMatch) {
+              return <HTMLCodeBlock key={index} htmlContent={part} />;
+            }
+
+            // Regular HTML content
+            if (part.trim()) {
+              return (
+                <div
+                  key={`html-${index}`}
+                  dangerouslySetInnerHTML={{ __html: part }}
+                />
+              );
+            }
+
+            return null;
+          })}
+        </div>
+      );
+    }
+
     return <div className={className} dangerouslySetInnerHTML={{ __html: html }} />;
+  }
+
+  // Check if processed content has code blocks
+  const hasCodeBlocks = /<pre[^>]*>[\s\S]*?<\/pre>/g.test(processedHtml);
+
+  if (hasCodeBlocks) {
+    // Split by both image placeholders and code blocks
+    const parts = processedHtml.split(/(__blog_image_\d+__|<pre[^>]*>[\s\S]*?<\/pre>)/g);
+
+    return (
+      <div className={className}>
+        {parts.map((part, index) => {
+          const imageMatch = part.match(/__blog_image_(\d+)__/);
+          if (imageMatch) {
+            const imageIndex = parseInt(imageMatch[1]);
+            const imageInfo = imageData?.[imageIndex];
+
+            if (imageInfo) {
+              return (
+                <OptimizedImage
+                  key={`image-${imageIndex}`}
+                  src={imageInfo.src}
+                  alt={imageInfo.alt}
+                  className={imageInfo.className}
+                  width={imageInfo.width ? parseInt(imageInfo.width) : undefined}
+                  height={imageInfo.height ? parseInt(imageInfo.height) : undefined}
+                  title={imageInfo.title}
+                  style={imageInfo.style ? parseStyleString(imageInfo.style) : undefined}
+                />
+              );
+            }
+          }
+
+          // Check if this part is a code block
+          const codeBlockMatch = part.match(/^<pre[^>]*>([\s\S]*?)<\/pre>$/);
+          if (codeBlockMatch) {
+            return <HTMLCodeBlock key={index} htmlContent={part} />;
+          }
+
+          // Regular HTML content
+          if (part.trim()) {
+            return (
+              <div
+                key={`html-${index}`}
+                dangerouslySetInnerHTML={{ __html: part }}
+              />
+            );
+          }
+
+          return null;
+        })}
+      </div>
+    );
   }
 
   // Split HTML by image placeholders and render with React components
