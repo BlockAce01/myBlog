@@ -7,8 +7,8 @@ RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 # Set the working directory in the container
 WORKDIR /usr/src/app
 
-# Copy package files
-COPY --chown=appuser:appgroup package*.json ./
+# Copy package files and lock file
+COPY --chown=appuser:appgroup apps/backend/package*.json pnpm-lock.yaml ./
 
 # Delete existing node_modules if any
 RUN rm -rf node_modules || true
@@ -17,8 +17,8 @@ RUN rm -rf node_modules || true
 RUN npm install -g pnpm
 RUN pnpm install --shamefully-hoist
 
-# Copy application code
-COPY --chown=appuser:appgroup . .
+# Copy backend application code to the correct location
+COPY --chown=appuser:appgroup apps/backend/. .
 
 # Switch to the non-root user
 USER appuser

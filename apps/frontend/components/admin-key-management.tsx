@@ -76,7 +76,7 @@ export const AdminKeyManagement: React.FC<KeyManagementProps> = ({ email: initia
     setIsGenerating(true);
     try {
       // Generate key pair using backend (Node.js crypto for compatibility)
-      const response = await fetch('/api/admin/keygen', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/keygen`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

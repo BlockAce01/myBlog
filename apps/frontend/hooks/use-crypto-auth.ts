@@ -226,7 +226,7 @@ export const useCryptoAuth = () => {
       setIsLoading(true);
       setError(null);
 
-      const response = await fetch('/api/admin/challenge', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/challenge`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -255,7 +255,7 @@ export const useCryptoAuth = () => {
       setIsLoading(true);
       setError(null);
 
-      const response = await fetch('/api/admin/verify', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/verify`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

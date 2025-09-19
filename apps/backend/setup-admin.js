@@ -43,7 +43,7 @@ async function setupAdmin() {
       console.log('\nUsage: node setup-admin.js <email> [username] [name] <setup-token>');
       console.log('Example: node setup-admin.js admin@example.com admin "Admin User" your-token');
       console.log('\nSecurity Requirements:');
-      console.log('• Must set ADMIN_SETUP_TOKEN in .env file');
+      console.log('• Must set ADMIN_SETUP_TOKEN');
       console.log('• Must provide the token as the last argument');
       console.log('• Can only run in development/local environments');
       process.exit(1);

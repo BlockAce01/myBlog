@@ -47,5 +47,7 @@ security-scan.log
 database_backup/
 
 apps/backend/audit.log
+apps/backend/.env
+apps/frontend/.env.local
 
 docs/

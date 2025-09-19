@@ -1,0 +1,106 @@
+services:
+  # MongoDB Database (using MongoDB Atlas for cloud, but can be replaced with local MongoDB if needed)
+  # Note: This service is commented out since the app uses MongoDB Atlas
+  # Uncomment and configure if you want to use local MongoDB instead
+  # mongodb:
+  #   image: mongo:7.0
+  #   container_name: myblog-mongodb
+  #   restart: unless-stopped
+  #   environment:
+  #     MONGO_INITDB_ROOT_USERNAME: admin
+  #     MONGO_INITDB_ROOT_PASSWORD: password
+  #   ports:
+  #     - "27017:27017"
+  #   volumes:
+  #     - mongodb_data:/data/db
+  #   networks:
+  #     - myblog-network
+
+  # Backend API Service
+  backend:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    container_name: myblog-backend
+    restart: unless-stopped
+    ports:
+      - "3003:3003"
+    environment:
+      - NODE_ENV=production
+      - PORT=3003
+      - MONGODB_URI=${MONGODB_URI}
+      - JWT_SECRET=${JWT_SECRET}
+      - ADMIN_SETUP_TOKEN=${ADMIN_SETUP_TOKEN}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+    depends_on:
+      # - mongodb  # Uncomment if using local MongoDB
+      - redis
+    networks:
+      - myblog-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Frontend Next.js Service
+  frontend:
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile
+    container_name: myblog-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://localhost:3003
+      - NEXT_PUBLIC_BACKEND_BASE_URL=http://localhost:3003
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - NEXTAUTH_URL=http://localhost:3000
+      - NEXT_PUBLIC_GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - NEXT_PUBLIC_GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - NEXT_PUBLIC_TINYMCE_API_KEY=${NEXT_PUBLIC_TINYMCE_API_KEY}
+    depends_on:
+      - backend
+    networks:
+      - myblog-network
+
+  # Redis for caching (optional but recommended for production)
+  redis:
+    image: redis:7.2-alpine
+    container_name: myblog-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - myblog-network
+    command: redis-server --appendonly yes
+
+  # Nginx Reverse Proxy (optional but recommended for production)
+  nginx:
+    image: nginx:alpine
+    container_name: myblog-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - myblog-network
+
+volumes:
+  mongodb_data:
+  redis_data:
+
+networks:
+  myblog-network:
+    driver: bridge

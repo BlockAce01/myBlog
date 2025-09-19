@@ -4,15 +4,27 @@ WORKDIR /app
 
 RUN npm install -g pnpm
 
-# Copy package files first for better caching
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+# Copy workspace configuration and lock file
+COPY pnpm-workspace.yaml ./
+COPY pnpm-lock.yaml ./
 
-# Install dependencies
-RUN pnpm install --frozen-lockfile
+# Copy root package.json for workspace setup
+COPY package.json ./
 
-# Copy application code
+# Copy frontend package.json
+COPY apps/frontend/package.json ./apps/frontend/
+
+# Install dependencies with workspace awareness
+RUN pnpm install
+
+# Copy the rest of the application code
 COPY . .
 
+# Build the frontend application
 WORKDIR /app/apps/frontend
+RUN pnpm build
 
 EXPOSE 3000
+
+# Start the application
+CMD ["pnpm", "start"]

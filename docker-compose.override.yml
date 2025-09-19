@@ -1,0 +1,22 @@
+# Override file for development - disables nginx and enables development features
+services:
+  backend:
+    environment:
+      - NODE_ENV=development
+    ports:
+      - "3003:3003"
+      - "9229:9229"  # Debug port
+    command: ["node", "--inspect=0.0.0.0:9229", "src/index.js"]
+
+  frontend:
+    environment:
+      - NODE_ENV=development
+    ports:
+      - "3000:3000"
+    # Override the production CMD to use dev server
+    command: ["pnpm", "dev", "--hostname", "0.0.0.0"]
+
+  # Disable nginx for development
+  nginx:
+    profiles:
+      - production
