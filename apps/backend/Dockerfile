@@ -1,30 +1,56 @@
-# Use an official Node.js image as the base image
-FROM node:20-alpine
+# Multi-stage build for optimized production image
+FROM node:20-alpine AS base
 
-# Create a non-root user and group
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+# Install pnpm globally
+RUN npm install -g pnpm
 
-# Set the working directory in the container
+# Set working directory
 WORKDIR /usr/src/app
 
-# Copy package files and lock file
-COPY --chown=appuser:appgroup apps/backend/package*.json pnpm-lock.yaml ./
+# Dependencies stage
+FROM base AS deps
+COPY apps/backend/package*.json ./
+RUN pnpm install --ignore-scripts
 
-# Delete existing node_modules if any
-RUN rm -rf node_modules || true
+# Build stage (if needed for transpilation)
+FROM base AS builder
+COPY --from=deps /usr/src/app/node_modules ./node_modules
+COPY apps/backend/. .
+# Add build step if you have TypeScript compilation or other build processes
+# RUN pnpm build
 
-# Install dependencies
+# Production stage
+FROM node:20-alpine AS runner
+
+# Install pnpm in production stage
 RUN npm install -g pnpm
-RUN pnpm install --shamefully-hoist
 
-# Copy backend application code to the correct location
-COPY --chown=appuser:appgroup apps/backend/. .
+# Create non-root user and group
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
-# Switch to the non-root user
+# Set working directory
+WORKDIR /usr/src/app
+
+# Copy dependencies
+COPY --from=deps --chown=appuser:appgroup /usr/src/app/node_modules ./node_modules
+
+# Copy application code
+COPY --from=builder --chown=appuser:appgroup /usr/src/app/src ./src
+COPY --from=builder --chown=appuser:appgroup /usr/src/app/package.json ./
+COPY --from=builder --chown=appuser:appgroup /usr/src/app/setup-admin.js ./
+
+# Switch to non-root user
 USER appuser
 
-# Expose the port the application runs on
+# Expose port
 EXPOSE 3003
 
-# Define the command to start the service
+# Set environment
+ENV NODE_ENV=production
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3003/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
+
+# Start the application
 CMD ["node", "src/index.js"]

@@ -67,6 +67,15 @@ app.use('/api/analytics', analyticsRouter);
 app.use('/api/auth', authRouter); // Use auth router
 app.use('/api/admin', adminAuthRouter); // Use admin auth router
 
+// Health check endpoint for Docker
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
 const startServer = async () => {
   try {
     await connectDB();
