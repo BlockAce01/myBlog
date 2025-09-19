@@ -18,46 +18,8 @@ interface BlogPostPageProps {
 }
 
 function renderContent(content: string) {
-  // Check if content contains HTML tags (indicating it's from TinyMCE)
-  const hasHTMLTags = /<[^>]*>/.test(content);
-
-  if (hasHTMLTags) {
-    // Render as HTML using HTMLRenderer
-    return <HTMLRenderer html={content} />;
-  }
-
-  // Legacy Markdown-style rendering for existing content
-  // Split content by code blocks (```language\ncode\n```)
-  const parts = content.split(/(```[\s\S]*?```)/g);
-
-  return parts.map((part, index) => {
-    // Check if this part is a code block
-    const codeBlockMatch = part.match(/^```(\w+)?\n([\s\S]*?)```$/);
-    if (codeBlockMatch) {
-      const [, language = 'javascript', code] = codeBlockMatch;
-      return (
-        <CodeBlock
-          key={index}
-          code={code.trim()}
-          language={language}
-          className="my-4"
-        />
-      );
-    }
-
-    // Regular text - split by newlines and render paragraphs
-    const paragraphs = part.split('\n\n').filter(p => p.trim());
-    return paragraphs.map((paragraph, pIndex) => (
-      <p key={`${index}-${pIndex}`} className="mb-4">
-        {paragraph.split('\n').map((line, lIndex) => (
-          <span key={lIndex}>
-            {line}
-            {lIndex < paragraph.split('\n').length - 1 && <br />}
-          </span>
-        ))}
-      </p>
-    ));
-  });
+  // All content is now from TinyMCE, so render as HTML using HTMLRenderer
+  return <HTMLRenderer html={content} />;
 }
 
 export default function ClientBlogPostPage({ params }: BlogPostPageProps) {

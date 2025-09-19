@@ -8,6 +8,24 @@ interface BlogImageRendererProps {
 }
 
 export function BlogImageRenderer({ html, className = '' }: BlogImageRendererProps) {
+  // Helper function to parse style string into React CSSProperties
+  const parseStyleString = (styleString: string): React.CSSProperties => {
+    const style: React.CSSProperties = {};
+    if (!styleString) return style;
+
+    const declarations = styleString.split(';').filter(decl => decl.trim());
+    declarations.forEach(declaration => {
+      const [property, value] = declaration.split(':').map(s => s.trim());
+      if (property && value) {
+        // Convert CSS property names to camelCase for React
+        const camelProperty = property.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+        (style as any)[camelProperty] = value;
+      }
+    });
+
+    return style;
+  };
+
   // Parse HTML and extract image information
   const processHTML = (htmlContent: string) => {
     const parser = new DOMParser();
@@ -21,35 +39,48 @@ export function BlogImageRenderer({ html, className = '' }: BlogImageRendererPro
       return { hasImages: false, processedHtml: htmlContent };
     }
 
-    // Process each image
+    // Process each image and replace with placeholder
+    const imageData: Array<{
+      id: string;
+      src: string;
+      alt: string;
+      className: string;
+      width?: string;
+      height?: string;
+      style?: string;
+      title?: string;
+    }> = [];
+
     imageElements.forEach((img, index) => {
       const src = img.getAttribute('src') || '';
       const alt = img.getAttribute('alt') || '';
-      const className = img.getAttribute('class') || '';
-      const width = img.getAttribute('width');
-      const height = img.getAttribute('height');
+      const imgClass = img.getAttribute('class') || '';
+      const width = img.getAttribute('width') || undefined;
+      const height = img.getAttribute('height') || undefined;
+      const style = img.getAttribute('style') || undefined;
+      const title = img.getAttribute('title') || undefined;
 
-      // Create a placeholder that will be replaced with React component
       const placeholderId = `__blog_image_${index}__`;
-      img.setAttribute('data-placeholder-id', placeholderId);
-      img.setAttribute('data-src', src);
-      img.setAttribute('data-alt', alt);
-      img.setAttribute('data-class', className);
-      if (width) img.setAttribute('data-width', width);
-      if (height) img.setAttribute('data-height', height);
+      imageData.push({
+        id: placeholderId,
+        src,
+        alt,
+        className: imgClass,
+        width,
+        height,
+        style,
+        title
+      });
+
+      // Replace the img tag with a placeholder
+      const placeholder = doc.createTextNode(placeholderId);
+      img.parentNode?.replaceChild(placeholder, img);
     });
 
     return {
       hasImages: true,
       processedHtml: doc.body.innerHTML,
-      imageData: imageElements.map((img, index) => ({
-        id: `__blog_image_${index}__`,
-        src: img.getAttribute('data-src') || '',
-        alt: img.getAttribute('data-alt') || '',
-        className: img.getAttribute('data-class') || '',
-        width: img.getAttribute('data-width'),
-        height: img.getAttribute('data-height')
-      }))
+      imageData
     };
   };
 
@@ -79,6 +110,8 @@ export function BlogImageRenderer({ html, className = '' }: BlogImageRendererPro
                 className={imageInfo.className}
                 width={imageInfo.width ? parseInt(imageInfo.width) : undefined}
                 height={imageInfo.height ? parseInt(imageInfo.height) : undefined}
+                title={imageInfo.title}
+                style={imageInfo.style ? parseStyleString(imageInfo.style) : undefined}
               />
             );
           }

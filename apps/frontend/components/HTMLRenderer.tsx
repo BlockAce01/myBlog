@@ -31,10 +31,22 @@ export default function HTMLRenderer({ html, className = '' }: HTMLRendererProps
   // If content has images, use BlogImageRenderer for optimization
   if (hasImages) {
     return (
-      <BlogImageRenderer
-        html={processedHtml}
+      <div
         className={`prose prose-lg max-w-none ${className} w-full overflow-hidden`}
-      />
+        style={{
+          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif',
+          lineHeight: '1.7',
+          color: '#374151',
+          width: '100%',
+          maxWidth: '100%',
+          boxSizing: 'border-box'
+        }}
+      >
+        <BlogImageRenderer
+          html={processedHtml}
+          className=""
+        />
+      </div>
     );
   }
 
