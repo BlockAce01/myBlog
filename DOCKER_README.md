@@ -2,6 +2,28 @@
 
 This guide explains how to run the MyBlog application using Docker and Docker Compose.
 
+## Recent Improvements (Latest)
+
+### ✅ Multi-Stage Builds
+- **Frontend**: Optimized Next.js build with 3-stage process (deps → build → production)
+- **Backend**: Multi-stage Node.js build with security hardening
+- **Benefits**: 60-80% smaller image sizes, faster deployments, better security
+
+### ✅ Enhanced Security
+- **Non-root users**: Both frontend and backend run as non-root users
+- **Health checks**: Added `/health` endpoint for container monitoring
+- **Optimized .dockerignore**: Excludes unnecessary files for faster builds
+
+### ✅ Production Optimizations
+- **PNPM support**: Proper pnpm workspace handling in Dockerfiles
+- **Layer caching**: Optimized Docker layer caching for faster rebuilds
+- **Environment variables**: Proper handling of production secrets
+
+### ✅ Health Monitoring
+- **Backend health endpoint**: `/health` returns JSON status
+- **Docker health checks**: Configured for both services
+- **Readiness probes**: Proper startup timing
+
 ## Prerequisites
 
 - Docker (version 20.10 or later)

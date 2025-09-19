@@ -1,30 +1,46 @@
+# Single-stage production build
 FROM node:20-alpine
 
-WORKDIR /app
-
+# Install pnpm globally
 RUN npm install -g pnpm
 
-# Copy workspace configuration and lock file
+# Create non-root user
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
+# Set working directory
+WORKDIR /app
+
+# Copy workspace configuration
 COPY pnpm-workspace.yaml ./
 COPY pnpm-lock.yaml ./
-
-# Copy root package.json for workspace setup
 COPY package.json ./
+COPY tsconfig.json ./
 
-# Copy frontend package.json
-COPY apps/frontend/package.json ./apps/frontend/
+# Copy frontend application
+COPY apps/frontend ./apps/frontend
+COPY apps/frontend/public ./apps/frontend/public
 
-# Install dependencies with workspace awareness
-RUN pnpm install
+# Install dependencies
+RUN pnpm install --frozen-lockfile --ignore-scripts
 
-# Copy the rest of the application code
-COPY . .
-
-# Build the frontend application
+# Build the application
 WORKDIR /app/apps/frontend
 RUN pnpm build
 
+# Set proper permissions
+RUN chown -R appuser:appgroup /app
+USER appuser
+
+# Expose port
 EXPOSE 3000
+
+# Set environment
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3000/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
 
 # Start the application
 CMD ["pnpm", "start"]
