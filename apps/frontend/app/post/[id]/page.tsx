@@ -11,7 +11,7 @@ import HTMLRenderer from "@/components/HTMLRenderer";
 import { CommentForm } from "@/components/comment-form";
 import { CommentCard } from "@/components/comment-card";
 import { ReplyForm } from "@/components/reply-form";
-import Image from "next/image";
+import { OptimizedImage } from "@/components/OptimizedImage";
 
 import {
   getPost,
@@ -170,12 +170,12 @@ export default function PostPage() {
         {/* Cover Photo */}
         {post.coverPhotoUrl && post.coverPhotoUrl !== "https://via.placeholder.com/800x400?text=No+Image" && (
           <div className="mb-6 sm:mb-8 rounded-lg overflow-hidden">
-            <Image
+            <OptimizedImage
               src={post.coverPhotoUrl}
               alt={post.title}
               width={800}
               height={400}
-              className="w-full h-auto object-inherit max-h-64 sm:max-h-80 lg:max-h-96"
+              className="w-full h-auto object-inherit max-h-64 sm:max-h-80 lg:max-h-96 cover-photo"
             />
           </div>
         )}

@@ -3,7 +3,7 @@ import { useState, useEffect } from "react"
 import type { BlogPost } from "@/lib/types"
 import { Eye, Heart } from "lucide-react"
 import { likePost } from "@/lib/data"
-import Image from "next/image"
+import { OptimizedImage } from "./OptimizedImage"
 
 interface PostCardProps {
   post: BlogPost
@@ -73,11 +73,11 @@ export function PostCard({ post }: PostCardProps) {
     <article className="group rounded-lg border border-borde overflow-hidden hover:shadow-lg hover:shadow-black/10 dark:hover:shadow-black/40 transition-all duration-300 hover:scale-[1.02] min-h-[300px] relative bg-card dark:bg-card">
       {/* Background Image */}
       {hasCoverPhoto && (
-        <Image
+        <OptimizedImage
           src={post.coverPhotoUrl!}
           alt=""
           fill
-          className="absolute inset-0 w-full h-full object-cover rounded-lg"
+          className="absolute inset-0 w-full h-full object-cover rounded-lg cover-photo"
           onError={() => setImageError(true)}
         />
       )}

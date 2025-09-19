@@ -2,6 +2,7 @@
 
 import DOMPurify from 'dompurify';
 import { HTMLCodeBlock } from './HTMLCodeBlock';
+import { BlogImageRenderer } from './BlogImageRenderer';
 
 interface HTMLRendererProps {
   html: string;
@@ -23,8 +24,19 @@ export default function HTMLRenderer({ html, className = '' }: HTMLRendererProps
     return match;
   });
 
-  // Check if content contains code blocks
+  // Check if content contains images or code blocks
+  const hasImages = /<img[^>]*>/g.test(processedHtml);
   const hasCodeBlocks = /<pre[^>]*>[\s\S]*?<\/pre>/g.test(processedHtml);
+
+  // If content has images, use BlogImageRenderer for optimization
+  if (hasImages) {
+    return (
+      <BlogImageRenderer
+        html={processedHtml}
+        className={`prose prose-lg max-w-none ${className} w-full overflow-hidden`}
+      />
+    );
+  }
 
   if (hasCodeBlocks) {
     // Split content by code blocks and render them separately
