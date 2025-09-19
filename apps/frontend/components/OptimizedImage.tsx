@@ -15,6 +15,7 @@ interface OptimizedImageProps {
   sizes?: string;
   onError?: () => void;
   style?: React.CSSProperties;
+  title?: string;
 }
 
 export function OptimizedImage({
