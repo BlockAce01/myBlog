@@ -52,6 +52,8 @@ apps/frontend/.env.local
 
 # Terraform local state and cache
 .terraform/
-*.tfstate.local
+*.tfstate
+*.tfstate.backup
+terraform/
 
 docs/
