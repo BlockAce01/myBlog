@@ -159,8 +159,7 @@ export const AdminKeyManagement: React.FC<KeyManagementProps> = ({
             "Private key has been exported for backup. Store it securely!",
         });
       }
-    } catch (_err) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    } catch {
       toast({
         title: "Export Failed",
         description: "Failed to export private key.",
@@ -190,8 +189,7 @@ export const AdminKeyManagement: React.FC<KeyManagementProps> = ({
         });
         onKeyGenerated?.();
       }
-    } catch (_err) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    } catch {
       toast({
         title: "Import Failed",
         description: "Failed to import private key. Please check the format.",
@@ -207,8 +205,7 @@ export const AdminKeyManagement: React.FC<KeyManagementProps> = ({
         title: "Copied",
         description: "Key copied to clipboard.",
       });
-    } catch (_err) {
-      // eslint-disable-line @typescript-eslint/no-unused-vars
+    } catch {
       toast({
         title: "Copy Failed",
         description: "Failed to copy to clipboard.",
