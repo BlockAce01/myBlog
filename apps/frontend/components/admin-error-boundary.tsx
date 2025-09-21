@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import React, { ReactNode, useState, useCallback } from 'react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { AlertTriangle, RefreshCw } from 'lucide-react';
+import React, { ReactNode, useState, useCallback } from "react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { AlertTriangle, RefreshCw } from "lucide-react";
 
 interface Props {
   children: ReactNode;
@@ -18,7 +18,7 @@ export const AdminErrorBoundary: React.FC<Props> = ({ children }) => {
   const [errorState, setErrorState] = useState<ErrorState>({ hasError: false });
 
   const handleError = useCallback((error: Error) => {
-    console.error('Admin Error Boundary caught an error:', error);
+    console.error("Admin Error Boundary caught an error:", error);
     setErrorState({ hasError: true, error });
   }, []);
 
@@ -34,7 +34,8 @@ export const AdminErrorBoundary: React.FC<Props> = ({ children }) => {
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle>Something went wrong</AlertTitle>
             <AlertDescription className="mt-2">
-              An unexpected error occurred in the admin interface. This has been logged and will be investigated.
+              An unexpected error occurred in the admin interface. This has been
+              logged and will be investigated.
             </AlertDescription>
           </Alert>
 
@@ -45,16 +46,18 @@ export const AdminErrorBoundary: React.FC<Props> = ({ children }) => {
             </Button>
             <Button
               variant="outline"
-              onClick={() => window.location.href = '/admin/dashboard'}
+              onClick={() => (window.location.href = "/admin/dashboard")}
               className="flex-1"
             >
               Go to Dashboard
             </Button>
           </div>
 
-          {process.env.NODE_ENV === 'development' && errorState.error && (
+          {process.env.NODE_ENV === "development" && errorState.error && (
             <details className="mt-4 p-4 bg-gray-100 rounded-md text-sm">
-              <summary className="cursor-pointer font-medium">Error Details (Development)</summary>
+              <summary className="cursor-pointer font-medium">
+                Error Details (Development)
+              </summary>
               <pre className="mt-2 whitespace-pre-wrap text-xs">
                 {errorState.error.stack}
               </pre>

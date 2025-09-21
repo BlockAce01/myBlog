@@ -1,21 +1,33 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import { useRouter, useParams } from 'next/navigation';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, ArrowLeft, Save, AlertCircle } from 'lucide-react';
-import { useAuth } from '@/hooks/use-auth';
-import { getPost, updateBlogPost } from '@/lib/data';
-import { getTextContentFromHtml } from '@/lib/html-utils';
-import type { BlogPost } from '@/lib/types';
-import RichTextEditor from '@/components/RichTextEditor';
+import { useState, useEffect, useCallback } from "react";
+import { useRouter, useParams } from "next/navigation";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Loader2, ArrowLeft, Save, AlertCircle } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { getPost, updateBlogPost } from "@/lib/data";
+import { getTextContentFromHtml } from "@/lib/html-utils";
+import type { BlogPost } from "@/lib/types";
+import RichTextEditor from "@/components/RichTextEditor";
 
 export default function EditBlogPostPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
@@ -24,20 +36,20 @@ export default function EditBlogPostPage() {
   const navigate = useRouter();
 
   const [formData, setFormData] = useState({
-    title: '',
-    content: '',
-    excerpt: '',
-    coverPhotoUrl: '',
+    title: "",
+    content: "",
+    excerpt: "",
+    coverPhotoUrl: "",
     tags: [] as string[],
-    status: 'draft' as 'draft' | 'published' | 'hidden' | 'scheduled',
-    scheduledPublishDate: '',
+    status: "draft" as "draft" | "published" | "hidden" | "scheduled",
+    scheduledPublishDate: "",
   });
 
-  const [tagInput, setTagInput] = useState('');
+  const [tagInput, setTagInput] = useState("");
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [submitError, setSubmitError] = useState('');
+  const [submitError, setSubmitError] = useState("");
   const [originalPost, setOriginalPost] = useState<BlogPost | null>(null);
 
   const fetchPost = useCallback(async () => {
@@ -51,17 +63,17 @@ export default function EditBlogPostPage() {
           title: post.title,
           content: post.content,
           excerpt: post.summary,
-          coverPhotoUrl: post.coverPhotoUrl || '',
+          coverPhotoUrl: post.coverPhotoUrl || "",
           tags: post.tags,
-          status: post.status || 'draft',
-          scheduledPublishDate: post.scheduledPublishDate || '',
+          status: post.status || "draft",
+          scheduledPublishDate: post.scheduledPublishDate || "",
         });
       } else {
-        setSubmitError('Blog post not found.');
+        setSubmitError("Blog post not found.");
       }
     } catch (err) {
-      console.error('Failed to fetch post:', err);
-      setSubmitError('Failed to load blog post. Please try again.');
+      console.error("Failed to fetch post:", err);
+      setSubmitError("Failed to load blog post. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -77,30 +89,36 @@ export default function EditBlogPostPage() {
     const newErrors: { [key: string]: string } = {};
 
     if (!formData.title.trim()) {
-      newErrors.title = 'Title is required';
+      newErrors.title = "Title is required";
     } else if (formData.title.length > 200) {
-      newErrors.title = 'Title must be less than 200 characters';
+      newErrors.title = "Title must be less than 200 characters";
     }
 
     if (!formData.content.trim()) {
-      newErrors.content = 'Content is required';
+      newErrors.content = "Content is required";
     } else if (formData.content.length > 50000) {
-      newErrors.content = 'Content must be less than 50,000 characters';
+      newErrors.content = "Content must be less than 50,000 characters";
     }
 
     if (!formData.excerpt.trim()) {
-      newErrors.excerpt = 'Excerpt is required';
+      newErrors.excerpt = "Excerpt is required";
     } else if (formData.excerpt.length > 500) {
-      newErrors.excerpt = 'Excerpt must be less than 500 characters';
+      newErrors.excerpt = "Excerpt must be less than 500 characters";
     }
 
     // Validate scheduled publish date
-    if (formData.status === 'scheduled' && !formData.scheduledPublishDate) {
-      newErrors.scheduledPublishDate = 'Scheduled publish date is required when status is scheduled';
+    if (formData.status === "scheduled" && !formData.scheduledPublishDate) {
+      newErrors.scheduledPublishDate =
+        "Scheduled publish date is required when status is scheduled";
     }
 
-    if (formData.status === 'scheduled' && formData.scheduledPublishDate && new Date(formData.scheduledPublishDate) <= new Date()) {
-      newErrors.scheduledPublishDate = 'Scheduled publish date must be in the future';
+    if (
+      formData.status === "scheduled" &&
+      formData.scheduledPublishDate &&
+      new Date(formData.scheduledPublishDate) <= new Date()
+    ) {
+      newErrors.scheduledPublishDate =
+        "Scheduled publish date must be in the future";
     }
 
     setErrors(newErrors);
@@ -117,7 +135,7 @@ export default function EditBlogPostPage() {
     if (errors[field]) {
       setErrors((prev: typeof errors) => ({
         ...prev,
-        [field]: '',
+        [field]: "",
       }));
     }
   };
@@ -129,7 +147,7 @@ export default function EditBlogPostPage() {
         ...prev,
         tags: [...prev.tags, tag],
       }));
-      setTagInput('');
+      setTagInput("");
     }
   };
 
@@ -141,23 +159,26 @@ export default function EditBlogPostPage() {
   };
 
   const handleTagKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       e.preventDefault();
       handleAddTag();
     }
   };
 
-  const handleStatusChange = (status: 'draft' | 'published' | 'hidden' | 'scheduled') => {
+  const handleStatusChange = (
+    status: "draft" | "published" | "hidden" | "scheduled",
+  ) => {
     setFormData((prev: typeof formData) => ({
       ...prev,
       status,
-      scheduledPublishDate: status === 'scheduled' ? prev.scheduledPublishDate : '',
+      scheduledPublishDate:
+        status === "scheduled" ? prev.scheduledPublishDate : "",
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitError('');
+    setSubmitError("");
 
     if (!validateForm()) {
       return;
@@ -181,13 +202,15 @@ export default function EditBlogPostPage() {
       const result = await updateBlogPost(updateData);
 
       if (result) {
-        navigate.push('/admin/dashboard');
+        navigate.push("/admin/dashboard");
       } else {
-        setSubmitError('Failed to update blog post. Please try again.');
+        setSubmitError("Failed to update blog post. Please try again.");
       }
     } catch (error) {
-      console.error('Failed to update blog post:', error);
-      setSubmitError('An error occurred while updating the blog post. Please try again.');
+      console.error("Failed to update blog post:", error);
+      setSubmitError(
+        "An error occurred while updating the blog post. Please try again.",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -214,7 +237,8 @@ export default function EditBlogPostPage() {
               <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
               <h2 className="text-xl font-semibold mb-2">Post Not Found</h2>
               <p className="text-gray-600 mb-4">
-                The blog post you're trying to edit doesn't exist or has been deleted.
+                The blog post you're trying to edit doesn't exist or has been
+                deleted.
               </p>
               <Link href="/admin/dashboard">
                 <Button>Back to Dashboard</Button>
@@ -240,8 +264,12 @@ export default function EditBlogPostPage() {
                 </Button>
               </Link>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Edit Blog Post</h1>
-                <p className="text-sm text-gray-600">Make changes to your blog post</p>
+                <h1 className="text-2xl font-bold text-gray-900">
+                  Edit Blog Post
+                </h1>
+                <p className="text-sm text-gray-600">
+                  Make changes to your blog post
+                </p>
               </div>
             </div>
           </div>
@@ -262,7 +290,9 @@ export default function EditBlogPostPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Basic Information</CardTitle>
-                <CardDescription>Update the basic details for your blog post</CardDescription>
+                <CardDescription>
+                  Update the basic details for your blog post
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
@@ -270,8 +300,10 @@ export default function EditBlogPostPage() {
                   <Input
                     id="title"
                     value={formData.title}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('title', e.target.value)}
-                    className={errors.title ? 'border-red-500' : ''}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      handleInputChange("title", e.target.value)
+                    }
+                    className={errors.title ? "border-red-500" : ""}
                     placeholder="Enter a compelling title for your blog post"
                     disabled={isSubmitting}
                   />
@@ -288,8 +320,10 @@ export default function EditBlogPostPage() {
                   <Textarea
                     id="excerpt"
                     value={formData.excerpt}
-                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleInputChange('excerpt', e.target.value)}
-                    className={errors.excerpt ? 'border-red-500' : ''}
+                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                      handleInputChange("excerpt", e.target.value)
+                    }
+                    className={errors.excerpt ? "border-red-500" : ""}
                     placeholder="Write a brief summary of your blog post"
                     rows={3}
                     disabled={isSubmitting}
@@ -307,7 +341,9 @@ export default function EditBlogPostPage() {
                   <Input
                     id="coverPhotoUrl"
                     value={formData.coverPhotoUrl}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('coverPhotoUrl', e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      handleInputChange("coverPhotoUrl", e.target.value)
+                    }
                     placeholder="https://example.com/image.jpg"
                     disabled={isSubmitting}
                   />
@@ -319,14 +355,17 @@ export default function EditBlogPostPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Content</CardTitle>
-                <CardDescription>Update the main content of your blog post using the rich text editor</CardDescription>
+                <CardDescription>
+                  Update the main content of your blog post using the rich text
+                  editor
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
                   <Label htmlFor="content">Content *</Label>
                   <RichTextEditor
                     value={formData.content}
-                    onChange={(value) => handleInputChange('content', value)}
+                    onChange={(value) => handleInputChange("content", value)}
                     disabled={isSubmitting}
                     height={500}
                   />
@@ -334,7 +373,8 @@ export default function EditBlogPostPage() {
                     <p className="text-sm text-red-500">{errors.content}</p>
                   )}
                   <p className="text-sm text-gray-500">
-                    {getTextContentFromHtml(formData.content).length}/50,000 characters (HTML tags excluded)
+                    {getTextContentFromHtml(formData.content).length}/50,000
+                    characters (HTML tags excluded)
                   </p>
                 </div>
               </CardContent>
@@ -344,13 +384,17 @@ export default function EditBlogPostPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Tags</CardTitle>
-                <CardDescription>Update tags to help categorize your blog post</CardDescription>
+                <CardDescription>
+                  Update tags to help categorize your blog post
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex space-x-2">
                   <Input
                     value={tagInput}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTagInput(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setTagInput(e.target.value)
+                    }
                     onKeyPress={handleTagKeyPress}
                     placeholder="Add a tag..."
                     disabled={isSubmitting}
@@ -391,12 +435,18 @@ export default function EditBlogPostPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Publishing Options</CardTitle>
-                <CardDescription>Configure how and when your blog post will be published</CardDescription>
+                <CardDescription>
+                  Configure how and when your blog post will be published
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="status">Status</Label>
-                  <Select value={formData.status} onValueChange={handleStatusChange} disabled={isSubmitting}>
+                  <Select
+                    value={formData.status}
+                    onValueChange={handleStatusChange}
+                    disabled={isSubmitting}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select status" />
                     </SelectTrigger>
@@ -409,20 +459,31 @@ export default function EditBlogPostPage() {
                   </Select>
                 </div>
 
-                {formData.status === 'scheduled' && (
+                {formData.status === "scheduled" && (
                   <div className="space-y-2">
-                    <Label htmlFor="scheduledPublishDate">Publish Date & Time</Label>
+                    <Label htmlFor="scheduledPublishDate">
+                      Publish Date & Time
+                    </Label>
                     <Input
                       id="scheduledPublishDate"
                       type="datetime-local"
                       value={formData.scheduledPublishDate}
-                      onChange={(e) => handleInputChange('scheduledPublishDate', e.target.value)}
-                      className={errors.scheduledPublishDate ? 'border-red-500' : ''}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "scheduledPublishDate",
+                          e.target.value,
+                        )
+                      }
+                      className={
+                        errors.scheduledPublishDate ? "border-red-500" : ""
+                      }
                       disabled={isSubmitting}
                       min={new Date().toISOString().slice(0, 16)}
                     />
                     {errors.scheduledPublishDate && (
-                      <p className="text-sm text-red-500">{errors.scheduledPublishDate}</p>
+                      <p className="text-sm text-red-500">
+                        {errors.scheduledPublishDate}
+                      </p>
                     )}
                     <p className="text-sm text-gray-500">
                       Select when this post should be automatically published
@@ -431,10 +492,14 @@ export default function EditBlogPostPage() {
                 )}
 
                 <div className="text-sm text-gray-500">
-                  {formData.status === 'draft' && 'This post will be saved as a draft and not visible to readers.'}
-                  {formData.status === 'published' && 'This post will be published and visible to readers immediately.'}
-                  {formData.status === 'hidden' && 'This post will be saved but hidden from readers.'}
-                  {formData.status === 'scheduled' && 'This post will be published automatically at the scheduled time.'}
+                  {formData.status === "draft" &&
+                    "This post will be saved as a draft and not visible to readers."}
+                  {formData.status === "published" &&
+                    "This post will be published and visible to readers immediately."}
+                  {formData.status === "hidden" &&
+                    "This post will be saved but hidden from readers."}
+                  {formData.status === "scheduled" &&
+                    "This post will be published automatically at the scheduled time."}
                 </div>
               </CardContent>
             </Card>

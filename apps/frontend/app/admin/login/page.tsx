@@ -1,26 +1,39 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Key, Shield } from 'lucide-react';
-import { useCryptoAuth } from '@/hooks/use-crypto-auth';
-import { setAuthToken } from '@/lib/data';
+import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2, Key, Shield } from "lucide-react";
+import { useCryptoAuth } from "@/hooks/use-crypto-auth";
+import { setAuthToken } from "@/lib/data";
 
 export default function AdminLoginPage() {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
   const [challenge, setChallenge] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
-  const [step, setStep] = useState<'email' | 'challenge'>('email');
+  const [step, setStep] = useState<"email" | "challenge">("email");
   const [hasKeys, setHasKeys] = useState(false);
 
   const router = useRouter();
-  const { isLoading, error, getChallenge, signChallenge, authenticate, hasPrivateKey } = useCryptoAuth();
+  const {
+    isLoading,
+    error,
+    getChallenge,
+    signChallenge,
+    authenticate,
+    hasPrivateKey,
+  } = useCryptoAuth();
 
   const checkExistingKeys = useCallback(async () => {
     const exists = await hasPrivateKey();
@@ -39,14 +52,14 @@ export default function AdminLoginPage() {
     }
 
     // Store email for key management
-    localStorage.setItem('adminEmail', email);
+    localStorage.setItem("adminEmail", email);
 
     try {
       const challengeResponse = await getChallenge(email);
       if (challengeResponse) {
         setChallenge(challengeResponse.challenge);
         setUserId(challengeResponse.userId);
-        setStep('challenge');
+        setStep("challenge");
       }
     } catch {
       // Error is handled by the hook
@@ -74,7 +87,7 @@ export default function AdminLoginPage() {
         setAuthToken(authResult.token);
 
         // Redirect to dashboard
-        router.push('/admin/dashboard');
+        router.push("/admin/dashboard");
       }
     } catch {
       // Error is handled by the hook
@@ -82,7 +95,7 @@ export default function AdminLoginPage() {
   };
 
   const handleSetupKeys = () => {
-    router.push('/admin/dashboard');
+    router.push("/admin/dashboard");
   };
 
   return (
@@ -103,7 +116,8 @@ export default function AdminLoginPage() {
             <Alert>
               <Key className="h-4 w-4" />
               <AlertDescription>
-                <strong>No cryptographic keys found.</strong> You need to set up your keys first.
+                <strong>No cryptographic keys found.</strong> You need to set up
+                your keys first.
                 <Button
                   variant="link"
                   className="p-0 h-auto font-normal underline"
@@ -123,7 +137,7 @@ export default function AdminLoginPage() {
           )}
 
           {/* Email Input Step */}
-          {step === 'email' && hasKeys && (
+          {step === "email" && hasKeys && (
             <form onSubmit={handleEmailSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Admin Email</Label>
@@ -149,21 +163,22 @@ export default function AdminLoginPage() {
                     Requesting Challenge...
                   </>
                 ) : (
-                  'Request Authentication Challenge'
+                  "Request Authentication Challenge"
                 )}
               </Button>
             </form>
           )}
 
           {/* Challenge Response Step */}
-          {step === 'challenge' && hasKeys && (
+          {step === "challenge" && hasKeys && (
             <div className="space-y-4">
               <Alert>
                 <Shield className="h-4 w-4" />
                 <AlertDescription>
                   <strong>Authentication Challenge Received</strong>
                   <br />
-                  Your browser will now sign this challenge cryptographically to prove your identity.
+                  Your browser will now sign this challenge cryptographically to
+                  prove your identity.
                 </AlertDescription>
               </Alert>
 
@@ -175,11 +190,7 @@ export default function AdminLoginPage() {
                   </div>
                 </div>
 
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={isLoading}
-                >
+                <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -196,7 +207,7 @@ export default function AdminLoginPage() {
 
               <Button
                 variant="outline"
-                onClick={() => setStep('email')}
+                onClick={() => setStep("email")}
                 disabled={isLoading}
                 className="w-full"
               >

@@ -1,25 +1,30 @@
-'use client';
+"use client";
 
-import { OptimizedImage } from './OptimizedImage';
-import { HTMLCodeBlock } from './HTMLCodeBlock';
+import { OptimizedImage } from "./OptimizedImage";
+import { HTMLCodeBlock } from "./HTMLCodeBlock";
 
 interface BlogImageRendererProps {
   html: string;
   className?: string;
 }
 
-export function BlogImageRenderer({ html, className = '' }: BlogImageRendererProps) {
+export function BlogImageRenderer({
+  html,
+  className = "",
+}: BlogImageRendererProps) {
   // Helper function to parse style string into React CSSProperties
   const parseStyleString = (styleString: string): React.CSSProperties => {
     const style: Record<string, string> = {};
     if (!styleString) return style;
 
-    const declarations = styleString.split(';').filter(decl => decl.trim());
-    declarations.forEach(declaration => {
-      const [property, value] = declaration.split(':').map(s => s.trim());
+    const declarations = styleString.split(";").filter((decl) => decl.trim());
+    declarations.forEach((declaration) => {
+      const [property, value] = declaration.split(":").map((s) => s.trim());
       if (property && value) {
         // Convert CSS property names to camelCase for React
-        const camelProperty = property.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+        const camelProperty = property.replace(/-([a-z])/g, (_, letter) =>
+          letter.toUpperCase(),
+        );
         style[camelProperty] = value;
       }
     });
@@ -30,8 +35,8 @@ export function BlogImageRenderer({ html, className = '' }: BlogImageRendererPro
   // Parse HTML and extract image information
   const processHTML = (htmlContent: string) => {
     const parser = new DOMParser();
-    const doc = parser.parseFromString(htmlContent, 'text/html');
-    const images = doc.querySelectorAll('img');
+    const doc = parser.parseFromString(htmlContent, "text/html");
+    const images = doc.querySelectorAll("img");
 
     // Convert NodeList to array for processing
     const imageElements = Array.from(images);
@@ -53,13 +58,13 @@ export function BlogImageRenderer({ html, className = '' }: BlogImageRendererPro
     }> = [];
 
     imageElements.forEach((img, index) => {
-      const src = img.getAttribute('src') || '';
-      const alt = img.getAttribute('alt') || '';
-      const imgClass = img.getAttribute('class') || '';
-      const width = img.getAttribute('width') || undefined;
-      const height = img.getAttribute('height') || undefined;
-      const style = img.getAttribute('style') || undefined;
-      const title = img.getAttribute('title') || undefined;
+      const src = img.getAttribute("src") || "";
+      const alt = img.getAttribute("alt") || "";
+      const imgClass = img.getAttribute("class") || "";
+      const width = img.getAttribute("width") || undefined;
+      const height = img.getAttribute("height") || undefined;
+      const style = img.getAttribute("style") || undefined;
+      const title = img.getAttribute("title") || undefined;
 
       const placeholderId = `__blog_image_${index}__`;
       imageData.push({
@@ -70,7 +75,7 @@ export function BlogImageRenderer({ html, className = '' }: BlogImageRendererPro
         width,
         height,
         style,
-        title
+        title,
       });
 
       // Replace the img tag with a placeholder
@@ -81,7 +86,7 @@ export function BlogImageRenderer({ html, className = '' }: BlogImageRendererPro
     return {
       hasImages: true,
       processedHtml: doc.body.innerHTML,
-      imageData
+      imageData,
     };
   };
 
@@ -119,7 +124,9 @@ export function BlogImageRenderer({ html, className = '' }: BlogImageRendererPro
       );
     }
 
-    return <div className={className} dangerouslySetInnerHTML={{ __html: html }} />;
+    return (
+      <div className={className} dangerouslySetInnerHTML={{ __html: html }} />
+    );
   }
 
   // Check if processed content has code blocks
@@ -127,7 +134,9 @@ export function BlogImageRenderer({ html, className = '' }: BlogImageRendererPro
 
   if (hasCodeBlocks) {
     // Split by both image placeholders and code blocks
-    const parts = processedHtml.split(/(__blog_image_\d+__|<pre[^>]*>[\s\S]*?<\/pre>)/g);
+    const parts = processedHtml.split(
+      /(__blog_image_\d+__|<pre[^>]*>[\s\S]*?<\/pre>)/g,
+    );
 
     return (
       <div className={className}>
@@ -144,10 +153,18 @@ export function BlogImageRenderer({ html, className = '' }: BlogImageRendererPro
                   src={imageInfo.src}
                   alt={imageInfo.alt}
                   className={imageInfo.className}
-                  width={imageInfo.width ? parseInt(imageInfo.width) : undefined}
-                  height={imageInfo.height ? parseInt(imageInfo.height) : undefined}
+                  width={
+                    imageInfo.width ? parseInt(imageInfo.width) : undefined
+                  }
+                  height={
+                    imageInfo.height ? parseInt(imageInfo.height) : undefined
+                  }
                   title={imageInfo.title}
-                  style={imageInfo.style ? parseStyleString(imageInfo.style) : undefined}
+                  style={
+                    imageInfo.style
+                      ? parseStyleString(imageInfo.style)
+                      : undefined
+                  }
                 />
               );
             }
@@ -194,9 +211,15 @@ export function BlogImageRenderer({ html, className = '' }: BlogImageRendererPro
                 alt={imageInfo.alt}
                 className={imageInfo.className}
                 width={imageInfo.width ? parseInt(imageInfo.width) : undefined}
-                height={imageInfo.height ? parseInt(imageInfo.height) : undefined}
+                height={
+                  imageInfo.height ? parseInt(imageInfo.height) : undefined
+                }
                 title={imageInfo.title}
-                style={imageInfo.style ? parseStyleString(imageInfo.style) : undefined}
+                style={
+                  imageInfo.style
+                    ? parseStyleString(imageInfo.style)
+                    : undefined
+                }
               />
             );
           }

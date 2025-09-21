@@ -1,8 +1,9 @@
 import type { BlogPost, Comment } from "@/lib/types";
 
-const API_URL = typeof window === 'undefined'
-  ? "http://backend:3003/api" // Server-side (inside Docker)
-  : "http://localhost:3003/api"; // Client-side (in browser)
+const API_URL =
+  typeof window === "undefined"
+    ? "http://backend:3003/api" // Server-side (inside Docker)
+    : "http://localhost:3003/api"; // Client-side (in browser)
 
 // Mock data removed - using API only
 export const posts: BlogPost[] = [];
@@ -38,7 +39,9 @@ export interface RegisterResponse {
   };
 }
 
-export async function login(credentials: LoginRequest): Promise<LoginResponse | null> {
+export async function login(
+  credentials: LoginRequest,
+): Promise<LoginResponse | null> {
   try {
     const res = await fetch(`${API_URL}/auth/login`, {
       method: "POST",
@@ -57,7 +60,9 @@ export async function login(credentials: LoginRequest): Promise<LoginResponse | 
   }
 }
 
-export async function register(userData: RegisterRequest): Promise<RegisterResponse | null> {
+export async function register(
+  userData: RegisterRequest,
+): Promise<RegisterResponse | null> {
   try {
     const res = await fetch(`${API_URL}/auth/register`, {
       method: "POST",
@@ -78,21 +83,21 @@ export async function register(userData: RegisterRequest): Promise<RegisterRespo
 }
 
 export function setAuthToken(token: string): void {
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('adminToken', token);
+  if (typeof window !== "undefined") {
+    localStorage.setItem("adminToken", token);
   }
 }
 
 export function getAuthToken(): string | null {
-  if (typeof window !== 'undefined') {
-    return localStorage.getItem('adminToken');
+  if (typeof window !== "undefined") {
+    return localStorage.getItem("adminToken");
   }
   return null;
 }
 
 export function removeAuthToken(): void {
-  if (typeof window !== 'undefined') {
-    localStorage.removeItem('adminToken');
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("adminToken");
   }
 }
 
@@ -102,7 +107,7 @@ export function isAuthenticated(): boolean {
 
   try {
     // Basic JWT validation - check if token exists and hasn't expired
-    const payload = JSON.parse(atob(token.split('.')[1]));
+    const payload = JSON.parse(atob(token.split(".")[1]));
     const currentTime = Date.now() / 1000;
     return payload.exp > currentTime;
   } catch {
@@ -117,7 +122,7 @@ export interface CreateBlogPostRequest {
   excerpt: string;
   coverPhotoUrl: string;
   tags: string[];
-  status: 'draft' | 'published' | 'hidden' | 'scheduled';
+  status: "draft" | "published" | "hidden" | "scheduled";
   scheduledPublishDate?: string;
 }
 
@@ -126,7 +131,9 @@ export interface UpdateBlogPostRequest extends CreateBlogPostRequest {
   version?: number;
 }
 
-export async function createBlogPost(postData: CreateBlogPostRequest): Promise<BlogPost | null> {
+export async function createBlogPost(
+  postData: CreateBlogPostRequest,
+): Promise<BlogPost | null> {
   try {
     const token = getAuthToken();
     if (!token) throw new Error("Not authenticated");
@@ -135,13 +142,15 @@ export async function createBlogPost(postData: CreateBlogPostRequest): Promise<B
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
         title: postData.title,
         content: postData.content,
         summary: postData.excerpt, // Backend expects 'summary' not 'excerpt'
-        coverPhotoUrl: postData.coverPhotoUrl || "https://via.placeholder.com/800x400?text=No+Image",
+        coverPhotoUrl:
+          postData.coverPhotoUrl ||
+          "https://via.placeholder.com/800x400?text=No+Image",
         tags: postData.tags,
         status: postData.status,
         scheduledPublishDate: postData.scheduledPublishDate || undefined,
@@ -157,7 +166,9 @@ export async function createBlogPost(postData: CreateBlogPostRequest): Promise<B
   }
 }
 
-export async function updateBlogPost(postData: UpdateBlogPostRequest): Promise<BlogPost | null> {
+export async function updateBlogPost(
+  postData: UpdateBlogPostRequest,
+): Promise<BlogPost | null> {
   try {
     const token = getAuthToken();
     if (!token) throw new Error("Not authenticated");
@@ -166,13 +177,15 @@ export async function updateBlogPost(postData: UpdateBlogPostRequest): Promise<B
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
         title: postData.title,
         content: postData.content,
         summary: postData.excerpt, // Map 'excerpt' to 'summary' for backend
-        coverPhotoUrl: postData.coverPhotoUrl || "https://via.placeholder.com/800x400?text=No+Image",
+        coverPhotoUrl:
+          postData.coverPhotoUrl ||
+          "https://via.placeholder.com/800x400?text=No+Image",
         tags: postData.tags,
         status: postData.status,
         scheduledPublishDate: postData.scheduledPublishDate || undefined,
@@ -199,7 +212,7 @@ export async function deleteBlogPost(id: string): Promise<boolean> {
     const res = await fetch(`${API_URL}/posts/${id}`, {
       method: "DELETE",
       headers: {
-        "Authorization": `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
     });
     return res.ok;
@@ -209,13 +222,16 @@ export async function deleteBlogPost(id: string): Promise<boolean> {
   }
 }
 
-export async function getPosts(tags?: string[], admin: boolean = false): Promise<BlogPost[]> {
+export async function getPosts(
+  tags?: string[],
+  admin: boolean = false,
+): Promise<BlogPost[]> {
   try {
-    const tagQuery = tags && tags.length > 0 ? `tags=${tags.join(',')}` : '';
-    const adminQuery = admin ? `admin=true` : '';
-    const queryString = [tagQuery, adminQuery].filter(Boolean).join('&');
-    const url = `${API_URL}/posts${queryString ? `?${queryString}` : ''}`;
-    
+    const tagQuery = tags && tags.length > 0 ? `tags=${tags.join(",")}` : "";
+    const adminQuery = admin ? `admin=true` : "";
+    const queryString = [tagQuery, adminQuery].filter(Boolean).join("&");
+    const url = `${API_URL}/posts${queryString ? `?${queryString}` : ""}`;
+
     const res = await fetch(url);
     if (!res.ok) {
       throw new Error("Failed to fetch posts");
@@ -227,9 +243,14 @@ export async function getPosts(tags?: string[], admin: boolean = false): Promise
   }
 }
 
-export async function getPost(idOrSlug: string, admin: boolean = false): Promise<BlogPost | null> {
+export async function getPost(
+  idOrSlug: string,
+  admin: boolean = false,
+): Promise<BlogPost | null> {
   try {
-    const url = admin ? `${API_URL}/posts/${idOrSlug}?admin=true` : `${API_URL}/posts/${idOrSlug}`;
+    const url = admin
+      ? `${API_URL}/posts/${idOrSlug}?admin=true`
+      : `${API_URL}/posts/${idOrSlug}`;
     const res = await fetch(url);
     if (!res.ok) {
       throw new Error(`Failed to fetch post with id/slug ${idOrSlug}`);
@@ -256,7 +277,7 @@ export async function getComments(postId: string): Promise<Comment[]> {
 
 export async function createComment(
   postId: string,
-  comment: { authorName: string; commentText: string }
+  comment: { authorName: string; commentText: string },
 ): Promise<Comment | null> {
   try {
     const res = await fetch(`${API_URL}/posts/${postId}/comments`, {
@@ -276,14 +297,17 @@ export async function createComment(
   }
 }
 
-export async function likePost(postId: string): Promise<{ likeCount: number; isLiked: boolean } | null> {
+export async function likePost(
+  postId: string,
+): Promise<{ likeCount: number; isLiked: boolean } | null> {
   try {
     // Generate or retrieve user ID from localStorage
-    let userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
+    let userId =
+      typeof window !== "undefined" ? localStorage.getItem("userId") : null;
     if (!userId) {
-      userId = 'user_' + Math.random().toString(36).substr(2, 9);
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('userId', userId);
+      userId = "user_" + Math.random().toString(36).substr(2, 9);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("userId", userId);
       }
     }
 
@@ -316,21 +340,25 @@ export async function likePost(postId: string): Promise<{ likeCount: number; isL
   }
 }
 
-export async function searchPosts(query: string, tags?: string[]): Promise<BlogPost[]> {
+export async function searchPosts(
+  query: string,
+  tags?: string[],
+): Promise<BlogPost[]> {
   try {
-    const tagQuery = tags && tags.length > 0 ? `&tag=${tags.join(',')}` : '';
-    const searchQuery = query ? `q=${encodeURIComponent(query)}` : '';
+    const tagQuery = tags && tags.length > 0 ? `&tag=${tags.join(",")}` : "";
+    const searchQuery = query ? `q=${encodeURIComponent(query)}` : "";
     const url = `${API_URL}/posts/search?${searchQuery}${tagQuery}`;
-    
+
     const res = await fetch(url);
     if (!res.ok) {
       const errorData = await res.json();
-      
-      throw new Error(`Failed to search posts: ${errorData.message || res.statusText}`);
+
+      throw new Error(
+        `Failed to search posts: ${errorData.message || res.statusText}`,
+      );
     }
     return res.json();
   } catch {
-
     return [];
   }
 }
@@ -342,10 +370,12 @@ export async function incrementViewCount(postId: string): Promise<void> {
     });
     if (!res.ok) {
       const errorText = await res.text();
-      throw new Error(`Failed to increment view count: ${res.status} ${errorText}`);
+      throw new Error(
+        `Failed to increment view count: ${res.status} ${errorText}`,
+      );
     }
   } catch (error) {
-    console.error('Error incrementing view count:', error);
+    console.error("Error incrementing view count:", error);
     throw error; // Re-throw so calling code can handle it
   }
 }

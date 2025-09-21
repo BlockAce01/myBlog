@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import Image from 'next/image';
-import { useState } from 'react';
+import Image from "next/image";
+import { useState } from "react";
 
 interface OptimizedImageProps {
   src: string;
@@ -24,17 +24,20 @@ export function OptimizedImage({
   width,
   height,
   fill = false,
-  className = '',
+  className = "",
   priority = false,
   quality = 75,
-  sizes = '(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw',
+  sizes = "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw",
   onError,
-  style
+  style,
 }: OptimizedImageProps) {
   const [imageError, setImageError] = useState(false);
 
   // Determine if image should have priority based on position or explicit prop
-  const shouldPrioritize = priority || className.includes('cover-photo') || className.includes('above-fold');
+  const shouldPrioritize =
+    priority ||
+    className.includes("cover-photo") ||
+    className.includes("above-fold");
 
   const handleError = () => {
     setImageError(true);

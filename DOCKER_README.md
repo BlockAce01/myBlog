@@ -5,21 +5,25 @@ This guide explains how to run the MyBlog application using Docker and Docker Co
 ## Recent Improvements (Latest)
 
 ### ✅ Multi-Stage Builds
+
 - **Frontend**: Optimized Next.js build with 3-stage process (deps → build → production)
 - **Backend**: Multi-stage Node.js build with security hardening
 - **Benefits**: 60-80% smaller image sizes, faster deployments, better security
 
 ### ✅ Enhanced Security
+
 - **Non-root users**: Both frontend and backend run as non-root users
 - **Health checks**: Added `/health` endpoint for container monitoring
 - **Optimized .dockerignore**: Excludes unnecessary files for faster builds
 
 ### ✅ Production Optimizations
+
 - **PNPM support**: Proper pnpm workspace handling in Dockerfiles
 - **Layer caching**: Optimized Docker layer caching for faster rebuilds
 - **Environment variables**: Proper handling of production secrets
 
 ### ✅ Health Monitoring
+
 - **Backend health endpoint**: `/health` returns JSON status
 - **Docker health checks**: Configured for both services
 - **Readiness probes**: Proper startup timing
@@ -48,6 +52,7 @@ nano .env  # or your preferred editor
 ```
 
 **Required Variables:**
+
 ```bash
 # Generate strong secrets (recommended method)
 openssl rand -base64 64   # For JWT_SECRET
@@ -83,6 +88,7 @@ docker-compose logs -f
 ### 3. Production Mode (Enhanced Security)
 
 #### Option A: Environment Variables (Simple)
+
 ```bash
 # Build and start all services in production mode
 docker-compose --profile production up --build
@@ -92,6 +98,7 @@ docker-compose --profile production up --build -d
 ```
 
 #### Option B: Docker Secrets (Most Secure)
+
 ```bash
 # Set up Docker secrets (run as root/sudo)
 sudo ./setup-docker-secrets.sh
@@ -115,11 +122,13 @@ The application consists of the following services:
 ## Accessing the Application
 
 ### Development Mode
+
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:3003
 - Redis: localhost:6379
 
 ### Production Mode
+
 - Application: http://localhost (via nginx)
 - Backend API: http://localhost/api/
 
@@ -217,6 +226,7 @@ All configuration is handled through the `.env` file. Key variables include:
 ### Common Issues
 
 #### Port Conflicts
+
 ```bash
 # Check what's using ports
 netstat -tulpn | grep :3000
@@ -226,6 +236,7 @@ netstat -tulpn | grep :3003
 ```
 
 #### Build Failures
+
 ```bash
 # Clear Docker cache
 docker system prune -a
@@ -238,6 +249,7 @@ docker-compose build --progress=plain
 ```
 
 #### Database Connection Issues
+
 ```bash
 # Check MongoDB Atlas IP whitelist
 # Verify connection string format
@@ -246,6 +258,7 @@ mongosh "your-connection-string"
 ```
 
 #### Permission Issues
+
 ```bash
 # Fix file permissions
 sudo chown -R $USER:$USER .
@@ -287,6 +300,7 @@ docker-compose exec redis redis-cli ping
 ## Development vs Production
 
 ### Development Mode
+
 - Hot reload enabled
 - Debug ports exposed
 - Source maps available
@@ -294,6 +308,7 @@ docker-compose exec redis redis-cli ping
 - No nginx reverse proxy
 
 ### Production Mode
+
 - Optimized builds
 - Nginx reverse proxy
 - Gzip compression
@@ -324,11 +339,13 @@ docker-compose up -d --scale frontend=2
 ## Backup and Recovery
 
 ### Database Backup (Atlas)
+
 - Use MongoDB Atlas automated backups
 - Configure backup retention policies
 - Test restore procedures regularly
 
 ### Application Backup
+
 ```bash
 # Backup volumes
 docker run --rm -v myblog_redis_data:/data -v $(pwd):/backup alpine tar czf /backup/redis-backup.tar.gz -C /data .
@@ -345,6 +362,7 @@ docker run --rm -v myblog_redis_data:/data -v $(pwd):/backup alpine tar czf /bac
 ## Support
 
 For issues or questions:
+
 1. Check the troubleshooting section above
 2. Review Docker and Docker Compose documentation
 3. Check application logs for error details
@@ -366,3 +384,4 @@ For issues or questions:
     └── frontend/
         ├── Dockerfile          # Frontend container config
         └── ...                 # Frontend application
+```

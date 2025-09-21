@@ -16,14 +16,19 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
-  const [searchResultsCount, setSearchResultsCount] = useState<number | null>(null);
+  const [searchResultsCount, setSearchResultsCount] = useState<number | null>(
+    null,
+  );
 
   useEffect(() => {
     const fetchPosts = async () => {
       setLoading(true);
       let fetchedPosts: BlogPost[] = [];
       if (debouncedSearchQuery) {
-        fetchedPosts = await searchPosts(debouncedSearchQuery, selectedTag ? [selectedTag] : undefined);
+        fetchedPosts = await searchPosts(
+          debouncedSearchQuery,
+          selectedTag ? [selectedTag] : undefined,
+        );
       } else {
         fetchedPosts = await getPosts(selectedTag ? [selectedTag] : undefined);
       }
@@ -91,9 +96,7 @@ export default function HomePage() {
                 No posts found matching your criteria.
               </div>
             ) : (
-              posts.map((post) => (
-                <PostCard key={post.id} post={post} />
-              ))
+              posts.map((post) => <PostCard key={post.id} post={post} />)
             )}
           </div>
         )}
