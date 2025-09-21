@@ -1,63 +1,25 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { notFound } from "next/navigation"
-import { Layout } from "@/components/layout"
-import { LikeButton } from "@/components/like-button"
-import { CommentCard } from "@/components/comment-card"
-import { CommentForm } from "@/components/comment-form"
-import { CodeBlock } from "@/components/code-block"
-import HTMLRenderer from "@/components/HTMLRenderer"
-import { getPost, getComments } from "@/lib/data"
-import type { BlogPost, Comment } from "@/lib/types"
+import { useState, useEffect } from "react";
+import { notFound } from "next/navigation";
+import { Layout } from "@/components/layout";
+import { LikeButton } from "@/components/like-button";
+import { CommentCard } from "@/components/comment-card";
+import { CommentForm } from "@/components/comment-form";
+
+import HTMLRenderer from "@/components/HTMLRenderer";
+import { getPost, getComments } from "@/lib/data";
+import type { BlogPost, Comment } from "@/lib/types";
 
 interface BlogPostPageProps {
   params: {
-    id: string
-  }
+    id: string;
+  };
 }
 
 function renderContent(content: string) {
-  // Check if content contains HTML tags (indicating it's from TinyMCE)
-  const hasHTMLTags = /<[^>]*>/.test(content);
-
-  if (hasHTMLTags) {
-    // Render as HTML using HTMLRenderer
-    return <HTMLRenderer html={content} />;
-  }
-
-  // Legacy Markdown-style rendering for existing content
-  // Split content by code blocks (```language\ncode\n```)
-  const parts = content.split(/(```[\s\S]*?```)/g);
-
-  return parts.map((part, index) => {
-    // Check if this part is a code block
-    const codeBlockMatch = part.match(/^```(\w+)?\n([\s\S]*?)```$/);
-    if (codeBlockMatch) {
-      const [, language = 'javascript', code] = codeBlockMatch;
-      return (
-        <CodeBlock
-          key={index}
-          code={code.trim()}
-          language={language}
-          className="my-4"
-        />
-      );
-    }
-
-    // Regular text - split by newlines and render paragraphs
-    const paragraphs = part.split('\n\n').filter(p => p.trim());
-    return paragraphs.map((paragraph, pIndex) => (
-      <p key={`${index}-${pIndex}`} className="mb-4">
-        {paragraph.split('\n').map((line, lIndex) => (
-          <span key={lIndex}>
-            {line}
-            {lIndex < paragraph.split('\n').length - 1 && <br />}
-          </span>
-        ))}
-      </p>
-    ));
-  });
+  // All content is now from TinyMCE, so render as HTML using HTMLRenderer
+  return <HTMLRenderer html={content} />;
 }
 
 export default function ClientBlogPostPage({ params }: BlogPostPageProps) {
@@ -72,7 +34,7 @@ export default function ClientBlogPostPage({ params }: BlogPostPageProps) {
         setLoading(true);
         const [postData, commentsData] = await Promise.all([
           getPost(params.id),
-          getComments(params.id)
+          getComments(params.id),
         ]);
 
         if (!postData) {
@@ -80,13 +42,11 @@ export default function ClientBlogPostPage({ params }: BlogPostPageProps) {
           return;
         }
 
-
-
         setPost(postData);
         setComments(commentsData);
       } catch (err) {
-        console.error('Error fetching data:', err);
-        setError('Failed to load post');
+        console.error("Error fetching data:", err);
+        setError("Failed to load post");
       } finally {
         setLoading(false);
       }
@@ -122,21 +82,19 @@ export default function ClientBlogPostPage({ params }: BlogPostPageProps) {
     return null;
   }
 
-
-
   return (
     <Layout>
       <article className="max-w-3xl mx-auto">
         {/* Post Header */}
         <header className="mb-8 space-y-4">
-          <h1 className="text-3xl md:text-4xl font-serif font-bold text-foreground leading-tight">{post.title}</h1>
+          <h1 className="text-3xl md:text-4xl font-serif font-bold text-foreground leading-tight">
+            {post.title}
+          </h1>
           <p className="text-muted-foreground">{post.publicationDate}</p>
         </header>
 
         {/* Post Content */}
-        <div className="mb-8">
-          {renderContent(post.content)}
-        </div>
+        <div className="mb-8">{renderContent(post.content)}</div>
 
         {/* Like Button */}
         <div className="mb-12 flex justify-start">
@@ -145,7 +103,9 @@ export default function ClientBlogPostPage({ params }: BlogPostPageProps) {
 
         {/* Comments Section */}
         <section className="space-y-8">
-          <h2 className="text-2xl font-serif font-semibold text-foreground">Comments</h2>
+          <h2 className="text-2xl font-serif font-semibold text-foreground">
+            Comments
+          </h2>
 
           {/* Existing Comments */}
           {comments.length > 0 ? (
@@ -155,12 +115,16 @@ export default function ClientBlogPostPage({ params }: BlogPostPageProps) {
               ))}
             </div>
           ) : (
-            <p className="text-muted-foreground">No comments yet. Be the first to share your thoughts!</p>
+            <p className="text-muted-foreground">
+              No comments yet. Be the first to share your thoughts!
+            </p>
           )}
 
           {/* Comment Form */}
           <div className="border-t border-border pt-8">
-            <h3 className="text-lg font-semibold text-foreground mb-4">Leave a Comment</h3>
+            <h3 className="text-lg font-semibold text-foreground mb-4">
+              Leave a Comment
+            </h3>
             <CommentForm
               postId={post.id}
               onCommentAdded={() => {
@@ -172,5 +136,5 @@ export default function ClientBlogPostPage({ params }: BlogPostPageProps) {
         </section>
       </article>
     </Layout>
-  )
+  );
 }

@@ -1,73 +1,80 @@
-const mongoose = require('mongoose');
-const bcrypt = require('bcrypt');
+const mongoose = require("mongoose");
+const bcrypt = require("bcrypt");
 
-const userSchema = new mongoose.Schema({
-  // Admin user fields (existing)
-  username: {
-    type: String,
-    required: function() { return this.role === 'admin'; },
-    unique: true,
-    sparse: true,
-    trim: true,
-    lowercase: true
-  },
-  passwordHash: {
-    type: String,
-    required: false // We'll handle validation in pre-save middleware
-  },
+const userSchema = new mongoose.Schema(
+  {
+    // Admin user fields (existing)
+    username: {
+      type: String,
+      required: function () {
+        return this.role === "admin";
+      },
+      unique: true,
+      sparse: true,
+      trim: true,
+      lowercase: true,
+    },
+    passwordHash: {
+      type: String,
+      required: false, // We'll handle validation in pre-save middleware
+    },
 
-  // Public user fields (Google OAuth)
-  googleId: {
-    type: String,
-    required: false,
-    unique: true,
-    sparse: true
-  },
-  name: {
-    type: String,
-    required: false,
-    trim: true
-  },
-  profilePicture: {
-    type: String,
-    trim: true
-  },
+    // Public user fields (Google OAuth)
+    googleId: {
+      type: String,
+      required: false,
+      unique: true,
+      sparse: true,
+    },
+    name: {
+      type: String,
+      required: false,
+      trim: true,
+    },
+    profilePicture: {
+      type: String,
+      trim: true,
+    },
 
-  // Common fields
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-    trim: true,
-    lowercase: true
-  },
-  role: {
-    type: String,
-    enum: ['admin', 'user'],
-    default: 'user'
-  },
+    // Common fields
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+      lowercase: true,
+    },
+    role: {
+      type: String,
+      enum: ["admin", "user"],
+      default: "user",
+    },
 
-  // Cryptographic authentication fields
-  publicKey: {
-    type: String,
-    required: false, // Only required for admin users using key auth
-    trim: true
-  },
+    // Cryptographic authentication fields
+    publicKey: {
+      type: String,
+      required: false, // Only required for admin users using key auth
+      trim: true,
+    },
 
-  // Role-based access control
-  permissions: [{
-    type: String,
-    enum: ['read', 'write', 'delete', 'admin', 'api_access'],
-    default: []
-  }]
-}, {
-  timestamps: true
-});
+    // Role-based access control
+    permissions: [
+      {
+        type: String,
+        enum: ["read", "write", "delete", "admin", "api_access"],
+        default: [],
+      },
+    ],
+  },
+  {
+    timestamps: true,
+  },
+);
 
 // Password hashing middleware
-userSchema.pre('save', async function(next) {
+userSchema.pre("save", async function (next) {
   // Only hash password if it's provided and modified
-  if (!this.passwordHash || !this.isModified('passwordHash')) return next();
+  if (!this.passwordHash || !this.isModified("passwordHash")) return next();
 
   try {
     const saltRounds = 12;
@@ -79,8 +86,8 @@ userSchema.pre('save', async function(next) {
 });
 
 // Method to compare password
-userSchema.methods.comparePassword = async function(candidatePassword) {
+userSchema.methods.comparePassword = async function (candidatePassword) {
   return bcrypt.compare(candidatePassword, this.passwordHash);
 };
 
-module.exports = mongoose.model('User', userSchema);
+module.exports = mongoose.model("User", userSchema);

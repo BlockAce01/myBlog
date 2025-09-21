@@ -5,7 +5,7 @@ services:
       - NODE_ENV=development
     ports:
       - "3003:3003"
-      - "9229:9229"  # Debug port
+      - "9229:9229" # Debug port
     command: ["node", "--inspect=0.0.0.0:9229", "src/index.js"]
 
   frontend:

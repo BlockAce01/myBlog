@@ -1,5 +1,5 @@
-const jwt = require('jsonwebtoken');
-require('dotenv').config();
+const jwt = require("jsonwebtoken");
+require("dotenv").config();
 
 /**
  * Authentication middleware for JWT validation
@@ -7,11 +7,11 @@ require('dotenv').config();
  */
 const authenticateToken = (req, res, next) => {
   // Extract token from Authorization header
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1]; // Bearer TOKEN
 
   if (!token) {
-    return res.status(401).json({ message: 'Access token required' });
+    return res.status(401).json({ message: "Access token required" });
   }
 
   try {
@@ -21,20 +21,20 @@ const authenticateToken = (req, res, next) => {
     // Attach user information to request object
     // Handle both old format (userId) and new format (id) for backward compatibility
     req.user = {
-      id: decoded.id || decoded.userId,  // Support both id and userId fields
-      userId: decoded.id || decoded.userId,  // Keep userId for backward compatibility
+      id: decoded.id || decoded.userId, // Support both id and userId fields
+      userId: decoded.id || decoded.userId, // Keep userId for backward compatibility
       email: decoded.email,
       role: decoded.role,
-      permissions: decoded.permissions || []
+      permissions: decoded.permissions || [],
     };
 
     next();
   } catch (error) {
-    console.error('JWT verification failed:', error.message);
-    return res.status(401).json({ message: 'Invalid or expired token' });
+    console.error("JWT verification failed:", error.message);
+    return res.status(401).json({ message: "Invalid or expired token" });
   }
 };
 
 module.exports = {
-  authenticateToken
+  authenticateToken,
 };

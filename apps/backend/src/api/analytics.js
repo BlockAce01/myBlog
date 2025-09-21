@@ -1,10 +1,10 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const BlogPost = require('../models/BlogPost');
-const mongoose = require('mongoose');
+const BlogPost = require("../models/BlogPost");
+const mongoose = require("mongoose");
 
 // POST /analytics/views/:id - Increment the view count for a post (AC: 4, 6)
-router.post('/views/:id', async (req, res) => {
+router.post("/views/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -22,7 +22,7 @@ router.post('/views/:id', async (req, res) => {
 
     // If still not found, return 404
     if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
+      return res.status(404).json({ message: "Post not found" });
     }
 
     // Increment view count
@@ -30,23 +30,23 @@ router.post('/views/:id', async (req, res) => {
     await post.save();
 
     res.status(200).json({
-      message: 'View count incremented',
-      viewCount: post.viewCount
+      message: "View count incremented",
+      viewCount: post.viewCount,
     });
   } catch (error) {
-    console.error('Error incrementing view count:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error("Error incrementing view count:", error);
+    res.status(500).json({ message: "Server error" });
   }
 });
 
 // POST /analytics/likes/:id - Like or unlike a post with user tracking (AC: 3, 6)
-router.post('/likes/:id', async (req, res) => {
+router.post("/likes/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const { userId } = req.body;
 
     if (!userId) {
-      return res.status(400).json({ message: 'User ID is required' });
+      return res.status(400).json({ message: "User ID is required" });
     }
 
     let post;
@@ -63,7 +63,7 @@ router.post('/likes/:id', async (req, res) => {
 
     // If still not found, return 404
     if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
+      return res.status(404).json({ message: "Post not found" });
     }
 
     // Check if user has already liked this post
@@ -82,21 +82,23 @@ router.post('/likes/:id', async (req, res) => {
     }
 
     await post.save();
-    res.status(200).json({ 
-      likeCount: post.likeCount, 
+    res.status(200).json({
+      likeCount: post.likeCount,
       isLiked: isLiked,
-      message: isLiked ? 'Post liked successfully' : 'Post unliked successfully'
+      message: isLiked
+        ? "Post liked successfully"
+        : "Post unliked successfully",
     });
   } catch (error) {
-    console.error('Error liking post:', error);
-    console.error('Error details:', {
+    console.error("Error liking post:", error);
+    console.error("Error details:", {
       message: error.message,
       stack: error.stack,
-      name: error.name
+      name: error.name,
     });
     res.status(500).json({
-      message: 'Server error',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      message: "Server error",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
     });
   }
 });

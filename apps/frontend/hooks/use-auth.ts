@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { getAuthToken, removeAuthToken, isAuthenticated } from '@/lib/data';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { getAuthToken, removeAuthToken, isAuthenticated } from "@/lib/data";
 
 export function useAuth() {
   const [isLoading, setIsLoading] = useState(true);
@@ -27,7 +27,7 @@ export function useAuth() {
   const logout = () => {
     removeAuthToken();
     setIsAuth(false);
-    router.push('/admin/login');
+    router.push("/admin/login");
   };
 
   return {
@@ -44,7 +44,7 @@ export function useRequireAuth() {
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      router.push('/admin/login');
+      router.push("/admin/login");
     }
   }, [isAuthenticated, isLoading, router]);
 

@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback } from "react";
 
 interface KeyPair {
   publicKey: string;
@@ -34,31 +34,41 @@ export const useCryptoAuth = () => {
       // Generate key pair
       const keyPair = await crypto.subtle.generateKey(
         {
-          name: 'ECDSA',
-          namedCurve: 'P-256',
+          name: "ECDSA",
+          namedCurve: "P-256",
         },
         true, // extractable
-        ['sign', 'verify']
+        ["sign", "verify"],
       );
 
       // Export public key
-      const publicKeyBuffer = await crypto.subtle.exportKey('spki', keyPair.publicKey);
-      const publicKey = btoa(String.fromCharCode(...new Uint8Array(publicKeyBuffer)));
+      const publicKeyBuffer = await crypto.subtle.exportKey(
+        "spki",
+        keyPair.publicKey,
+      );
+      const publicKey = btoa(
+        String.fromCharCode(...new Uint8Array(publicKeyBuffer)),
+      );
 
       // Export private key
-      const privateKeyBuffer = await crypto.subtle.exportKey('pkcs8', keyPair.privateKey);
-      const privateKey = btoa(String.fromCharCode(...new Uint8Array(privateKeyBuffer)));
+      const privateKeyBuffer = await crypto.subtle.exportKey(
+        "pkcs8",
+        keyPair.privateKey,
+      );
+      const privateKey = btoa(
+        String.fromCharCode(...new Uint8Array(privateKeyBuffer)),
+      );
 
       // Store private key securely in IndexedDB
       await storePrivateKey(privateKey);
 
       return {
         publicKey: `-----BEGIN PUBLIC KEY-----\n${publicKey}\n-----END PUBLIC KEY-----`,
-        privateKey: `-----BEGIN PRIVATE KEY-----\n${privateKey}\n-----END PRIVATE KEY-----`
+        privateKey: `-----BEGIN PRIVATE KEY-----\n${privateKey}\n-----END PRIVATE KEY-----`,
       };
     } catch (err) {
-      console.error('Key generation error:', err);
-      setError('Failed to generate cryptographic keys');
+      console.error("Key generation error:", err);
+      setError("Failed to generate cryptographic keys");
       return null;
     } finally {
       setIsLoading(false);
@@ -68,14 +78,17 @@ export const useCryptoAuth = () => {
   // Store private key in IndexedDB
   const storePrivateKey = async (privateKey: string): Promise<void> => {
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open('CryptoAuthDB', 2);
+      const request = indexedDB.open("CryptoAuthDB", 2);
 
       request.onerror = () => reject(request.error);
       request.onsuccess = () => {
         const db = request.result;
-        const transaction = db.transaction(['keys'], 'readwrite');
-        const store = transaction.objectStore('keys');
-        const putRequest = store.put({ id: 'admin-private-key', key: privateKey });
+        const transaction = db.transaction(["keys"], "readwrite");
+        const store = transaction.objectStore("keys");
+        const putRequest = store.put({
+          id: "admin-private-key",
+          key: privateKey,
+        });
 
         putRequest.onerror = () => reject(putRequest.error);
         putRequest.onsuccess = () => resolve();
@@ -83,8 +96,8 @@ export const useCryptoAuth = () => {
 
       request.onupgradeneeded = (event) => {
         const db = (event.target as IDBOpenDBRequest).result;
-        if (!db.objectStoreNames.contains('keys')) {
-          db.createObjectStore('keys', { keyPath: 'id' });
+        if (!db.objectStoreNames.contains("keys")) {
+          db.createObjectStore("keys", { keyPath: "id" });
         }
       };
     });
@@ -93,14 +106,14 @@ export const useCryptoAuth = () => {
   // Retrieve private key from IndexedDB
   const getPrivateKey = async (): Promise<string | null> => {
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open('CryptoAuthDB', 2);
+      const request = indexedDB.open("CryptoAuthDB", 2);
 
       request.onerror = () => reject(request.error);
       request.onsuccess = () => {
         const db = request.result;
-        const transaction = db.transaction(['keys'], 'readonly');
-        const store = transaction.objectStore('keys');
-        const getRequest = store.get('admin-private-key');
+        const transaction = db.transaction(["keys"], "readonly");
+        const store = transaction.objectStore("keys");
+        const getRequest = store.get("admin-private-key");
 
         getRequest.onerror = () => reject(getRequest.error);
         getRequest.onsuccess = () => {
@@ -111,8 +124,8 @@ export const useCryptoAuth = () => {
 
       request.onupgradeneeded = (event) => {
         const db = (event.target as IDBOpenDBRequest).result;
-        if (!db.objectStoreNames.contains('keys')) {
-          db.createObjectStore('keys', { keyPath: 'id' });
+        if (!db.objectStoreNames.contains("keys")) {
+          db.createObjectStore("keys", { keyPath: "id" });
         }
       };
     });
@@ -122,21 +135,23 @@ export const useCryptoAuth = () => {
   const importPrivateKey = async (pemKey: string): Promise<CryptoKey> => {
     // Remove PEM headers and decode base64
     const pemContents = pemKey
-      .replace(/-----BEGIN PRIVATE KEY-----/, '')
-      .replace(/-----END PRIVATE KEY-----/, '')
-      .replace(/\s/g, '');
+      .replace(/-----BEGIN PRIVATE KEY-----/, "")
+      .replace(/-----END PRIVATE KEY-----/, "")
+      .replace(/\s/g, "");
 
-    const binaryDer = Uint8Array.from(atob(pemContents), c => c.charCodeAt(0));
+    const binaryDer = Uint8Array.from(atob(pemContents), (c) =>
+      c.charCodeAt(0),
+    );
 
     return crypto.subtle.importKey(
-      'pkcs8',
+      "pkcs8",
       binaryDer,
       {
-        name: 'ECDSA',
-        namedCurve: 'P-256',
+        name: "ECDSA",
+        namedCurve: "P-256",
       },
       false,
-      ['sign']
+      ["sign"],
     );
   };
 
@@ -187,7 +202,7 @@ export const useCryptoAuth = () => {
     try {
       const privateKeyPem = await getPrivateKey();
       if (!privateKeyPem) {
-        throw new Error('No private key found');
+        throw new Error("No private key found");
       }
 
       const privateKey = await importPrivateKey(privateKeyPem);
@@ -198,11 +213,11 @@ export const useCryptoAuth = () => {
       // Sign the challenge
       const rawSignature = await crypto.subtle.sign(
         {
-          name: 'ECDSA',
-          hash: 'SHA-256',
+          name: "ECDSA",
+          hash: "SHA-256",
         },
         privateKey,
-        challengeBytes
+        challengeBytes,
       );
 
       // Convert raw signature to DER format
@@ -210,39 +225,47 @@ export const useCryptoAuth = () => {
 
       // Convert to hex string
       return Array.from(derSignature)
-        .map(b => b.toString(16).padStart(2, '0'))
-        .join('');
-
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
     } catch (err) {
-      console.error('Signing error:', err);
-      setError('Failed to sign challenge');
+      console.error("Signing error:", err);
+      setError("Failed to sign challenge");
       return null;
     }
   };
 
   // Get authentication challenge from server
-  const getChallenge = async (email: string): Promise<ChallengeResponse | null> => {
+  const getChallenge = async (
+    email: string,
+  ): Promise<ChallengeResponse | null> => {
     try {
       setIsLoading(true);
       setError(null);
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/challenge`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/challenge`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email }),
         },
-        body: JSON.stringify({ email }),
-      });
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to get challenge');
+        throw new Error(errorData.message || "Failed to get challenge");
       }
 
       return await response.json();
     } catch (err) {
-      console.error('Challenge request error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to get authentication challenge');
+      console.error("Challenge request error:", err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to get authentication challenge",
+      );
       return null;
     } finally {
       setIsLoading(false);
@@ -250,32 +273,39 @@ export const useCryptoAuth = () => {
   };
 
   // Verify signature and authenticate
-  const authenticate = async (challenge: string, signature: string, userId: string): Promise<AuthResult | null> => {
+  const authenticate = async (
+    challenge: string,
+    signature: string,
+    userId: string,
+  ): Promise<AuthResult | null> => {
     try {
       setIsLoading(true);
       setError(null);
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/verify`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/verify`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            challenge,
+            signature,
+            userId,
+          }),
         },
-        body: JSON.stringify({
-          challenge,
-          signature,
-          userId,
-        }),
-      });
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Authentication failed');
+        throw new Error(errorData.message || "Authentication failed");
       }
 
       return await response.json();
     } catch (err) {
-      console.error('Authentication error:', err);
-      setError(err instanceof Error ? err.message : 'Authentication failed');
+      console.error("Authentication error:", err);
+      setError(err instanceof Error ? err.message : "Authentication failed");
       return null;
     } finally {
       setIsLoading(false);
@@ -288,29 +318,33 @@ export const useCryptoAuth = () => {
       const privateKey = await getPrivateKey();
       return privateKey;
     } catch (err) {
-      console.error('Export error:', err);
-      setError('Failed to export private key');
+      console.error("Export error:", err);
+      setError("Failed to export private key");
       return null;
     }
   };
 
   // Import private key from backup
-  const importPrivateKeyFromBackup = async (pemKey: string): Promise<boolean> => {
+  const importPrivateKeyFromBackup = async (
+    pemKey: string,
+  ): Promise<boolean> => {
     try {
       setIsLoading(true);
       setError(null);
 
       // Validate the key format
-      if (!pemKey.includes('-----BEGIN PRIVATE KEY-----')) {
-        throw new Error('Invalid private key format');
+      if (!pemKey.includes("-----BEGIN PRIVATE KEY-----")) {
+        throw new Error("Invalid private key format");
       }
 
       // Store the imported key
       await storePrivateKey(pemKey);
       return true;
     } catch (err) {
-      console.error('Import error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to import private key');
+      console.error("Import error:", err);
+      setError(
+        err instanceof Error ? err.message : "Failed to import private key",
+      );
       return false;
     } finally {
       setIsLoading(false);
