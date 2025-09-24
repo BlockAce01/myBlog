@@ -1,7 +1,7 @@
 .bmad-core
 .clinerules
 .gemini
-.github
+.qwen
 .vscode
 **/node_modules/
 web-bundles
