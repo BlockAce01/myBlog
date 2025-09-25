@@ -7,15 +7,15 @@
  * More performant than regex for large HTML strings
  */
 export function getTextContentFromHtml(html: string): string {
-  if (!html) return '';
+  if (!html) return "";
 
   try {
-    const doc = new DOMParser().parseFromString(html, 'text/html');
-    return doc.body.textContent || '';
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    return doc.body.textContent || "";
   } catch (error) {
     // Fallback to regex if DOMParser fails
-    console.warn('DOMParser failed, falling back to regex:', error);
-    return html.replace(/<[^>]*>/g, '');
+    console.warn("DOMParser failed, falling back to regex:", error);
+    return html.replace(/<[^>]*>/g, "");
   }
 }
 
@@ -24,19 +24,21 @@ export function getTextContentFromHtml(html: string): string {
  * Falls back to basic text extraction if DOMPurify is not available
  */
 export function sanitizeHtml(html: string): string {
-  if (!html) return '';
+  if (!html) return "";
 
   try {
     // Check if DOMPurify is available (will be imported where needed)
-    const domPurify = (globalThis as { DOMPurify?: { sanitize: (html: string) => string } }).DOMPurify;
+    const domPurify = (
+      globalThis as { DOMPurify?: { sanitize: (html: string) => string } }
+    ).DOMPurify;
     if (domPurify) {
       return domPurify.sanitize(html);
     }
     // Fallback: return as-is if DOMPurify is not available
-    console.warn('DOMPurify not available, returning unsanitized HTML');
+    console.warn("DOMPurify not available, returning unsanitized HTML");
     return html;
   } catch (error) {
-    console.error('HTML sanitization failed:', error);
+    console.error("HTML sanitization failed:", error);
     return html;
   }
 }

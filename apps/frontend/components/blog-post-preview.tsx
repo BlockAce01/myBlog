@@ -1,10 +1,10 @@
-import Link from "next/link"
-import { Card, CardContent, CardFooter } from "@/components/ui/card"
-import { Eye, Heart } from "lucide-react"
-import type { BlogPost } from "@/lib/types"
+import Link from "next/link";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Eye, Heart } from "lucide-react";
+import type { BlogPost } from "@/lib/types";
 
 interface BlogPostPreviewProps {
-  post: BlogPost
+  post: BlogPost;
 }
 
 export function BlogPostPreview({ post }: BlogPostPreviewProps) {
@@ -20,10 +20,14 @@ export function BlogPostPreview({ post }: BlogPostPreviewProps) {
           </Link>
 
           {/* Publication Date */}
-          <p className="text-sm text-muted-foreground">{post.publicationDate}</p>
+          <p className="text-sm text-muted-foreground">
+            {post.publicationDate}
+          </p>
 
           {/* Summary */}
-          <p className="text-muted-foreground leading-relaxed line-clamp-3">{post.summary}</p>
+          <p className="text-muted-foreground leading-relaxed line-clamp-3">
+            {post.summary}
+          </p>
         </div>
       </CardContent>
 
@@ -49,5 +53,5 @@ export function BlogPostPreview({ post }: BlogPostPreviewProps) {
         </Link>
       </CardFooter>
     </Card>
-  )
+  );
 }

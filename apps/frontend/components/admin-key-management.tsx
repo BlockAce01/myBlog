@@ -1,16 +1,29 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { useCryptoAuth } from '@/hooks/use-crypto-auth';
-import { useToast } from '@/hooks/use-toast';
-import { Key, Download, Upload, Shield, AlertTriangle, CheckCircle } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { useCryptoAuth } from "@/hooks/use-crypto-auth";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Key,
+  Download,
+  Upload,
+  Shield,
+  AlertTriangle,
+  CheckCircle,
+} from "lucide-react";
 
 interface KeyManagementProps {
   email?: string;
@@ -18,15 +31,25 @@ interface KeyManagementProps {
   onEmailChange?: (email: string) => void;
 }
 
-export const AdminKeyManagement: React.FC<KeyManagementProps> = ({ email: initialEmail, onKeyGenerated, onEmailChange }) => {
+export const AdminKeyManagement: React.FC<KeyManagementProps> = ({
+  email: initialEmail,
+  onKeyGenerated,
+  onEmailChange,
+}) => {
   const [hasKeys, setHasKeys] = useState(false);
   const [showExport, setShowExport] = useState(false);
   const [exportedKey, setExportedKey] = useState<string | null>(null);
-  const [importKey, setImportKey] = useState('');
+  const [importKey, setImportKey] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
-  const [email, setEmail] = useState(initialEmail || '');
+  const [email, setEmail] = useState(initialEmail || "");
 
-  const { isLoading, error, exportPrivateKey, importPrivateKeyFromBackup, hasPrivateKey } = useCryptoAuth();
+  const {
+    isLoading,
+    error,
+    exportPrivateKey,
+    importPrivateKeyFromBackup,
+    hasPrivateKey,
+  } = useCryptoAuth();
   const { toast } = useToast();
 
   const checkExistingKeys = useCallback(async () => {
@@ -37,14 +60,17 @@ export const AdminKeyManagement: React.FC<KeyManagementProps> = ({ email: initia
   // Store private key in IndexedDB
   const storePrivateKey = async (privateKey: string): Promise<void> => {
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open('CryptoAuthDB', 2);
+      const request = indexedDB.open("CryptoAuthDB", 2);
 
       request.onerror = () => reject(request.error);
       request.onsuccess = () => {
         const db = request.result;
-        const transaction = db.transaction(['keys'], 'readwrite');
-        const store = transaction.objectStore('keys');
-        const putRequest = store.put({ id: 'admin-private-key', key: privateKey });
+        const transaction = db.transaction(["keys"], "readwrite");
+        const store = transaction.objectStore("keys");
+        const putRequest = store.put({
+          id: "admin-private-key",
+          key: privateKey,
+        });
 
         putRequest.onerror = () => reject(putRequest.error);
         putRequest.onsuccess = () => resolve();
@@ -52,8 +78,8 @@ export const AdminKeyManagement: React.FC<KeyManagementProps> = ({ email: initia
 
       request.onupgradeneeded = (event) => {
         const db = (event.target as IDBOpenDBRequest).result;
-        if (!db.objectStoreNames.contains('keys')) {
-          db.createObjectStore('keys', { keyPath: 'id' });
+        if (!db.objectStoreNames.contains("keys")) {
+          db.createObjectStore("keys", { keyPath: "id" });
         }
       };
     });
@@ -66,9 +92,9 @@ export const AdminKeyManagement: React.FC<KeyManagementProps> = ({ email: initia
   const handleGenerateKeys = async () => {
     if (!email) {
       toast({
-        title: 'Email Required',
-        description: 'Please provide an admin email address.',
-        variant: 'destructive',
+        title: "Email Required",
+        description: "Please provide an admin email address.",
+        variant: "destructive",
       });
       return;
     }
@@ -76,15 +102,18 @@ export const AdminKeyManagement: React.FC<KeyManagementProps> = ({ email: initia
     setIsGenerating(true);
     try {
       // Generate key pair using backend (Node.js crypto for compatibility)
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/keygen`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/keygen`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: email,
+          }),
         },
-        body: JSON.stringify({
-          email: email,
-        }),
-      });
+      );
 
       if (response.ok) {
         const data = await response.json();
@@ -94,20 +123,24 @@ export const AdminKeyManagement: React.FC<KeyManagementProps> = ({ email: initia
 
         setHasKeys(true);
         toast({
-          title: 'Keys Generated',
-          description: 'Cryptographic keys have been generated and stored securely.',
+          title: "Keys Generated",
+          description:
+            "Cryptographic keys have been generated and stored securely.",
         });
         onKeyGenerated?.();
       } else {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to generate keys');
+        throw new Error(errorData.message || "Failed to generate keys");
       }
     } catch (err) {
-      console.error('Key generation error:', err);
+      console.error("Key generation error:", err);
       toast({
-        title: 'Key Generation Failed',
-        description: err instanceof Error ? err.message : 'An error occurred while generating keys.',
-        variant: 'destructive',
+        title: "Key Generation Failed",
+        description:
+          err instanceof Error
+            ? err.message
+            : "An error occurred while generating keys.",
+        variant: "destructive",
       });
     } finally {
       setIsGenerating(false);
@@ -121,15 +154,16 @@ export const AdminKeyManagement: React.FC<KeyManagementProps> = ({ email: initia
         setExportedKey(key);
         setShowExport(true);
         toast({
-          title: 'Key Exported',
-          description: 'Private key has been exported for backup. Store it securely!',
+          title: "Key Exported",
+          description:
+            "Private key has been exported for backup. Store it securely!",
         });
       }
-    } catch (_err) { // eslint-disable-line @typescript-eslint/no-unused-vars
+    } catch {
       toast({
-        title: 'Export Failed',
-        description: 'Failed to export private key.',
-        variant: 'destructive',
+        title: "Export Failed",
+        description: "Failed to export private key.",
+        variant: "destructive",
       });
     }
   };
@@ -137,9 +171,9 @@ export const AdminKeyManagement: React.FC<KeyManagementProps> = ({ email: initia
   const handleImportKey = async () => {
     if (!importKey.trim()) {
       toast({
-        title: 'Import Failed',
-        description: 'Please provide a private key to import.',
-        variant: 'destructive',
+        title: "Import Failed",
+        description: "Please provide a private key to import.",
+        variant: "destructive",
       });
       return;
     }
@@ -148,18 +182,18 @@ export const AdminKeyManagement: React.FC<KeyManagementProps> = ({ email: initia
       const success = await importPrivateKeyFromBackup(importKey);
       if (success) {
         setHasKeys(true);
-        setImportKey('');
+        setImportKey("");
         toast({
-          title: 'Key Imported',
-          description: 'Private key has been imported successfully.',
+          title: "Key Imported",
+          description: "Private key has been imported successfully.",
         });
         onKeyGenerated?.();
       }
-    } catch (_err) { // eslint-disable-line @typescript-eslint/no-unused-vars
+    } catch {
       toast({
-        title: 'Import Failed',
-        description: 'Failed to import private key. Please check the format.',
-        variant: 'destructive',
+        title: "Import Failed",
+        description: "Failed to import private key. Please check the format.",
+        variant: "destructive",
       });
     }
   };
@@ -168,14 +202,14 @@ export const AdminKeyManagement: React.FC<KeyManagementProps> = ({ email: initia
     try {
       await navigator.clipboard.writeText(text);
       toast({
-        title: 'Copied',
-        description: 'Key copied to clipboard.',
+        title: "Copied",
+        description: "Key copied to clipboard.",
       });
-    } catch (_err) { // eslint-disable-line @typescript-eslint/no-unused-vars
+    } catch {
       toast({
-        title: 'Copy Failed',
-        description: 'Failed to copy to clipboard.',
-        variant: 'destructive',
+        title: "Copy Failed",
+        description: "Failed to copy to clipboard.",
+        variant: "destructive",
       });
     }
   };
@@ -203,11 +237,11 @@ export const AdminKeyManagement: React.FC<KeyManagementProps> = ({ email: initia
                 <AlertTriangle className="h-5 w-5 text-yellow-500" />
               )}
               <span className="font-medium">
-                {hasKeys ? 'Keys Configured' : 'No Keys Found'}
+                {hasKeys ? "Keys Configured" : "No Keys Found"}
               </span>
             </div>
-            <Badge variant={hasKeys ? 'default' : 'secondary'}>
-              {hasKeys ? 'Ready' : 'Setup Required'}
+            <Badge variant={hasKeys ? "default" : "secondary"}>
+              {hasKeys ? "Ready" : "Setup Required"}
             </Badge>
           </div>
 
@@ -241,10 +275,12 @@ export const AdminKeyManagement: React.FC<KeyManagementProps> = ({ email: initia
               </p>
               <Button
                 onClick={handleGenerateKeys}
-                disabled={isGenerating || isLoading || (!email && !initialEmail)}
+                disabled={
+                  isGenerating || isLoading || (!email && !initialEmail)
+                }
                 className="w-full"
               >
-                {isGenerating ? 'Generating Keys...' : 'Generate New Key Pair'}
+                {isGenerating ? "Generating Keys..." : "Generate New Key Pair"}
               </Button>
             </div>
           )}
@@ -262,7 +298,8 @@ export const AdminKeyManagement: React.FC<KeyManagementProps> = ({ email: initia
                     Backup Private Key
                   </h4>
                   <p className="text-sm text-muted-foreground">
-                    Export your private key for secure backup. Store it in a safe place.
+                    Export your private key for secure backup. Store it in a
+                    safe place.
                   </p>
                   <Button
                     variant="outline"
@@ -312,8 +349,8 @@ export const AdminKeyManagement: React.FC<KeyManagementProps> = ({ email: initia
                 <div className="space-y-2">
                   <p className="font-medium">Private Key Export</p>
                   <p className="text-sm">
-                    Store this key securely. It provides access to your admin account.
-                    Never share it with anyone.
+                    Store this key securely. It provides access to your admin
+                    account. Never share it with anyone.
                   </p>
                   <div className="bg-muted p-3 rounded-md">
                     <pre className="text-xs font-mono whitespace-pre-wrap break-all">
@@ -364,7 +401,10 @@ export const AdminKeyManagement: React.FC<KeyManagementProps> = ({ email: initia
         </CardHeader>
         <CardContent>
           <div className="space-y-2 text-sm text-muted-foreground">
-            <p>• Private keys are stored locally in IndexedDB and never leave your device</p>
+            <p>
+              • Private keys are stored locally in IndexedDB and never leave
+              your device
+            </p>
             <p>• All cryptographic operations happen client-side</p>
             <p>• The server only stores and verifies your public key</p>
             <p>• Regular key rotation is recommended for enhanced security</p>

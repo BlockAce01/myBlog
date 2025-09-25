@@ -13,12 +13,7 @@ import { CommentCard } from "@/components/comment-card";
 import { ReplyForm } from "@/components/reply-form";
 import { OptimizedImage } from "@/components/OptimizedImage";
 
-import {
-  getPost,
-  getComments,
-  likePost,
-  incrementViewCount,
-} from "@/lib/data";
+import { getPost, getComments, likePost, incrementViewCount } from "@/lib/data";
 import { useParams } from "next/navigation";
 
 export default function PostPage() {
@@ -32,7 +27,9 @@ export default function PostPage() {
   const [likeCount, setLikeCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
-  const [expandedReplies, setExpandedReplies] = useState<Set<string>>(new Set());
+  const [expandedReplies, setExpandedReplies] = useState<Set<string>>(
+    new Set(),
+  );
 
   useEffect(() => {
     if (id && !hasViewed.current) {
@@ -43,18 +40,23 @@ export default function PostPage() {
           const normalizedId = id.toLowerCase();
 
           // Check session storage BEFORE fetching data
-          const viewedPosts = JSON.parse(sessionStorage.getItem('blogPostViews') || '{}');
+          const viewedPosts = JSON.parse(
+            sessionStorage.getItem("blogPostViews") || "{}",
+          );
 
           if (!viewedPosts[normalizedId]) {
             // Immediately mark as viewed to prevent concurrent increments
             viewedPosts[normalizedId] = true;
-            sessionStorage.setItem('blogPostViews', JSON.stringify(viewedPosts));
+            sessionStorage.setItem(
+              "blogPostViews",
+              JSON.stringify(viewedPosts),
+            );
 
             // Then increment the view count
             try {
               await incrementViewCount(normalizedId);
             } catch (viewError) {
-              console.error('Failed to increment view count:', viewError);
+              console.error("Failed to increment view count:", viewError);
               // Don't throw here - we don't want view count errors to break the page load
             }
           }
@@ -68,11 +70,14 @@ export default function PostPage() {
             const commentsData = await getComments(postData.id);
             setComments(commentsData);
           }
-          
+
           if (postData) {
             setLikeCount(postData.likeCount);
             // Check if user has already liked this post
-            const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
+            const userId =
+              typeof window !== "undefined"
+                ? localStorage.getItem("userId")
+                : null;
             if (userId && postData.likedBy?.includes(userId)) {
               setLiked(true);
             }
@@ -99,7 +104,9 @@ export default function PostPage() {
       } catch (error) {
         console.error("Failed to like post:", error);
         // Show user-friendly error message
-        alert(`Unable to like post: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        alert(
+          `Unable to like post: ${error instanceof Error ? error.message : "Unknown error"}`,
+        );
       }
     }
   };
@@ -134,7 +141,7 @@ export default function PostPage() {
         // Clear any expanded reply states to reset the view
         setExpandedReplies(new Set());
       } catch (error) {
-        console.error('Error refreshing comments:', error);
+        console.error("Error refreshing comments:", error);
       }
     }
     setReplyingTo(null);
@@ -151,38 +158,53 @@ export default function PostPage() {
   };
 
   if (loading) {
-    return <Layout><div className="text-center">Loading...</div></Layout>;
+    return (
+      <Layout>
+        <div className="text-center">Loading...</div>
+      </Layout>
+    );
   }
 
   if (!post) {
-    return <Layout><div className="text-center">Post not found</div></Layout>;
+    return (
+      <Layout>
+        <div className="text-center">Post not found</div>
+      </Layout>
+    );
   }
-  
-  const formattedDate = new Date(post.publicationDate).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+
+  const formattedDate = new Date(post.publicationDate).toLocaleDateString(
+    "en-US",
+    {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    },
+  );
 
   return (
     <Layout>
       <article className="w-full max-w-4xl mx-auto px-0 sm:px-6 lg:px-8">
         {/* Cover Photo */}
-        {post.coverPhotoUrl && post.coverPhotoUrl !== "https://via.placeholder.com/800x400?text=No+Image" && (
-          <div className="mb-6 sm:mb-8 rounded-lg overflow-hidden">
-            <OptimizedImage
-              src={post.coverPhotoUrl}
-              alt={post.title}
-              width={800}
-              height={400}
-              className="w-full h-auto object-inherit max-h-64 sm:max-h-80 lg:max-h-96 cover-photo"
-            />
-          </div>
-        )}
+        {post.coverPhotoUrl &&
+          post.coverPhotoUrl !==
+            "https://via.placeholder.com/800x400?text=No+Image" && (
+            <div className="mb-6 sm:mb-8 rounded-lg overflow-hidden">
+              <OptimizedImage
+                src={post.coverPhotoUrl}
+                alt={post.title}
+                width={800}
+                height={400}
+                className="w-full h-auto object-inherit max-h-64 sm:max-h-80 lg:max-h-96 cover-photo"
+              />
+            </div>
+          )}
 
         {/* Post Header */}
         <header className="mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold font-sans text-foreground mb-3 sm:mb-4 leading-tight">{post.title}</h1>
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold font-sans text-foreground mb-3 sm:mb-4 leading-tight">
+            {post.title}
+          </h1>
           <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-2 sm:space-y-0 text-muted-foreground text-sm">
             <span>{formattedDate}</span>
             <div className="flex items-center space-x-4">
@@ -231,37 +253,39 @@ export default function PostPage() {
               Comments ({comments.length})
             </h2>
 
-          {/* Existing Comments */}
-          <div className="space-y-6 mb-8">
-            {comments.map((comment, index) => {
-              // Generate a unique key for React - use comment.id if available, otherwise create a unique temp ID
-              const uniqueKey = comment.id || `temp-comment-${index}-${Date.now()}-${Math.random()}`;
-              const commentId = comment.id || uniqueKey;
+            {/* Existing Comments */}
+            <div className="space-y-6 mb-8">
+              {comments.map((comment, index) => {
+                // Generate a unique key for React - use comment.id if available, otherwise create a unique temp ID
+                const uniqueKey =
+                  comment.id ||
+                  `temp-comment-${index}-${Date.now()}-${Math.random()}`;
+                const commentId = comment.id || uniqueKey;
 
-              return (
-                <div key={`comment-${uniqueKey}`}>
-                  <CommentCard
-                    comment={{...comment, id: commentId}}
-                    onReply={handleReply}
-                    showReplies={expandedReplies.has(commentId)}
-                    onToggleReplies={handleToggleReplies}
-                  />
-                  {replyingTo === commentId && (
-                    <ReplyForm
-                      key={`reply-form-${uniqueKey}`}
-                      postId={post.id}
-                      parentCommentId={commentId}
-                      onReplyAdded={handleReplyAdded}
-                      onCancel={handleReplyCancel}
+                return (
+                  <div key={`comment-${uniqueKey}`}>
+                    <CommentCard
+                      comment={{ ...comment, id: commentId }}
+                      onReply={handleReply}
+                      showReplies={expandedReplies.has(commentId)}
+                      onToggleReplies={handleToggleReplies}
                     />
-                  )}
-                </div>
-              );
-            })}
-          </div>
+                    {replyingTo === commentId && (
+                      <ReplyForm
+                        key={`reply-form-${uniqueKey}`}
+                        postId={post.id}
+                        parentCommentId={commentId}
+                        onReplyAdded={handleReplyAdded}
+                        onCancel={handleReplyCancel}
+                      />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
 
-          {/* Comment Form */}
-          <CommentForm postId={post.id} onCommentAdded={handleCommentAdded} />
+            {/* Comment Form */}
+            <CommentForm postId={post.id} onCommentAdded={handleCommentAdded} />
           </div>
         </section>
       </article>

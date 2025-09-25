@@ -1,32 +1,54 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Plus, Edit, Trash2, LogOut, Eye, Key, Shield } from 'lucide-react';
-import { useAuth } from '@/hooks/use-auth';
-import { useToastNotifications } from '@/hooks/use-toast-notifications';
-import { getPosts, deleteBlogPost } from '@/lib/data';
-import { AdminKeyManagement } from '@/components/admin-key-management';
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Loader2,
+  Plus,
+  Edit,
+  Trash2,
+  LogOut,
+  Eye,
+  Key,
+  Shield,
+} from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { useToastNotifications } from "@/hooks/use-toast-notifications";
+import { getPosts, deleteBlogPost } from "@/lib/data";
+import { AdminKeyManagement } from "@/components/admin-key-management";
 
-import type { BlogPost } from '@/lib/types';
+import type { BlogPost } from "@/lib/types";
 
 export default function AdminDashboardPage() {
   const { isAuthenticated, isLoading: authLoading, logout } = useAuth();
   const { showSuccess } = useToastNotifications();
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [adminEmail, setAdminEmail] = useState<string>('');
+  const [adminEmail, setAdminEmail] = useState<string>("");
 
   useEffect(() => {
     // Retrieve admin email from localStorage
-    const storedEmail = localStorage.getItem('adminEmail');
+    const storedEmail = localStorage.getItem("adminEmail");
     if (storedEmail) {
       setAdminEmail(storedEmail);
     }
@@ -39,19 +61,23 @@ export default function AdminDashboardPage() {
   const fetchPosts = async () => {
     try {
       setIsLoading(true);
-      setError('');
+      setError("");
       const fetchedPosts = await getPosts([], true); // Pass true for admin to get all posts
       setPosts(fetchedPosts);
     } catch (err) {
-      console.error('Failed to fetch posts:', err);
-      setError('Failed to load blog posts. Please try again.');
+      console.error("Failed to fetch posts:", err);
+      setError("Failed to load blog posts. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleDelete = async (postId: string, title: string) => {
-    if (!confirm(`Are you sure you want to delete "${title}"? This action cannot be undone.`)) {
+    if (
+      !confirm(
+        `Are you sure you want to delete "${title}"? This action cannot be undone.`,
+      )
+    ) {
       return;
     }
 
@@ -60,24 +86,29 @@ export default function AdminDashboardPage() {
       const success = await deleteBlogPost(postId);
 
       if (success) {
-        setPosts((prev: BlogPost[]) => prev.filter((post: BlogPost) => post.id !== postId));
-        showSuccess('Blog post deleted successfully', `"${title}" has been removed from your blog.`);
+        setPosts((prev: BlogPost[]) =>
+          prev.filter((post: BlogPost) => post.id !== postId),
+        );
+        showSuccess(
+          "Blog post deleted successfully",
+          `"${title}" has been removed from your blog.`,
+        );
       } else {
-        setError('Failed to delete the blog post. Please try again.');
+        setError("Failed to delete the blog post. Please try again.");
       }
     } catch (err) {
-      console.error('Failed to delete post:', err);
-      setError('Failed to delete the blog post. Please try again.');
+      console.error("Failed to delete post:", err);
+      setError("Failed to delete the blog post. Please try again.");
     } finally {
       setDeletingId(null);
     }
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
@@ -101,7 +132,9 @@ export default function AdminDashboardPage() {
                   <Shield className="h-6 w-6" />
                   Admin Setup
                 </h1>
-                <p className="text-sm text-gray-600">Set up secure cryptographic authentication</p>
+                <p className="text-sm text-gray-600">
+                  Set up secure cryptographic authentication
+                </p>
               </div>
               <Link href="/admin/login">
                 <Button variant="outline">
@@ -118,8 +151,9 @@ export default function AdminDashboardPage() {
             <Alert>
               <Shield className="h-4 w-4" />
               <AlertDescription>
-                <strong>Secure Setup Required:</strong> You need to generate cryptographic keys to access the admin dashboard.
-                This ensures your admin account is protected with military-grade encryption.
+                <strong>Secure Setup Required:</strong> You need to generate
+                cryptographic keys to access the admin dashboard. This ensures
+                your admin account is protected with military-grade encryption.
               </AlertDescription>
             </Alert>
           </div>
@@ -137,7 +171,9 @@ export default function AdminDashboardPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
+              <h1 className="text-2xl font-bold text-gray-900">
+                Admin Dashboard
+              </h1>
               <p className="text-sm text-gray-600">Manage your blog posts</p>
             </div>
             <div className="flex items-center space-x-4">
@@ -168,7 +204,8 @@ export default function AdminDashboardPage() {
           <CardHeader>
             <CardTitle>Blog Posts</CardTitle>
             <CardDescription>
-              A list of all your blog posts. You can create, edit, or delete posts from here.
+              A list of all your blog posts. You can create, edit, or delete
+              posts from here.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -208,33 +245,46 @@ export default function AdminDashboardPage() {
                           <div className="truncate" title={post.title}>
                             {post.title}
                           </div>
-                          <div className="text-sm text-gray-500 truncate max-w-xs" title={post.summary}>
+                          <div
+                            className="text-sm text-gray-500 truncate max-w-xs"
+                            title={post.summary}
+                          >
                             {post.summary}
                           </div>
                         </TableCell>
                         <TableCell>
                           <Badge
                             variant={
-                              post.status === 'published' ? 'default' :
-                              post.status === 'scheduled' ? 'outline' :
-                              post.status === 'hidden' ? 'destructive' : 'secondary'
+                              post.status === "published"
+                                ? "default"
+                                : post.status === "scheduled"
+                                  ? "outline"
+                                  : post.status === "hidden"
+                                    ? "destructive"
+                                    : "secondary"
                             }
                           >
-                            {post.status === 'published' ? 'Published' :
-                             post.status === 'scheduled' ? 'Scheduled' :
-                             post.status === 'hidden' ? 'Hidden' : 'Draft'}
+                            {post.status === "published"
+                              ? "Published"
+                              : post.status === "scheduled"
+                                ? "Scheduled"
+                                : post.status === "hidden"
+                                  ? "Hidden"
+                                  : "Draft"}
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          {post.status === 'scheduled' && post.scheduledPublishDate
+                          {post.status === "scheduled" &&
+                          post.scheduledPublishDate
                             ? formatDate(post.scheduledPublishDate)
-                            : '-'
-                          }
+                            : "-"}
                         </TableCell>
                         <TableCell>{post.viewCount.toLocaleString()}</TableCell>
                         <TableCell>{post.likeCount.toLocaleString()}</TableCell>
                         <TableCell>
-                          {post.lastSavedAt ? formatDate(post.lastSavedAt) : formatDate(post.publicationDate)}
+                          {post.lastSavedAt
+                            ? formatDate(post.lastSavedAt)
+                            : formatDate(post.publicationDate)}
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center space-x-2">

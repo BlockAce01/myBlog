@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from "@/components/ui/use-toast";
 
 export function useToastNotifications() {
   const { toast } = useToast();
@@ -9,7 +9,7 @@ export function useToastNotifications() {
     toast({
       title,
       description,
-      variant: 'default',
+      variant: "default",
     });
   };
 
@@ -17,7 +17,7 @@ export function useToastNotifications() {
     toast({
       title,
       description,
-      variant: 'destructive',
+      variant: "destructive",
     });
   };
 
@@ -25,7 +25,7 @@ export function useToastNotifications() {
     toast({
       title,
       description,
-      variant: 'default',
+      variant: "default",
     });
   };
 

@@ -121,3 +121,134 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Image alignment and styling for TinyMCE content */
+@layer components {
+  .float-left {
+    float: left;
+    margin-right: 1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .float-right {
+    float: right;
+    margin-left: 1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .align-left {
+    text-align: left;
+  }
+
+  .align-center {
+    text-align: center;
+  }
+
+  .align-right {
+    text-align: right;
+  }
+
+  .image-center {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .image-left {
+    display: block;
+    margin-right: auto;
+  }
+
+  .image-right {
+    display: block;
+    margin-left: auto;
+  }
+
+  /* Clear floats */
+  .clear-both {
+    clear: both;
+  }
+
+  .clear-left {
+    clear: left;
+  }
+
+  .clear-right {
+    clear: right;
+  }
+
+  /* Image sizing classes */
+  .image-small {
+    max-width: 200px;
+    height: auto;
+  }
+
+  .image-medium {
+    max-width: 400px;
+    height: auto;
+  }
+
+  .image-large {
+    max-width: 600px;
+    height: auto;
+  }
+
+  .image-full {
+    width: 100%;
+    height: auto;
+  }
+
+  /* Responsive image handling */
+  .blog-image {
+    max-width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  /* Cover photo styling */
+  .cover-photo {
+    width: 100%;
+    height: auto;
+    margin-bottom: 1rem;
+  }
+
+  /* Image captions */
+  .image-caption {
+    font-size: 0.875rem;
+    color: var(--muted-foreground);
+    text-align: center;
+    margin-top: 0.5rem;
+    font-style: italic;
+  }
+
+  /* Image wrapper for better control */
+  .image-wrapper {
+    position: relative;
+    display: inline-block;
+    max-width: 100%;
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .float-left,
+    .float-right {
+      float: none;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+      margin-bottom: 1rem;
+    }
+
+    .image-small {
+      max-width: 150px;
+    }
+
+    .image-medium {
+      max-width: 300px;
+    }
+
+    .image-large {
+      max-width: 100%;
+    }
+  }
+}

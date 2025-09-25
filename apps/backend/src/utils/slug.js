@@ -7,9 +7,9 @@ function generateSlug(title) {
   return title
     .toLowerCase()
     .trim()
-    .replace(/[^\w\s-]/g, '') // Remove special characters except spaces and hyphens
-    .replace(/\s+/g, '-') // Replace spaces with hyphens
-    .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
+    .replace(/[^\w\s-]/g, "") // Remove special characters except spaces and hyphens
+    .replace(/\s+/g, "-") // Replace spaces with hyphens
+    .replace(/-+/g, "-") // Replace multiple hyphens with single hyphen
     .substring(0, 100); // Limit length
 }
 
@@ -33,5 +33,5 @@ function generateUniqueSlug(baseSlug, existingSlugs = []) {
 
 module.exports = {
   generateSlug,
-  generateUniqueSlug
+  generateUniqueSlug,
 };

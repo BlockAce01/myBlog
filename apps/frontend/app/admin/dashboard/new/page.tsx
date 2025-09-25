@@ -1,60 +1,72 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, ArrowLeft, Save } from 'lucide-react';
-import { useAuth } from '@/hooks/use-auth';
-import { createBlogPost } from '@/lib/data';
-import { getTextContentFromHtml } from '@/lib/html-utils';
-import RichTextEditor from '@/components/RichTextEditor';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Loader2, ArrowLeft, Save } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { createBlogPost } from "@/lib/data";
+import { getTextContentFromHtml } from "@/lib/html-utils";
+import RichTextEditor from "@/components/RichTextEditor";
 
 export default function NewBlogPostPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const router = useRouter();
 
   const [formData, setFormData] = useState({
-    title: '',
-    content: '',
-    excerpt: '',
-    coverPhotoUrl: '',
+    title: "",
+    content: "",
+    excerpt: "",
+    coverPhotoUrl: "",
     tags: [] as string[],
-    status: 'draft' as 'draft' | 'published' | 'hidden' | 'scheduled',
-    scheduledPublishDate: '',
+    status: "draft" as "draft" | "published" | "hidden" | "scheduled",
+    scheduledPublishDate: "",
   });
 
-  const [tagInput, setTagInput] = useState('');
+  const [tagInput, setTagInput] = useState("");
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState('');
+  const [submitError, setSubmitError] = useState("");
 
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {};
 
     if (!formData.title.trim()) {
-      newErrors.title = 'Title is required';
+      newErrors.title = "Title is required";
     } else if (formData.title.length > 200) {
-      newErrors.title = 'Title must be less than 200 characters';
+      newErrors.title = "Title must be less than 200 characters";
     }
 
     if (!formData.content.trim()) {
-      newErrors.content = 'Content is required';
+      newErrors.content = "Content is required";
     } else if (formData.content.length > 50000) {
-      newErrors.content = 'Content must be less than 50,000 characters';
+      newErrors.content = "Content must be less than 50,000 characters";
     }
 
     if (!formData.excerpt.trim()) {
-      newErrors.excerpt = 'Excerpt is required';
+      newErrors.excerpt = "Excerpt is required";
     } else if (formData.excerpt.length > 500) {
-      newErrors.excerpt = 'Excerpt must be less than 500 characters';
+      newErrors.excerpt = "Excerpt must be less than 500 characters";
     }
 
     setErrors(newErrors);
@@ -71,7 +83,7 @@ export default function NewBlogPostPage() {
     if (errors[field]) {
       setErrors((prev: typeof errors) => ({
         ...prev,
-        [field]: '',
+        [field]: "",
       }));
     }
   };
@@ -83,7 +95,7 @@ export default function NewBlogPostPage() {
         ...prev,
         tags: [...prev.tags, tag],
       }));
-      setTagInput('');
+      setTagInput("");
     }
   };
 
@@ -95,7 +107,7 @@ export default function NewBlogPostPage() {
   };
 
   const handleTagKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       e.preventDefault();
       handleAddTag();
     }
@@ -105,17 +117,20 @@ export default function NewBlogPostPage() {
     setTagInput(e.target.value);
   };
 
-  const handleStatusChange = (status: 'draft' | 'published' | 'hidden' | 'scheduled') => {
+  const handleStatusChange = (
+    status: "draft" | "published" | "hidden" | "scheduled",
+  ) => {
     setFormData((prev: typeof formData) => ({
       ...prev,
       status,
-      scheduledPublishDate: status === 'scheduled' ? prev.scheduledPublishDate : '',
+      scheduledPublishDate:
+        status === "scheduled" ? prev.scheduledPublishDate : "",
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setSubmitError('');
+    setSubmitError("");
 
     if (!validateForm()) {
       return;
@@ -127,13 +142,15 @@ export default function NewBlogPostPage() {
       const result = await createBlogPost(formData);
 
       if (result) {
-        router.push('/admin/dashboard');
+        router.push("/admin/dashboard");
       } else {
-        setSubmitError('Failed to create blog post. Please try again.');
+        setSubmitError("Failed to create blog post. Please try again.");
       }
     } catch (error) {
-      console.error('Failed to create blog post:', error);
-      setSubmitError('An error occurred while creating the blog post. Please try again.');
+      console.error("Failed to create blog post:", error);
+      setSubmitError(
+        "An error occurred while creating the blog post. Please try again.",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -165,8 +182,12 @@ export default function NewBlogPostPage() {
                 </Button>
               </Link>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Create New Blog Post</h1>
-                <p className="text-sm text-gray-600">Fill in the details below to create a new blog post</p>
+                <h1 className="text-2xl font-bold text-gray-900">
+                  Create New Blog Post
+                </h1>
+                <p className="text-sm text-gray-600">
+                  Fill in the details below to create a new blog post
+                </p>
               </div>
             </div>
           </div>
@@ -187,7 +208,9 @@ export default function NewBlogPostPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Basic Information</CardTitle>
-                <CardDescription>Enter the basic details for your blog post</CardDescription>
+                <CardDescription>
+                  Enter the basic details for your blog post
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
@@ -195,8 +218,8 @@ export default function NewBlogPostPage() {
                   <Input
                     id="title"
                     value={formData.title}
-                    onChange={(e) => handleInputChange('title', e.target.value)}
-                    className={errors.title ? 'border-red-500' : ''}
+                    onChange={(e) => handleInputChange("title", e.target.value)}
+                    className={errors.title ? "border-red-500" : ""}
                     placeholder="Enter a compelling title for your blog post"
                     disabled={isSubmitting}
                   />
@@ -213,8 +236,10 @@ export default function NewBlogPostPage() {
                   <Textarea
                     id="excerpt"
                     value={formData.excerpt}
-                    onChange={(e) => handleInputChange('excerpt', e.target.value)}
-                    className={errors.excerpt ? 'border-red-500' : ''}
+                    onChange={(e) =>
+                      handleInputChange("excerpt", e.target.value)
+                    }
+                    className={errors.excerpt ? "border-red-500" : ""}
                     placeholder="Write a brief summary of your blog post"
                     rows={3}
                     disabled={isSubmitting}
@@ -232,7 +257,9 @@ export default function NewBlogPostPage() {
                   <Input
                     id="coverPhotoUrl"
                     value={formData.coverPhotoUrl}
-                    onChange={(e) => handleInputChange('coverPhotoUrl', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("coverPhotoUrl", e.target.value)
+                    }
                     placeholder="https://example.com/image.jpg"
                     disabled={isSubmitting}
                   />
@@ -244,14 +271,17 @@ export default function NewBlogPostPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Content</CardTitle>
-                <CardDescription>Write the main content of your blog post using the rich text editor</CardDescription>
+                <CardDescription>
+                  Write the main content of your blog post using the rich text
+                  editor
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
                   <Label htmlFor="content">Content *</Label>
                   <RichTextEditor
                     value={formData.content}
-                    onChange={(value) => handleInputChange('content', value)}
+                    onChange={(value) => handleInputChange("content", value)}
                     disabled={isSubmitting}
                     height={500}
                   />
@@ -259,7 +289,8 @@ export default function NewBlogPostPage() {
                     <p className="text-sm text-red-500">{errors.content}</p>
                   )}
                   <p className="text-sm text-gray-500">
-                    {getTextContentFromHtml(formData.content).length}/50,000 characters (HTML tags excluded)
+                    {getTextContentFromHtml(formData.content).length}/50,000
+                    characters (HTML tags excluded)
                   </p>
                 </div>
               </CardContent>
@@ -269,7 +300,9 @@ export default function NewBlogPostPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Tags</CardTitle>
-                <CardDescription>Add tags to help categorize your blog post</CardDescription>
+                <CardDescription>
+                  Add tags to help categorize your blog post
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex space-x-2">
@@ -316,12 +349,18 @@ export default function NewBlogPostPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Publishing Options</CardTitle>
-                <CardDescription>Configure how and when your blog post will be published</CardDescription>
+                <CardDescription>
+                  Configure how and when your blog post will be published
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="status">Status</Label>
-                  <Select value={formData.status} onValueChange={handleStatusChange} disabled={isSubmitting}>
+                  <Select
+                    value={formData.status}
+                    onValueChange={handleStatusChange}
+                    disabled={isSubmitting}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select status" />
                     </SelectTrigger>
@@ -334,14 +373,21 @@ export default function NewBlogPostPage() {
                   </Select>
                 </div>
 
-                {formData.status === 'scheduled' && (
+                {formData.status === "scheduled" && (
                   <div className="space-y-2">
-                    <Label htmlFor="scheduledPublishDate">Publish Date & Time</Label>
+                    <Label htmlFor="scheduledPublishDate">
+                      Publish Date & Time
+                    </Label>
                     <Input
                       id="scheduledPublishDate"
                       type="datetime-local"
                       value={formData.scheduledPublishDate}
-                      onChange={(e) => handleInputChange('scheduledPublishDate', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "scheduledPublishDate",
+                          e.target.value,
+                        )
+                      }
                       disabled={isSubmitting}
                       min={new Date().toISOString().slice(0, 16)}
                     />
@@ -352,10 +398,14 @@ export default function NewBlogPostPage() {
                 )}
 
                 <div className="text-sm text-gray-500">
-                  {formData.status === 'draft' && 'This post will be saved as a draft and not visible to readers.'}
-                  {formData.status === 'published' && 'This post will be published and visible to readers immediately.'}
-                  {formData.status === 'hidden' && 'This post will be saved but hidden from readers.'}
-                  {formData.status === 'scheduled' && 'This post will be published automatically at the scheduled time.'}
+                  {formData.status === "draft" &&
+                    "This post will be saved as a draft and not visible to readers."}
+                  {formData.status === "published" &&
+                    "This post will be published and visible to readers immediately."}
+                  {formData.status === "hidden" &&
+                    "This post will be saved but hidden from readers."}
+                  {formData.status === "scheduled" &&
+                    "This post will be published automatically at the scheduled time."}
                 </div>
               </CardContent>
             </Card>

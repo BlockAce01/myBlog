@@ -1,0 +1,29 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      - id: debug-statements
+
+  # Temporarily disabled until ESLint v9 migration is complete
+  # - repo: https://github.com/pre-commit/mirrors-eslint
+  #   rev: v9.15.0
+  #   hooks:
+  #     - id: eslint
+  #       files: \.(js|ts|tsx)$
+  #       types: [file]
+  #       additional_dependencies:
+  #         - eslint@^9.34.0
+  #         - "@typescript-eslint/eslint-plugin@^8.41.0"
+  #         - "@typescript-eslint/parser@^8.41.0"
+
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v4.0.0-alpha.8
+    hooks:
+      - id: prettier
+        files: \.(js|ts|tsx|json|md|yaml|yml)$
+        exclude: package-lock\.json

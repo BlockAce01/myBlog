@@ -7,7 +7,7 @@ export const authOptions: NextAuthOptions = {
       name: "credentials",
       credentials: {
         email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" }
+        password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
@@ -16,16 +16,19 @@ export const authOptions: NextAuthOptions = {
 
         try {
           // Call backend auth API
-          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                email: credentials.email,
+                password: credentials.password,
+              }),
             },
-            body: JSON.stringify({
-              email: credentials.email,
-              password: credentials.password,
-            }),
-          });
+          );
 
           if (!response.ok) {
             return null;
@@ -39,16 +42,16 @@ export const authOptions: NextAuthOptions = {
             role: user.role,
           };
         } catch (error) {
-          console.error('Auth error:', error);
+          console.error("Auth error:", error);
           return null;
         }
-      }
-    })
+      },
+    }),
   ],
   session: {
     strategy: "jwt",
     maxAge: 3600, // 1 hour
-    updateAge: 900 // 15 minutes
+    updateAge: 900, // 15 minutes
   },
   jwt: {
     maxAge: 3600,
@@ -62,9 +65,9 @@ export const authOptions: NextAuthOptions = {
         sameSite: "lax",
         path: "/",
         domain: process.env.NEXT_PUBLIC_COOKIE_DOMAIN,
-        partitioned: true
-      }
-    }
+        partitioned: true,
+      },
+    },
   },
   callbacks: {
     async jwt({ token, user }) {
@@ -79,12 +82,12 @@ export const authOptions: NextAuthOptions = {
         session.user.role = token.role as "admin" | "user";
       }
       return session;
-    }
+    },
   },
   pages: {
-    signIn: '/admin/login',
-    error: '/admin/login',
-  }
+    signIn: "/admin/login",
+    error: "/admin/login",
+  },
 };
 
 // Type declarations

@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { Editor } from '@tinymce/tinymce-react';
-import { useRef } from 'react';
-import DOMPurify from 'dompurify';
-import { useImageUpload } from '@/hooks/use-image-upload';
+import { Editor } from "@tinymce/tinymce-react";
+import { useRef } from "react";
+import DOMPurify from "dompurify";
+import { useImageUpload } from "@/hooks/use-image-upload";
 
 interface RichTextEditorProps {
   value: string;
@@ -16,7 +16,7 @@ export default function RichTextEditor({
   value,
   onChange,
   disabled = false,
-  height = 400
+  height = 400,
 }: RichTextEditorProps) {
   const editorRef = useRef<unknown>(null);
   const { uploadImage } = useImageUpload();
@@ -30,8 +30,8 @@ export default function RichTextEditor({
   return (
     <div className="w-full">
       <Editor
-        apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY || 'no-api-key'}
-        onInit={(evt: unknown, editor: unknown) => editorRef.current = editor}
+        apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY || "no-api-key"}
+        onInit={(evt: unknown, editor: unknown) => (editorRef.current = editor)}
         value={value}
         onEditorChange={handleEditorChange}
         disabled={disabled}
@@ -39,16 +39,32 @@ export default function RichTextEditor({
           height,
           menubar: false,
           plugins: [
-            'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
-            'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-            'insertdatetime', 'media', 'table', 'help', 'wordcount', 'codesample'
+            "advlist",
+            "autolink",
+            "lists",
+            "link",
+            "image",
+            "charmap",
+            "preview",
+            "anchor",
+            "searchreplace",
+            "visualblocks",
+            "code",
+            "fullscreen",
+            "insertdatetime",
+            "media",
+            "table",
+            "help",
+            "wordcount",
+            "codesample",
           ],
-          toolbar: 'undo redo | blocks | ' +
-            'bold italic underline strikethrough | forecolor backcolor | ' +
-            'alignleft aligncenter alignright alignjustify | ' +
-            'bullist numlist outdent indent | ' +
-            'link image codesample | ' +
-            'removeformat code fullscreen preview help',
+          toolbar:
+            "undo redo | blocks | " +
+            "bold italic underline strikethrough | forecolor backcolor | " +
+            "alignleft aligncenter alignright alignjustify | " +
+            "bullist numlist outdent indent | " +
+            "link image codesample | " +
+            "removeformat code fullscreen preview help",
           content_style: `
             body {
               font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
@@ -94,41 +110,44 @@ export default function RichTextEditor({
           `,
           images_upload_handler: uploadImage,
           automatic_uploads: true,
-          file_picker_types: 'image',
+          file_picker_types: "image",
           paste_data_images: true,
           image_advtab: true,
           image_title: true,
           image_caption: true,
           image_class_list: [
-            { title: 'None', value: '' },
-            { title: 'Responsive', value: 'img-responsive' },
-            { title: 'Float Left', value: 'float-left' },
-            { title: 'Float Right', value: 'float-right' }
+            { title: "None", value: "" },
+            { title: "Responsive", value: "img-responsive" },
+            { title: "Float Left", value: "float-left" },
+            { title: "Float Right", value: "float-right" },
           ],
-          link_default_target: '_blank',
+          link_default_target: "_blank",
           link_assume_external_targets: true,
           codesample_languages: [
-            { text: 'HTML/XML', value: 'markup' },
-            { text: 'JavaScript', value: 'javascript' },
-            { text: 'CSS', value: 'css' },
-            { text: 'PHP', value: 'php' },
-            { text: 'Ruby', value: 'ruby' },
-            { text: 'Python', value: 'python' },
-            { text: 'Java', value: 'java' },
-            { text: 'C', value: 'c' },
-            { text: 'C#', value: 'csharp' },
-            { text: 'C++', value: 'cpp' }
+            { text: "HTML/XML", value: "markup" },
+            { text: "JavaScript", value: "javascript" },
+            { text: "CSS", value: "css" },
+            { text: "PHP", value: "php" },
+            { text: "Ruby", value: "ruby" },
+            { text: "Python", value: "python" },
+            { text: "Java", value: "java" },
+            { text: "C", value: "c" },
+            { text: "C#", value: "csharp" },
+            { text: "C++", value: "cpp" },
           ],
-          contextmenu: 'link image table configurepermanentpen',
-          skin: 'oxide',
+          contextmenu: "link image table configurepermanentpen",
+          skin: "oxide",
           content_css: false,
           setup: (editor: unknown) => {
-            const tinyEditor = editor as { on: (event: string, callback: () => void) => void; getContent: () => string };
-            tinyEditor.on('change', () => {
+            const tinyEditor = editor as {
+              on: (event: string, callback: () => void) => void;
+              getContent: () => string;
+            };
+            tinyEditor.on("change", () => {
               const content = tinyEditor.getContent();
               handleEditorChange(content);
             });
-          }
+          },
         }}
       />
     </div>

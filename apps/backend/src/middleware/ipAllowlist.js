@@ -1,5 +1,5 @@
-const fs = require('fs').promises;
-const path = require('path');
+const fs = require("fs").promises;
+const path = require("path");
 
 /**
  * IP Allowlisting middleware for enhanced security
@@ -8,7 +8,8 @@ const path = require('path');
 
 class IPAllowlist {
   constructor(options = {}) {
-    this.allowlistFile = options.allowlistFile || path.join(process.cwd(), 'ip-allowlist.json');
+    this.allowlistFile =
+      options.allowlistFile || path.join(process.cwd(), "ip-allowlist.json");
     this.enableAllowlist = options.enableAllowlist !== false;
     this.defaultAllowLocalhost = options.defaultAllowLocalhost !== false;
     this.cacheExpiry = options.cacheExpiry || 5 * 60 * 1000; // 5 minutes
@@ -29,15 +30,18 @@ class IPAllowlist {
       const defaultAllowlist = {
         enabled: this.enableAllowlist,
         allowLocalhost: this.defaultAllowLocalhost,
-        allowedIPs: this.defaultAllowLocalhost ? ['127.0.0.1', '::1'] : [],
+        allowedIPs: this.defaultAllowLocalhost ? ["127.0.0.1", "::1"] : [],
         allowedCIDRs: [],
         blockedIPs: [],
         lastUpdated: new Date().toISOString(),
-        description: 'IP allowlist for admin endpoints - automatically created'
+        description: "IP allowlist for admin endpoints - automatically created",
       };
 
-      await fs.writeFile(this.allowlistFile, JSON.stringify(defaultAllowlist, null, 2));
-      console.log('Created default IP allowlist file:', this.allowlistFile);
+      await fs.writeFile(
+        this.allowlistFile,
+        JSON.stringify(defaultAllowlist, null, 2),
+      );
+      console.log("Created default IP allowlist file:", this.allowlistFile);
     }
   }
 
@@ -59,7 +63,10 @@ class IPAllowlist {
     }
 
     // If no allowed IPs/CIDRs specified, deny all (secure by default)
-    if (allowlist.allowedIPs.length === 0 && allowlist.allowedCIDRs.length === 0) {
+    if (
+      allowlist.allowedIPs.length === 0 &&
+      allowlist.allowedCIDRs.length === 0
+    ) {
       return false;
     }
 
@@ -86,7 +93,7 @@ class IPAllowlist {
    */
   isIPInCIDR(ip, cidr) {
     try {
-      const [network, prefixLength] = cidr.split('/');
+      const [network, prefixLength] = cidr.split("/");
       const prefix = parseInt(prefixLength);
 
       // Convert IP and network to binary
@@ -101,7 +108,7 @@ class IPAllowlist {
 
       return networkBits === ipBits;
     } catch (error) {
-      console.error('Error checking CIDR:', error);
+      console.error("Error checking CIDR:", error);
       return false;
     }
   }
@@ -113,23 +120,23 @@ class IPAllowlist {
    */
   ipToBinary(ip) {
     // Handle IPv4
-    if (ip.includes('.')) {
-      const parts = ip.split('.');
+    if (ip.includes(".")) {
+      const parts = ip.split(".");
       if (parts.length !== 4) return null;
 
       return parts
-        .map(part => {
+        .map((part) => {
           const num = parseInt(part);
           if (isNaN(num) || num < 0 || num > 255) return null;
-          return num.toString(2).padStart(8, '0');
+          return num.toString(2).padStart(8, "0");
         })
-        .join('');
+        .join("");
     }
 
     // Handle IPv6 (simplified - only handle compressed form)
-    if (ip.includes(':')) {
+    if (ip.includes(":")) {
       // For simplicity, convert IPv4-mapped IPv6 addresses
-      if (ip.startsWith('::ffff:')) {
+      if (ip.startsWith("::ffff:")) {
         const ipv4 = ip.substring(7);
         return this.ipToBinary(ipv4);
       }
@@ -148,13 +155,16 @@ class IPAllowlist {
     const now = Date.now();
 
     // Return cached version if still valid
-    if (this.allowlistCache && this.cacheTimestamp &&
-        (now - this.cacheTimestamp) < this.cacheExpiry) {
+    if (
+      this.allowlistCache &&
+      this.cacheTimestamp &&
+      now - this.cacheTimestamp < this.cacheExpiry
+    ) {
       return this.allowlistCache;
     }
 
     try {
-      const data = await fs.readFile(this.allowlistFile, 'utf8');
+      const data = await fs.readFile(this.allowlistFile, "utf8");
       const allowlist = JSON.parse(data);
 
       // Update cache
@@ -163,14 +173,14 @@ class IPAllowlist {
 
       return allowlist;
     } catch (error) {
-      console.error('Error reading IP allowlist:', error);
+      console.error("Error reading IP allowlist:", error);
       // Return secure defaults on error
       return {
         enabled: true,
         allowLocalhost: this.defaultAllowLocalhost,
-        allowedIPs: this.defaultAllowLocalhost ? ['127.0.0.1', '::1'] : [],
+        allowedIPs: this.defaultAllowLocalhost ? ["127.0.0.1", "::1"] : [],
         allowedCIDRs: [],
-        blockedIPs: []
+        blockedIPs: [],
       };
     }
   }
@@ -186,7 +196,7 @@ class IPAllowlist {
       const updated = {
         ...current,
         ...updates,
-        lastUpdated: new Date().toISOString()
+        lastUpdated: new Date().toISOString(),
       };
 
       await fs.writeFile(this.allowlistFile, JSON.stringify(updated, null, 2));
@@ -195,9 +205,9 @@ class IPAllowlist {
       this.allowlistCache = null;
       this.cacheTimestamp = null;
 
-      console.log('IP allowlist updated successfully');
+      console.log("IP allowlist updated successfully");
     } catch (error) {
-      console.error('Error updating IP allowlist:', error);
+      console.error("Error updating IP allowlist:", error);
       throw error;
     }
   }
@@ -208,7 +218,7 @@ class IPAllowlist {
    * @param {string} description - Optional description
    * @returns {Promise<void>}
    */
-  async addAllowedIP(ip, description = '') {
+  async addAllowedIP(ip, description = "") {
     const allowlist = await this.getAllowlist();
 
     if (!allowlist.allowedIPs.includes(ip)) {
@@ -256,7 +266,7 @@ class IPAllowlist {
       totalAllowedCIDRs: allowlist.allowedCIDRs.length,
       totalBlockedIPs: allowlist.blockedIPs.length,
       lastUpdated: allowlist.lastUpdated,
-      allowLocalhost: allowlist.allowLocalhost
+      allowLocalhost: allowlist.allowLocalhost,
     };
   }
 }
@@ -277,23 +287,28 @@ const ipAllowlistMiddleware = (options = {}) => {
   return async (req, res, next) => {
     try {
       // Skip allowlist check for exempt routes
-      if (exemptRoutes.some(route => req.path.startsWith(route))) {
+      if (exemptRoutes.some((route) => req.path.startsWith(route))) {
         return next();
       }
 
       // Get client IP (handle proxies)
-      const clientIP = req.ip ||
-                      req.connection.remoteAddress ||
-                      req.socket.remoteAddress ||
-                      (req.connection.socket ? req.connection.socket.remoteAddress : null);
+      const clientIP =
+        req.ip ||
+        req.connection.remoteAddress ||
+        req.socket.remoteAddress ||
+        (req.connection.socket ? req.connection.socket.remoteAddress : null);
 
       if (!clientIP) {
         if (logViolations) {
-          console.warn('IP allowlist: Unable to determine client IP for request:', req.method, req.path);
+          console.warn(
+            "IP allowlist: Unable to determine client IP for request:",
+            req.method,
+            req.path,
+          );
         }
         return res.status(403).json({
-          error: 'Forbidden',
-          message: 'Unable to verify client identity'
+          error: "Forbidden",
+          message: "Unable to verify client identity",
         });
       }
 
@@ -302,20 +317,26 @@ const ipAllowlistMiddleware = (options = {}) => {
 
       if (!allowed) {
         if (logViolations) {
-          console.warn(`IP allowlist violation: ${clientIP} attempted access to ${req.method} ${req.path}`);
+          console.warn(
+            `IP allowlist violation: ${clientIP} attempted access to ${req.method} ${req.path}`,
+          );
 
           // Could integrate with audit logger here
-          const { audit } = require('../utils/auditLogger');
-          await audit.logSuspiciousActivity(clientIP, 'ip_allowlist_violation', {
-            path: req.path,
-            method: req.method,
-            userAgent: req.get('User-Agent')
-          });
+          const { audit } = require("../utils/auditLogger");
+          await audit.logSuspiciousActivity(
+            clientIP,
+            "ip_allowlist_violation",
+            {
+              path: req.path,
+              method: req.method,
+              userAgent: req.get("User-Agent"),
+            },
+          );
         }
 
         return res.status(403).json({
-          error: 'Forbidden',
-          message: 'Access denied from this IP address'
+          error: "Forbidden",
+          message: "Access denied from this IP address",
         });
       }
 
@@ -325,7 +346,7 @@ const ipAllowlistMiddleware = (options = {}) => {
 
       next();
     } catch (error) {
-      console.error('IP allowlist middleware error:', error);
+      console.error("IP allowlist middleware error:", error);
       // Fail open for errors to avoid blocking legitimate users
       next();
     }
@@ -335,5 +356,5 @@ const ipAllowlistMiddleware = (options = {}) => {
 module.exports = {
   IPAllowlist,
   ipAllowlist,
-  ipAllowlistMiddleware
+  ipAllowlistMiddleware,
 };

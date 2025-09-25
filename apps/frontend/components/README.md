@@ -13,12 +13,14 @@ The system addresses recurring LCP warnings by implementing a comprehensive imag
 **File**: `OptimizedImage.tsx`
 
 A wrapper component around Next.js Image that provides:
+
 - Automatic priority detection for above-the-fold images
 - Error handling with fallback UI
 - Consistent optimization settings
 - Responsive image sizing
 
 **Key Features**:
+
 - Detects `cover-photo` or `above-fold` classes for automatic priority
 - Configurable quality (default: 75)
 - Responsive sizes for different screen sizes
@@ -29,6 +31,7 @@ A wrapper component around Next.js Image that provides:
 **File**: `BlogImageRenderer.tsx`
 
 Handles rendering of HTML content containing images by:
+
 - Parsing HTML to extract image information
 - Replacing `<img>` tags with `OptimizedImage` components
 - Maintaining original HTML structure
@@ -41,6 +44,7 @@ Handles rendering of HTML content containing images by:
 **File**: `HTMLRenderer.tsx`
 
 Enhanced to automatically detect and optimize images:
+
 - Checks for images in HTML content
 - Routes image-containing content to `BlogImageRenderer`
 - Maintains backward compatibility for non-image content
@@ -51,7 +55,7 @@ Enhanced to automatically detect and optimize images:
 ### For Cover Photos (PostCard)
 
 ```tsx
-import { OptimizedImage } from './OptimizedImage';
+import { OptimizedImage } from "./OptimizedImage";
 
 // Automatically gets priority due to 'cover-photo' class
 <OptimizedImage
@@ -60,7 +64,7 @@ import { OptimizedImage } from './OptimizedImage';
   fill
   className="absolute inset-0 w-full h-full object-cover rounded-lg cover-photo"
   onError={() => setImageError(true)}
-/>
+/>;
 ```
 
 ### For Blog Content Images
@@ -68,16 +72,16 @@ import { OptimizedImage } from './OptimizedImage';
 Images in blog posts are automatically optimized when rendered through `HTMLRenderer`:
 
 ```tsx
-import HTMLRenderer from './HTMLRenderer';
+import HTMLRenderer from "./HTMLRenderer";
 
 // Images in HTML content are automatically optimized
-<HTMLRenderer html={blogPostContent} className="blog-content" />
+<HTMLRenderer html={blogPostContent} className="blog-content" />;
 ```
 
 ### Manual Usage
 
 ```tsx
-import { OptimizedImage } from './OptimizedImage';
+import { OptimizedImage } from "./OptimizedImage";
 
 // Explicit priority control
 <OptimizedImage
@@ -87,12 +91,13 @@ import { OptimizedImage } from './OptimizedImage';
   height={600}
   priority={true} // Force priority
   className="above-fold" // Alternative priority trigger
-/>
+/>;
 ```
 
 ## Priority Detection Logic
 
 Images receive priority loading when:
+
 1. `priority={true}` is explicitly set
 2. CSS class contains `cover-photo`
 3. CSS class contains `above-fold`
@@ -100,11 +105,13 @@ Images receive priority loading when:
 ## Configuration
 
 ### Default Settings
+
 - **Quality**: 75 (configurable)
 - **Sizes**: `(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw`
 - **Priority**: Auto-detected based on class names
 
 ### Customization
+
 ```tsx
 <OptimizedImage
   src="/image.jpg"
@@ -126,6 +133,7 @@ Images receive priority loading when:
 ## Migration Guide
 
 ### Existing Components
+
 Replace direct Next.js Image imports:
 
 ```tsx
@@ -139,21 +147,25 @@ import { OptimizedImage } from './OptimizedImage';
 ```
 
 ### HTML Content
+
 No changes required - HTMLRenderer automatically handles optimization for content with images.
 
 ## Troubleshooting
 
 ### LCP Warnings Persist
+
 1. Verify images have appropriate class names (`cover-photo`, `above-fold`)
 2. Check that images are actually above the fold
 3. Ensure OptimizedImage component is being used
 
 ### Image Loading Issues
+
 1. Check image URLs are valid
 2. Verify Next.js configuration for image domains
 3. Check browser console for errors
 
 ### Performance Issues
+
 1. Adjust quality settings if needed
 2. Review sizes attribute for appropriate responsive breakpoints
 3. Consider lazy loading for below-the-fold images
