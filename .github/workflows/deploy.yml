@@ -33,8 +33,7 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
-          cd apps/backend
-          docker build -t $ECR_BACKEND:$GITHUB_SHA .
+          docker build -f apps/backend/Dockerfile -t $ECR_BACKEND:$GITHUB_SHA .
           docker tag $ECR_BACKEND:$GITHUB_SHA $ECR_BACKEND:latest
           docker push $ECR_BACKEND:$GITHUB_SHA
           docker push $ECR_BACKEND:latest
@@ -43,8 +42,7 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
-          cd apps/frontend
-          docker build \
+          docker build -f apps/frontend/Dockerfile \
             --build-arg NEXT_PUBLIC_BACKEND_BASE_URL=https://${{ secrets.DOMAIN_NAME }} \
             --build-arg NEXT_PUBLIC_GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }} \
             --build-arg NEXT_PUBLIC_TINYMCE_API_KEY=${{ secrets.TINYMCE_API_KEY }} \
