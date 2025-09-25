@@ -7,13 +7,15 @@ RUN npm install -g pnpm
 # Dependencies stage
 FROM base AS deps
 WORKDIR /app
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/frontend/package.json ./apps/frontend/
 RUN pnpm install --frozen-lockfile
 
 # Build stage
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/apps/frontend/node_modules ./apps/frontend/node_modules
 COPY . .
 # Build-time environment variables
 ARG NEXT_PUBLIC_BACKEND_BASE_URL
@@ -35,7 +37,7 @@ RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 # Copy built application
 COPY --from=builder /app/apps/frontend/public ./public
 COPY --from=builder /app/apps/frontend/.next ./.next
-COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/apps/frontend/node_modules ./node_modules
 COPY --from=builder /app/apps/frontend/package.json ./
 
 # Set proper permissions
