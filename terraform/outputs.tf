@@ -55,11 +55,7 @@ output "github_actions_secret_access_key" {
   sensitive   = true
 }
 
-# SSH Key outputs
-output "ssh_key_name" {
-  description = "SSH key pair name"
-  value       = aws_key_pair.deployer.key_name
-}
+# Note: SSH key outputs removed - using SSM for deployment
 
 # Application URLs
 output "application_url" {
