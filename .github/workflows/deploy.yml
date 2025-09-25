@@ -1,0 +1,83 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [main, devOps]
+  workflow_dispatch:
+
+env:
+  AWS_REGION: us-east-1
+  ECR_FRONTEND: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/myblog/frontend
+  ECR_BACKEND: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/myblog/backend
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push backend image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          cd apps/backend
+          docker build -t $ECR_BACKEND:$GITHUB_SHA .
+          docker tag $ECR_BACKEND:$GITHUB_SHA $ECR_BACKEND:latest
+          docker push $ECR_BACKEND:$GITHUB_SHA
+          docker push $ECR_BACKEND:latest
+
+      - name: Build and push frontend image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          cd apps/frontend
+          docker build \
+            --build-arg NEXT_PUBLIC_BACKEND_BASE_URL=https://${{ secrets.DOMAIN_NAME }} \
+            --build-arg NEXT_PUBLIC_GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }} \
+            --build-arg NEXT_PUBLIC_TINYMCE_API_KEY=${{ secrets.TINYMCE_API_KEY }} \
+            -t $ECR_FRONTEND:$GITHUB_SHA .
+          docker tag $ECR_FRONTEND:$GITHUB_SHA $ECR_FRONTEND:latest
+          docker push $ECR_FRONTEND:$GITHUB_SHA
+          docker push $ECR_FRONTEND:latest
+
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          envs: ECR_FRONTEND,ECR_BACKEND,AWS_REGION,MONGODB_URI,JWT_SECRET,GOOGLE_CLIENT_ID,GOOGLE_CLIENT_SECRET,ADMIN_SETUP_TOKEN,AWS_ACCOUNT_ID
+          script: |
+            # Login to ECR
+            aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com
+
+            # Pull new images
+            docker pull $ECR_FRONTEND:latest
+            docker pull $ECR_BACKEND:latest
+
+            # Stop existing containers
+            docker-compose -f docker-compose.prod.yml down || true
+
+            # Start new containers
+            docker-compose -f docker-compose.prod.yml up -d
+
+            # Wait for health checks
+            sleep 30
+
+            # Verify deployment
+            docker ps
+            curl -f http://localhost:3000/api/health || exit 1
+            curl -f http://localhost:3003/health || exit 1

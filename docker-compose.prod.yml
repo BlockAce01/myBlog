@@ -1,137 +1,60 @@
-# Production Docker Compose with enhanced security
-# Uses Docker secrets for sensitive data instead of environment variables
-
+version: "3.8"
 services:
-  # Backend API Service - Production
-  backend:
-    build:
-      context: .
-      dockerfile: apps/backend/Dockerfile
-    container_name: myblog-backend-prod
+  frontend:
+    image: ${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/myblog/frontend:latest
+    container_name: myblog-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_TELEMETRY_DISABLED=1
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - myblog-network
+
+  backend:
+    image: ${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/myblog/backend:latest
+    container_name: myblog-backend
     ports:
       - "3003:3003"
     environment:
       - NODE_ENV=production
-      - PORT=3003
-    secrets:
-      - mongodb_uri
-      - jwt_secret
-      - admin_setup_token
-      - google_client_id
-      - google_client_secret
-    depends_on:
-      - redis
-    networks:
-      - myblog-network
+      - MONGODB_URI=${MONGODB_URI}
+      - JWT_SECRET=${JWT_SECRET}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - ADMIN_SETUP_TOKEN=${ADMIN_SETUP_TOKEN}
+    restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3003/health"]
       interval: 30s
       timeout: 10s
       retries: 3
-    # Security hardening
-    security_opt:
-      - no-new-privileges:true
-    read_only: true
-    tmpfs:
-      - /tmp
-    volumes:
-      - logs:/app/logs
-
-  # Frontend Next.js Service - Production
-  frontend:
-    build:
-      context: .
-      dockerfile: apps/frontend/Dockerfile
-    container_name: myblog-frontend-prod
-    restart: unless-stopped
-    ports:
-      - "3000:3000"
-    environment:
-      - NODE_ENV=production
-      - NEXT_PUBLIC_API_URL=http://localhost:3003
-      - NEXT_PUBLIC_BACKEND_BASE_URL=http://localhost:3003
-      - NEXTAUTH_URL=http://localhost:3000
-    secrets:
-      - nextauth_secret
-      - google_client_id
-      - google_client_secret
-      - tinymce_api_key
-    depends_on:
-      - backend
+      start_period: 40s
     networks:
       - myblog-network
-    # Security hardening
-    security_opt:
-      - no-new-privileges:true
-    read_only: true
-    tmpfs:
-      - /tmp
-      - /app/.next/cache
 
-  # Redis for caching - Production
-  redis:
-    image: redis:7.2-alpine
-    container_name: myblog-redis-prod
-    restart: unless-stopped
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    networks:
-      - myblog-network
-    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-}
-    # Security hardening
-    security_opt:
-      - no-new-privileges:true
-    read_only: true
-    tmpfs:
-      - /tmp
-
-  # Nginx Reverse Proxy - Production
   nginx:
     image: nginx:alpine
-    container_name: myblog-nginx-prod
-    restart: unless-stopped
+    container_name: myblog-nginx
     ports:
       - "80:80"
       - "443:443"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
       - ./ssl:/etc/nginx/ssl:ro
-      - logs:/var/log/nginx
     depends_on:
       - frontend
       - backend
+    restart: unless-stopped
     networks:
       - myblog-network
-    # Security hardening
-    security_opt:
-      - no-new-privileges:true
-
-# Docker Secrets (create these files in /run/secrets/ on host)
-secrets:
-  mongodb_uri:
-    file: /run/secrets/mongodb_uri.txt
-  jwt_secret:
-    file: /run/secrets/jwt_secret.txt
-  nextauth_secret:
-    file: /run/secrets/nextauth_secret.txt
-  admin_setup_token:
-    file: /run/secrets/admin_setup_token.txt
-  google_client_id:
-    file: /run/secrets/google_client_id.txt
-  google_client_secret:
-    file: /run/secrets/google_client_secret.txt
-  admin_email:
-    file: /run/secrets/admin_email.txt
-  tinymce_api_key:
-    file: /run/secrets/tinymce_api_key.txt
-
-volumes:
-  mongodb_data:
-  redis_data:
-  logs:
 
 networks:
   myblog-network:
