@@ -90,10 +90,16 @@ resource "aws_iam_role" "ec2_role" {
   }
 }
 
-# Attach basic EC2 permissions (optional)
+# Attach EC2 permissions (SSM + ECR)
 resource "aws_iam_role_policy_attachment" "ec2_ssm" {
   role       = aws_iam_role.ec2_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
+# Attach ECR permissions to EC2 role
+resource "aws_iam_role_policy_attachment" "ec2_ecr" {
+  role       = aws_iam_role.ec2_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 }
 
 # Instance profile for EC2

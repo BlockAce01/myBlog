@@ -1,3 +1,4 @@
+# SSM-based deployment with ECR access
 name: Deploy to Production
 
 on:
