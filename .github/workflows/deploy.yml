@@ -62,40 +62,11 @@ jobs:
 
           echo "Found EC2 instance: $INSTANCE_ID"
 
-          # Create deployment script
-          cat > deploy.sh << 'EOF'
-          #!/bin/bash
-          set -e
-
-          # Login to ECR
-          aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ***.dkr.ecr.us-east-1.amazonaws.com
-
-          # Pull new images
-          docker pull ***.dkr.ecr.us-east-1.amazonaws.com/myblog/frontend:latest
-          docker pull ***.dkr.ecr.us-east-1.amazonaws.com/myblog/backend:latest
-
-          # Stop existing containers
-          docker-compose -f docker-compose.prod.yml down || true
-
-          # Start new containers
-          docker-compose -f docker-compose.prod.yml up -d
-
-          # Wait for health checks
-          sleep 30
-
-          # Verify deployment
-          docker ps
-          curl -f http://localhost:3000/api/health || exit 1
-          curl -f http://localhost:3003/health || exit 1
-
-          echo "Deployment successful!"
-          EOF
-
-          # Send SSM command to EC2 instance
+          # Send SSM command to EC2 instance with embedded deployment commands
           COMMAND_ID=$(aws ssm send-command \
             --instance-ids "$INSTANCE_ID" \
             --document-name "AWS-RunShellScript" \
-            --parameters '{"commands":["chmod +x deploy.sh && ./deploy.sh"]}' \
+            --parameters '{"commands":["set -e","aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ***.dkr.ecr.us-east-1.amazonaws.com","docker pull ***.dkr.ecr.us-east-1.amazonaws.com/myblog/frontend:latest","docker pull ***.dkr.ecr.us-east-1.amazonaws.com/myblog/backend:latest","docker-compose -f docker-compose.prod.yml down || true","docker-compose -f docker-compose.prod.yml up -d","sleep 30","docker ps","curl -f http://localhost:3000/api/health || exit 1","curl -f http://localhost:3003/health || exit 1","echo Deployment successful!"]}' \
             --output text \
             --query 'Command.CommandId' \
             --region ap-southeast-1)
