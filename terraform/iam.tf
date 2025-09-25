@@ -14,10 +14,10 @@ resource "aws_iam_access_key" "github_actions" {
   user = aws_iam_user.github_actions.name
 }
 
-# IAM Policy for ECR access
+# IAM Policy for ECR and SSM access
 resource "aws_iam_policy" "github_actions_ecr" {
   name        = "myblog-github-actions-ecr-policy"
-  description = "Policy for GitHub Actions to access ECR repositories"
+  description = "Policy for GitHub Actions to access ECR repositories and SSM"
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -33,6 +33,22 @@ resource "aws_iam_policy" "github_actions_ecr" {
           "ecr:UploadLayerPart",
           "ecr:CompleteLayerUpload",
           "ecr:PutImage"
+        ]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "ssm:SendCommand",
+          "ssm:GetCommandInvocation",
+          "ssm:DescribeInstanceInformation"
+        ]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "ec2:DescribeInstances"
         ]
         Resource = "*"
       }

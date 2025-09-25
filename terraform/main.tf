@@ -34,11 +34,7 @@ data "aws_ami" "ubuntu" {
   owners = ["099720109477"] # Canonical
 }
 
-# SSH Key Pair for EC2 access
-resource "aws_key_pair" "deployer" {
-  key_name   = var.key_name
-  public_key = file("~/.ssh/myblog_deploy.pub")  # You'll need to create this key pair
-}
+# Note: SSH key pair removed - using SSM for deployment instead
 
 # Security Group for EC2
 resource "aws_security_group" "myblog" {
@@ -85,9 +81,9 @@ resource "aws_security_group" "myblog" {
 
 # EC2 Instance
 resource "aws_instance" "myblog" {
-  ami           = data.aws_ami.ubuntu.id  # Ubuntu 22.04 LTS
-  instance_type = var.instance_type
-  key_name      = aws_key_pair.deployer.key_name
+  ami                    = data.aws_ami.ubuntu.id  # Ubuntu 22.04 LTS
+  instance_type          = var.instance_type
+  iam_instance_profile   = aws_iam_instance_profile.ec2_profile.name
 
   vpc_security_group_ids = [aws_security_group.myblog.id]
 
@@ -96,6 +92,12 @@ resource "aws_instance" "myblog" {
     # Update system
     apt-get update
     apt-get upgrade -y
+
+    # Install AWS SSM Agent
+    wget https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/debian_amd64/amazon-ssm-agent.deb
+    dpkg -i amazon-ssm-agent.deb
+    systemctl enable amazon-ssm-agent
+    systemctl start amazon-ssm-agent
 
     # Install Docker
     apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
@@ -117,7 +119,7 @@ resource "aws_instance" "myblog" {
     ./aws/install
 
     # Clean up
-    rm -rf aws awscliv2.zip
+    rm -rf aws awscliv2.zip amazon-ssm-agent.deb
 
     # Create application directory
     mkdir -p /home/ubuntu/myblog
