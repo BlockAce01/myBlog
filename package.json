@@ -11,15 +11,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/BlockAce01/myBlog.git"
+    "url": "git+https://github.com/BlockAce01/MyBlog.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/BlockAce01/myBlog/issues"
+    "url": "https://github.com/BlockAce01/MyBlog/issues"
   },
-  "homepage": "https://github.com/BlockAce01/myBlog#readme",
+  "homepage": "https://github.com/BlockAce01/MyBlog#readme",
   "description": "",
   "workspaces": [
     "apps/*",

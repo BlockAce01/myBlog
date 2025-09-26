@@ -1,9 +1,8 @@
-# SSM-based deployment with ECR access
 name: Deploy to Production
 
 on:
   push:
-    branches: [main, devOps]
+    branches: [main, devOps] # Added devOps branch
   workflow_dispatch:
 
 env:
@@ -31,8 +30,6 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Build and push backend image
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
           docker build -f apps/backend/Dockerfile -t $ECR_BACKEND:$GITHUB_SHA .
           docker tag $ECR_BACKEND:$GITHUB_SHA $ECR_BACKEND:latest
@@ -40,8 +37,6 @@ jobs:
           docker push $ECR_BACKEND:latest
 
       - name: Build and push frontend image
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
           docker build -f apps/frontend/Dockerfile \
             --build-arg NEXT_PUBLIC_BACKEND_BASE_URL=https://${{ secrets.DOMAIN_NAME }} \
@@ -63,22 +58,127 @@ jobs:
 
           echo "Found EC2 instance: $INSTANCE_ID"
 
-          # Send SSM command to EC2 instance with embedded deployment commands
+          # Create deployment script
+          cat > deploy_script.sh << 'EOF'
+          #!/bin/bash
+          set -e
+          echo "Starting deployment..."
+
+          # Install prerequisites
+          which aws || (
+            echo "Installing AWS CLI..."
+            apt-get update -y
+            apt-get install -y unzip curl
+            curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            ./aws/install -i /usr/local/aws-cli -b /usr/local/bin
+            rm -rf aws awscliv2.zip
+          )
+
+          which docker-compose || (
+            echo "Installing Docker Compose..."
+            curl -L "https://github.com/docker/compose/releases/download/v2.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+            chmod +x /usr/local/bin/docker-compose
+          )
+
+          which git || apt-get install -y git
+
+          # Navigate to ubuntu home directory
+          cd /home/ubuntu
+
+          # Clean up and clone repository (FIXED: correct repo name)
+          echo "Cloning repository..."
+          rm -rf MyBlog
+          git clone https://github.com/BlockAce01/MyBlog.git MyBlog
+          cd MyBlog
+
+          # Login to ECR
+          echo "Logging into ECR..."
+          /usr/local/bin/aws ecr get-login-password --region us-east-1 | \
+            docker login --username AWS --password-stdin $ECR_REGISTRY
+
+          # Pull latest images
+          echo "Pulling latest images..."
+          docker pull $ECR_FRONTEND:latest
+          docker pull $ECR_BACKEND:latest
+
+          # Create .env file for production (FIXED: environment persistence)
+          echo "Creating production environment file..."
+          cat > .env << 'ENV_EOF'
+          AWS_ACCOUNT_ID=$AWS_ACCOUNT_ID
+          MONGODB_URI=$MONGODB_URI
+          JWT_SECRET=$JWT_SECRET
+          GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID
+          GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET
+          ADMIN_SETUP_TOKEN=$ADMIN_SETUP_TOKEN
+          NEXTAUTH_SECRET=$NEXTAUTH_SECRET
+          NEXT_PUBLIC_TINYMCE_API_KEY=$NEXT_PUBLIC_TINYMCE_API_KEY
+          ENV_EOF
+
+          # Stop existing containers
+          echo "Stopping existing containers..."
+          docker-compose -f docker-compose.prod.yml down || true
+
+          # Start new containers
+          echo "Starting new containers..."
+          docker-compose -f docker-compose.prod.yml up -d
+
+          # Wait for services to be ready
+          echo "Waiting for services to be ready..."
+          sleep 30
+
+          # Verify deployment
+          echo "Verifying deployment..."
+          docker ps
+
+          # Health checks
+          echo "Performing health checks..."
+          curl -f http://localhost:3000/api/health || {
+            echo "Frontend health check failed"
+            docker-compose -f docker-compose.prod.yml logs frontend
+            exit 1
+          }
+
+          curl -f http://localhost:3003/health || {
+            echo "Backend health check failed"
+            docker-compose -f docker-compose.prod.yml logs backend
+            exit 1
+          }
+
+          echo "✅ Deployment completed successfully!"
+          EOF
+
+          # Send SSM command with environment variables
           COMMAND_ID=$(aws ssm send-command \
             --instance-ids "$INSTANCE_ID" \
             --document-name "AWS-RunShellScript" \
-            --parameters '{"commands":["set -e","which aws || (apt-get update && apt-get install -y unzip && curl -s https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o awscliv2.zip && unzip awscliv2.zip && ./aws/install -i /usr/local/aws-cli -b /usr/local/bin && rm -rf aws awscliv2.zip)","which docker-compose || (curl -L \"https://github.com/docker/compose/releases/download/v2.24.0/docker-compose-$(uname -s)-$(uname -m)\" -o /usr/local/bin/docker-compose && chmod +x /usr/local/bin/docker-compose)","which git || apt-get install -y git","cd /home/ubuntu","rm -rf myblog","git clone https://github.com/BlockAce01/myBlog.git myblog","cd myblog","LOGIN_PASSWORD=$(/usr/local/bin/aws ecr get-login-password --region us-east-1)","echo $LOGIN_PASSWORD | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com","docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/myblog/frontend:latest","docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/myblog/backend:latest","export AWS_ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }}","export MONGODB_URI=${{ secrets.MONGODB_URI }}","export JWT_SECRET=${{ secrets.JWT_SECRET }}","export GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}","export GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}","export ADMIN_SETUP_TOKEN=${{ secrets.ADMIN_SETUP_TOKEN }}","docker-compose -f docker-compose.prod.yml down || true","docker-compose -f docker-compose.prod.yml up -d","sleep 30","docker ps","curl -f http://localhost:3000/api/health || exit 1","curl -f http://localhost:3003/health || exit 1","echo Deployment successful!"]}' \
+            --parameters "commands=[\"$(cat deploy_script.sh | sed 's/"/\\"/g')\"]" \
+            --environment-variables \
+              "Name=ECR_REGISTRY,Value=${{ steps.login-ecr.outputs.registry }}" \
+              "Name=ECR_FRONTEND,Value=$ECR_FRONTEND" \
+              "Name=ECR_BACKEND,Value=$ECR_BACKEND" \
+              "Name=AWS_ACCOUNT_ID,Value=${{ secrets.AWS_ACCOUNT_ID }}" \
+              "Name=MONGODB_URI,Value=${{ secrets.MONGODB_URI }}" \
+              "Name=JWT_SECRET,Value=${{ secrets.JWT_SECRET }}" \
+              "Name=GOOGLE_CLIENT_ID,Value=${{ secrets.GOOGLE_CLIENT_ID }}" \
+              "Name=GOOGLE_CLIENT_SECRET,Value=${{ secrets.GOOGLE_CLIENT_SECRET }}" \
+              "Name=ADMIN_SETUP_TOKEN,Value=${{ secrets.ADMIN_SETUP_TOKEN }}" \
+              "Name=NEXTAUTH_SECRET,Value=${{ secrets.NEXTAUTH_SECRET }}" \
+              "Name=NEXT_PUBLIC_TINYMCE_API_KEY,Value=${{ secrets.TINYMCE_API_KEY }}" \
             --output text \
             --query 'Command.CommandId' \
             --region ap-southeast-1)
 
           echo "SSM Command sent. Command ID: $COMMAND_ID"
 
-          # Wait for command to complete and check status
+          # Wait for command to complete (increased timeout)
+          echo "Waiting for deployment to complete (this may take several minutes)..."
           aws ssm wait command-executed \
             --command-id "$COMMAND_ID" \
             --instance-id "$INSTANCE_ID" \
-            --region ap-southeast-1
+            --region ap-southeast-1 \
+            --cli-read-timeout 600 \
+            --cli-connect-timeout 60
 
           # Get command result
           RESULT=$(aws ssm get-command-invocation \
@@ -88,10 +188,23 @@ jobs:
             --query 'Status' \
             --output text)
 
+          echo "Deployment status: $RESULT"
+
+          # Get command output for debugging
+          aws ssm get-command-invocation \
+            --command-id "$COMMAND_ID" \
+            --instance-id "$INSTANCE_ID" \
+            --region ap-southeast-1 \
+            --query 'StandardOutputContent' \
+            --output text
+
           if [ "$RESULT" = "Success" ]; then
             echo "✅ Deployment completed successfully!"
+            echo "🌐 Application should be accessible at: https://${{ secrets.DOMAIN_NAME }}"
+            echo "🔧 Direct access via IP: http://${{ secrets.EC2_HOST }}"
           else
             echo "❌ Deployment failed with status: $RESULT"
+            echo "Error details:"
             aws ssm get-command-invocation \
               --command-id "$COMMAND_ID" \
               --instance-id "$INSTANCE_ID" \
