@@ -158,9 +158,11 @@ jobs:
             else
               echo "❌ Backend failed"
               echo "Backend container logs:"
-              docker logs myblog-backend --tail 20
+              docker logs myblog-backend --tail 30
               echo "Checking if backend container is running..."
               docker ps | grep backend
+              echo "Checking backend environment..."
+              docker exec myblog-backend env | grep -E "(NODE_ENV|MONGODB_URI|JWT_SECRET)" || echo "Could not check environment"
               exit 1
             fi
 
