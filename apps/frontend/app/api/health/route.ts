@@ -3,8 +3,11 @@ import { NextResponse } from "next/server";
 export async function GET() {
   try {
     // Check if backend is healthy by calling its health endpoint
+    // In Docker network, use service name; otherwise use configured URL
     const backendUrl =
-      process.env.NEXT_PUBLIC_BACKEND_BASE_URL || "http://localhost:3003";
+      process.env.NODE_ENV === "production"
+        ? "http://myblog-backend:3003" // Docker service name
+        : process.env.NEXT_PUBLIC_BACKEND_BASE_URL || "http://localhost:3003";
 
     // Create AbortController for timeout
     const controller = new AbortController();
