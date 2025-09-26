@@ -1,8 +1,16 @@
+console.log("🚀 Backend starting up...");
+console.log("Node version:", process.version);
+console.log("Environment:", process.env.NODE_ENV || "development");
+
 require("dotenv").config();
+console.log("✅ Environment variables loaded");
+
 const { validateEnvironment } = require("./utils/env-validation");
+console.log("✅ Environment validation module loaded");
 
 // Validate environment variables at startup
 const env = validateEnvironment();
+console.log("✅ Environment variables validated");
 
 const express = require("express");
 const cron = require("node-cron");
