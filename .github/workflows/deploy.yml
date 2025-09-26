@@ -85,7 +85,7 @@ jobs:
 
             # Clone/update repository
             echo "Cloning repository..."
-            rm -rf MyBlog
+            sudo rm -rf MyBlog
             git clone https://github.com/BlockAce01/MyBlog.git MyBlog
             cd MyBlog
             pwd
