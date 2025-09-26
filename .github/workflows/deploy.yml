@@ -253,7 +253,7 @@ jobs:
           COMMAND_ID=\$(aws ssm send-command \
             --instance-ids "$INSTANCE_ID" \
             --document-name "AWS-RunShellScript" \
-            --parameters '{"commands": ["chmod +x /home/ubuntu/deploy.sh", "/home/ubuntu/deploy.sh"]}' \
+            --parameters 'commands=["chmod +x /home/ubuntu/deploy.sh", "/home/ubuntu/deploy.sh"]' \
             --output text \
             --query 'Command.CommandId' \
             --region ap-southeast-1)
