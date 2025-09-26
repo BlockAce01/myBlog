@@ -64,58 +64,6 @@ jobs:
           docker push $ECR_FRONTEND:$GITHUB_SHA
           docker push $ECR_FRONTEND:latest
 
-      - name: Create deployment script
-        run: |
-          cat > deploy.sh << 'EOF'
-          #!/bin/bash
-          set -e
-          echo "Starting deployment..."
-          cd /home/ubuntu
-          if ! command -v aws &> /dev/null; then
-            apt-get update -y && apt-get install -y unzip curl
-            curl -sL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o awscliv2.zip
-            unzip -q awscliv2.zip
-            ./aws/install --update
-            rm -rf aws awscliv2.zip
-          fi
-          if ! command -v docker-compose &> /dev/null; then
-            curl -L "https://github.com/docker/compose/releases/download/v2.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-            chmod +x /usr/local/bin/docker-compose
-          fi
-          if ! command -v git &> /dev/null; then
-            apt-get install -y git
-          fi
-          echo "Cloning repository..."
-          rm -rf MyBlog
-          git clone https://github.com/BlockAce01/MyBlog.git MyBlog
-          cd MyBlog
-          echo "Creating environment file..."
-          cat > .env << 'ENV_EOF'
-          AWS_ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }}
-          MONGODB_URI=${{ secrets.MONGODB_URI }}
-          JWT_SECRET=${{ secrets.JWT_SECRET }}
-          GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
-          GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
-          ADMIN_SETUP_TOKEN=${{ secrets.ADMIN_SETUP_TOKEN }}
-          NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
-          NEXT_PUBLIC_TINYMCE_API_KEY=${{ secrets.TINYMCE_API_KEY }}
-          ENV_EOF
-          echo "Environment file created successfully"
-          echo "Deploying containers..."
-          aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com
-          docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/myblog/frontend:latest
-          docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/myblog/backend:latest
-          docker-compose -f docker-compose.prod.yml down || true
-          docker-compose -f docker-compose.prod.yml up -d
-          echo "Waiting for services..."
-          sleep 30
-          docker ps
-          echo "Running health checks..."
-          curl -f http://localhost:3000/api/health && echo "✅ Frontend OK" || echo "❌ Frontend failed"
-          curl -f http://localhost:3003/health && echo "✅ Backend OK" || echo "❌ Backend failed"
-          echo "🎉 Deployment completed!"
-          EOF
-
       - name: Deploy to EC2 via SSM
         run: |
           echo "Verifying AWS CLI availability in deployment step..."
@@ -137,11 +85,83 @@ jobs:
 
           echo "Found EC2 instance: $INSTANCE_ID"
 
-          # Send SSM command with the deployment script
+          # Use simple inline SSM commands
+          ECR_REGISTRY="${{ steps.login-ecr.outputs.registry }}" # Note: This might be empty if login failed, but login usually doesn't fail silently
+          if [ -z "$ECR_REGISTRY" ]; then
+              # Fallback to constructing registry from secrets if step output is empty
+              ECR_REGISTRY="${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+          fi
+          ECR_FRONTEND="${{ env.ECR_FRONTEND }}" # Use the environment variable
+          ECR_BACKEND="${{ env.ECR_BACKEND }}"   # Use the environment variable
+
+          # Store ECR registry URL for the deployment script
+          aws ssm put-parameter \
+            --name "/myblog/deploy/ECR_REGISTRY" \
+            --value "$ECR_REGISTRY" \
+            --type "String" \
+            --overwrite \
+            --region us-east-1
+
+          aws ssm put-parameter \
+            --name "/myblog/deploy/MONGODB_URI" \
+            --value "${{ secrets.MONGODB_URI }}" \
+            --type "SecureString" \
+            --overwrite \
+            --region us-east-1
+
+          aws ssm put-parameter \
+            --name "/myblog/deploy/JWT_SECRET" \
+            --value "${{ secrets.JWT_SECRET }}" \
+            --type "SecureString" \
+            --overwrite \
+            --region us-east-1
+
+          aws ssm put-parameter \
+            --name "/myblog/deploy/GOOGLE_CLIENT_ID" \
+            --value "${{ secrets.GOOGLE_CLIENT_ID }}" \
+            --type "String" \
+            --overwrite \
+            --region us-east-1
+
+          aws ssm put-parameter \
+            --name "/myblog/deploy/GOOGLE_CLIENT_SECRET" \
+            --value "${{ secrets.GOOGLE_CLIENT_SECRET }}" \
+            --type "SecureString" \
+            --overwrite \
+            --region us-east-1
+
+          aws ssm put-parameter \
+            --name "/myblog/deploy/ADMIN_SETUP_TOKEN" \
+            --value "${{ secrets.ADMIN_SETUP_TOKEN }}" \
+            --type "SecureString" \
+            --overwrite \
+            --region us-east-1
+
+          aws ssm put-parameter \
+            --name "/myblog/deploy/NEXTAUTH_SECRET" \
+            --value "${{ secrets.NEXTAUTH_SECRET }}" \
+            --type "SecureString" \
+            --overwrite \
+            --region us-east-1
+
+          aws ssm put-parameter \
+            --name "/myblog/deploy/TINYMCE_API_KEY" \
+            --value "${{ secrets.TINYMCE_API_KEY }}" \
+            --type "String" \
+            --overwrite \
+            --region us-east-1
+
+          # Simple SSM commands that retrieve parameters from SSM Parameter Store
+          SSM_COMMANDS_JSON='["set -e", "echo Starting deployment...", "cd /home/ubuntu", "if ! command -v aws &> /dev/null; then apt-get update -y && apt-get install -y unzip curl && curl -sL \"https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip\" -o awscliv2.zip && unzip -q awscliv2.zip && ./aws/install --update && rm -rf aws awscliv2.zip; fi", "if ! command -v docker-compose &> /dev/null; then curl -L \"https://github.com/docker/compose/releases/download/v2.24.0/docker-compose-$(uname -s)-$(uname -m)\" -o /usr/local/bin/docker-compose && chmod +x /usr/local/bin/docker-compose; fi", "if ! command -v git &> /dev/null; then apt-get install -y git; fi", "echo Cloning repository...", "rm -rf MyBlog", "git clone https://github.com/BlockAce01/MyBlog.git MyBlog", "cd MyBlog", "echo Creating environment file...", "cat > .env << EOF", "AWS_ACCOUNT_ID='"${{ secrets.AWS_ACCOUNT_ID }}"'", "MONGODB_URI=$(aws ssm get-parameter --name /myblog/deploy/MONGODB_URI --with-decryption --query Parameter.Value --output text --region us-east-1 2>/dev/null || echo \"mongodb://localhost:27017/myblog\")", "JWT_SECRET=$(aws ssm get-parameter --name /myblog/deploy/JWT_SECRET --with-decryption --query Parameter.Value --output text --region us-east-1 2>/dev/null || echo \"fallback-jwt-secret\")", "GOOGLE_CLIENT_ID=$(aws ssm get-parameter --name /myblog/deploy/GOOGLE_CLIENT_ID --query Parameter.Value --output text --region us-east-1 2>/dev/null || echo \"fallback-google-client-id\")", "GOOGLE_CLIENT_SECRET=$(aws ssm get-parameter --name /myblog/deploy/GOOGLE_CLIENT_SECRET --with-decryption --query Parameter.Value --output text --region us-east-1 2>/dev/null || echo \"fallback-google-client-secret\")", "ADMIN_SETUP_TOKEN=$(aws ssm get-parameter --name /myblog/deploy/ADMIN_SETUP_TOKEN --with-decryption --query Parameter.Value --output text --region us-east-1 2>/dev/null || echo \"fallback-admin-token\")", "NEXTAUTH_SECRET=$(aws ssm get-parameter --name /myblog/deploy/NEXTAUTH_SECRET --with-decryption --query Parameter.Value --output text --region us-east-1 2>/dev/null || echo \"fallback-nextauth-secret\")", "NEXT_PUBLIC_TINYMCE_API_KEY=$(aws ssm get-parameter --name /myblog/deploy/TINYMCE_API_KEY --query Parameter.Value --output text --region us-east-1 2>/dev/null || echo \"fallback-tinymce-key\")", "EOF", "echo Environment file created successfully", "echo Deploying containers...", "aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com", "docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/myblog/frontend:latest", "docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/myblog/backend:latest", "docker-compose -f docker-compose.prod.yml down || true", "docker-compose -f docker-compose.prod.yml up -d", "echo Waiting for services...", "sleep 30", "docker ps", "echo Running health checks...", "curl -f http://localhost:3000/api/health && echo ✅ Frontend OK || echo ❌ Frontend failed", "curl -f http://localhost:3003/health && echo ✅ Backend OK || echo ❌ Backend failed", "echo 🎉 Deployment completed!"]'
+
+          # Construct the full --parameters JSON object
+          PARAMETERS_JSON="{\"commands\": $SSM_COMMANDS_JSON}"
+
+          # Send SSM command with the constructed JSON
           COMMAND_ID=$(aws ssm send-command \
             --instance-ids "$INSTANCE_ID" \
             --document-name "AWS-RunShellScript" \
-            --parameters '{"commands":["chmod +x /home/ubuntu/work/deploy.sh && /home/ubuntu/work/deploy.sh"]}' \
+            --parameters "$PARAMETERS_JSON" \
             --output text \
             --query 'Command.CommandId' \
             --region ap-southeast-1)
