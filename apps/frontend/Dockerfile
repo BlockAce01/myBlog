@@ -41,7 +41,7 @@ RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 # Copy built application
 COPY --from=builder /app/apps/frontend/public ./public
 COPY --from=builder /app/apps/frontend/.next ./.next
-COPY --from=builder /app/apps/frontend/node_modules ./node_modules
+COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/apps/frontend/package.json ./
 
 # Set proper permissions
