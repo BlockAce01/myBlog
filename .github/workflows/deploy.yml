@@ -30,12 +30,21 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
 
       # --- ADDED STEP ---
-      - name: Install AWS CLI
+      # This step ensures the AWS CLI is installed and available.
+      # It handles the case where it might already be present.
+      - name: Ensure AWS CLI is installed and in PATH
         run: |
-          curl -sL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-          unzip awscliv2.zip
-          sudo ./aws/install
-          aws --version # Verify installation
+          if ! command -v aws &> /dev/null; then
+            echo "AWS CLI not found, installing..."
+            curl -sL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            sudo ./aws/install
+          else
+            echo "AWS CLI is already installed."
+            # If already installed, ensure the path is correct for this step's shell
+            export PATH="/usr/local/aws-cli/v2/current/bin:$PATH"
+          fi
+          aws --version # Verify installation and availability in this step
       # --- END OF ADDED STEP ---
       - name: Build and push backend image
         run: |
@@ -55,8 +64,14 @@ jobs:
           docker push $ECR_FRONTEND:$GITHUB_SHA
           docker push $ECR_FRONTEND:latest
 
+      # The PATH environment variable defined at the job level should now be effective here
       - name: Deploy to EC2 via SSM
         run: |
+          echo "Verifying AWS CLI availability in deployment step..."
+          command -v aws || { echo "ERROR: aws command not found in deployment step!"; exit 1; }
+          aws --version
+          echo "AWS CLI verified. Proceeding with deployment."
+
           # Get instance ID from EC2 public IP
           INSTANCE_ID=$(aws ec2 describe-instances \
             --filters "Name=ip-address,Values=${{ secrets.EC2_HOST }}" "Name=instance-state-name,Values=running" \
@@ -64,12 +79,21 @@ jobs:
             --output text \
             --region ap-southeast-1)
 
+          if [ -z "$INSTANCE_ID" ] || [ "$INSTANCE_ID" = "None" ]; then
+              echo "Error: Could not find a running EC2 instance with IP ${{ secrets.EC2_HOST }}"
+              exit 1
+          fi
+
           echo "Found EC2 instance: $INSTANCE_ID"
 
           # Use simple inline SSM commands
-          ECR_REGISTRY="${{ steps.login-ecr.outputs.registry }}"
-          ECR_FRONTEND="$ECR_FRONTEND"
-          ECR_BACKEND="$ECR_BACKEND"
+          ECR_REGISTRY="${{ steps.login-ecr.outputs.registry }}" # Note: This might be empty if login failed, but login usually doesn't fail silently
+          if [ -z "$ECR_REGISTRY" ]; then
+              # Fallback to constructing registry from secrets if step output is empty
+              ECR_REGISTRY="${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+          fi
+          ECR_FRONTEND="${{ env.ECR_FRONTEND }}" # Use the environment variable
+          ECR_BACKEND="${{ env.ECR_BACKEND }}"   # Use the environment variable
 
           # Send SSM command with simple inline script
           COMMAND_ID=$(aws ssm send-command \
@@ -79,6 +103,11 @@ jobs:
             --output text \
             --query 'Command.CommandId' \
             --region ap-southeast-1)
+
+          if [ -z "$COMMAND_ID" ]; then
+              echo "Error: Failed to send SSM command."
+              exit 1
+          fi
 
           echo "SSM Command sent. Command ID: $COMMAND_ID"
 
