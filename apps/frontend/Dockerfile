@@ -29,6 +29,10 @@ RUN pnpm build
 
 # Production stage
 FROM node:20-alpine AS runner
+
+# Install pnpm globally
+RUN npm install -g pnpm
+
 WORKDIR /app
 
 # Create non-root user
