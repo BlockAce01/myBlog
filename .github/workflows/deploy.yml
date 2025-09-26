@@ -83,6 +83,14 @@ jobs:
             cd /home/ubuntu
             pwd
 
+            # Clean up disk space
+            echo "Cleaning up disk space..."
+            sudo apt-get autoremove -y
+            sudo apt-get autoclean -y
+            sudo rm -rf /var/lib/apt/lists/*
+            docker system prune -f
+            docker image prune -f
+
             # Clone/update repository
             echo "Cloning repository..."
             sudo rm -rf MyBlog
