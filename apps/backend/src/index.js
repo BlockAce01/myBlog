@@ -88,9 +88,12 @@ app.get("/health", (req, res) => {
 
 const startServer = async () => {
   try {
+    console.log("Attempting to connect to MongoDB...");
     await connectDB();
+    console.log("✅ MongoDB connected successfully");
+
     const server = app.listen(port, () => {
-      // Server started successfully
+      console.log(`🚀 Server running on port ${port}`);
     });
 
     // Scheduled publishing cron job - runs every minute
@@ -101,6 +104,7 @@ const startServer = async () => {
         const isConnected = mongoose.connection.readyState === 1;
 
         if (!isConnected) {
+          console.log("MongoDB not connected, skipping scheduled publishing");
           return;
         }
 
@@ -115,6 +119,9 @@ const startServer = async () => {
             $unset: { scheduledPublishDate: 1 },
           },
         );
+        if (result.modifiedCount > 0) {
+          console.log(`Published ${result.modifiedCount} scheduled posts`);
+        }
       } catch (error) {
         console.error("Error in scheduled publishing:", error);
         // Note: No need to manually reset connection status - Mongoose handles this
@@ -123,17 +130,33 @@ const startServer = async () => {
 
     // Graceful shutdown
     process.on("SIGINT", async () => {
+      console.log("Received SIGINT, shutting down gracefully...");
       await disconnectDB();
       server.close(() => {
-        // HTTP server closed
+        console.log("HTTP server closed");
+        process.exit(0);
       });
     });
   } catch (error) {
-    console.error(
-      "Failed to connect to MongoDB, server is not starting.",
-      error,
-    );
-    process.exit(1);
+    console.error("❌ Failed to connect to MongoDB:", error.message);
+    console.error("MongoDB URI:", process.env.MONGODB_URI ? "Set" : "Not set");
+    console.error("Starting server in degraded mode (without database)...");
+
+    // Start server even without DB connection for health checks
+    const server = app.listen(port, () => {
+      console.log(
+        `🚀 Server running on port ${port} (degraded mode - no database)`,
+      );
+    });
+
+    // Graceful shutdown
+    process.on("SIGINT", () => {
+      console.log("Shutting down server...");
+      server.close(() => {
+        console.log("HTTP server closed");
+        process.exit(0);
+      });
+    });
   }
 };
 
