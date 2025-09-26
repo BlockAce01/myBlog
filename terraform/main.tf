@@ -46,7 +46,7 @@ resource "aws_security_group" "myblog" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["${var.user_ip}/32"]
+    cidr_blocks = var.user_ip != "YOUR_PUBLIC_IP" ? ["${var.user_ip}/32"] : ["0.0.0.0/0"]
   }
 
   # HTTP access
