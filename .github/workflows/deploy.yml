@@ -138,11 +138,17 @@ jobs:
             echo "Starting new containers..."
             docker-compose -f docker-compose.prod.yml up -d
 
-            echo "Waiting for services..."
-            sleep 30
+            echo "Waiting for services to initialize..."
+            sleep 10
 
             echo "Checking container status..."
             docker ps
+
+            echo "Backend startup logs (first 50 lines):"
+            docker logs myblog-backend --tail 50 || echo "Could not get backend logs yet"
+
+            echo "Waiting for full startup..."
+            sleep 20
 
             echo "Running health checks..."
             if curl -f --connect-timeout 10 http://localhost:3000/api/health; then
