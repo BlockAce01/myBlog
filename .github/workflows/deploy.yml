@@ -94,12 +94,79 @@ jobs:
           ECR_FRONTEND="${{ env.ECR_FRONTEND }}" # Use the environment variable
           ECR_BACKEND="${{ env.ECR_BACKEND }}"   # Use the environment variable
 
-          # Define the SSM commands as a single, properly escaped JSON string
-          # Using printf %q to help escape variables for shell commands within the JSON
-          # However, printf %q might not be perfect for JSON, so we'll build it manually, carefully.
-          # The .env file creation is handled differently to avoid EOF issues.
-          SSM_COMMANDS_JSON=$(printf '["set -e", "export ECR_REGISTRY=%q", "export ECR_FRONTEND=%q", "export ECR_BACKEND=%q", "export AWS_ACCOUNT_ID=%q", "export MONGODB_URI=%q", "export JWT_SECRET=%q", "export GOOGLE_CLIENT_ID=%q", "export GOOGLE_CLIENT_SECRET=%q", "export ADMIN_SETUP_TOKEN=%q", "export NEXTAUTH_SECRET=%q", "export NEXT_PUBLIC_TINYMCE_API_KEY=%q", "echo Starting deployment...", "cd /home/ubuntu", "if ! command -v aws &> /dev/null; then apt-get update -y && apt-get install -y unzip curl && curl -s https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o awscliv2.zip && unzip awscliv2.zip && ./aws/install && rm -rf aws awscliv2.zip; fi", "if ! command -v docker-compose &> /dev/null; then curl -L https://github.com/docker/compose/releases/download/v2.24.0/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose && chmod +x /usr/local/bin/docker-compose; fi", "if ! command -v git &> /dev/null; then apt-get install -y git; fi", "echo Cloning repository...", "rm -rf MyBlog", "git clone https://github.com/BlockAce01/MyBlog.git MyBlog", "cd MyBlog", "echo Creating environment file...", "cat > .env << \"EOF\"", "AWS_ACCOUNT_ID=\$AWS_ACCOUNT_ID", "MONGODB_URI=\$MONGODB_URI", "JWT_SECRET=\$JWT_SECRET", "GOOGLE_CLIENT_ID=\$GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET=\$GOOGLE_CLIENT_SECRET", "ADMIN_SETUP_TOKEN=\$ADMIN_SETUP_TOKEN", "NEXTAUTH_SECRET=\$NEXTAUTH_SECRET", "NEXT_PUBLIC_TINYMCE_API_KEY=\$NEXT_PUBLIC_TINYMCE_API_KEY", "EOF", "echo Deploying containers...", "aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin \$ECR_REGISTRY", "docker pull \$ECR_FRONTEND:latest", "docker pull \$ECR_BACKEND:latest", "docker-compose -f docker-compose.prod.yml down || true", "docker-compose -f docker-compose.prod.yml up -d", "echo Waiting for services...", "sleep 30", "docker ps", "echo Running health checks...", "curl -f http://localhost:3000/api/health && echo ✅ Frontend OK || echo ❌ Frontend failed", "curl -f http://localhost:3003/health && echo ✅ Backend OK || echo ❌ Backend failed", "echo 🎉 Deployment completed!"]' \
-              "$ECR_REGISTRY" "$ECR_FRONTEND" "$ECR_BACKEND" "${{ secrets.AWS_ACCOUNT_ID }}" "${{ secrets.MONGODB_URI }}" "${{ secrets.JWT_SECRET }}" "${{ secrets.GOOGLE_CLIENT_ID }}" "${{ secrets.GOOGLE_CLIENT_SECRET }}" "${{ secrets.ADMIN_SETUP_TOKEN }}" "${{ secrets.NEXTAUTH_SECRET }}" "${{ secrets.TINYMCE_API_KEY }}")
+          # Use SSM parameters instead of inline JSON to avoid escaping issues
+          aws ssm put-parameter \
+            --name "/myblog/deploy/ECR_REGISTRY" \
+            --value "$ECR_REGISTRY" \
+            --type "String" \
+            --overwrite \
+            --region us-east-1
+
+          aws ssm put-parameter \
+            --name "/myblog/deploy/ECR_FRONTEND" \
+            --value "$ECR_FRONTEND" \
+            --type "String" \
+            --overwrite \
+            --region us-east-1
+
+          aws ssm put-parameter \
+            --name "/myblog/deploy/ECR_BACKEND" \
+            --value "$ECR_BACKEND" \
+            --type "String" \
+            --overwrite \
+            --region us-east-1
+
+          aws ssm put-parameter \
+            --name "/myblog/deploy/MONGODB_URI" \
+            --value "${{ secrets.MONGODB_URI }}" \
+            --type "SecureString" \
+            --overwrite \
+            --region us-east-1
+
+          aws ssm put-parameter \
+            --name "/myblog/deploy/JWT_SECRET" \
+            --value "${{ secrets.JWT_SECRET }}" \
+            --type "SecureString" \
+            --overwrite \
+            --region us-east-1
+
+          aws ssm put-parameter \
+            --name "/myblog/deploy/GOOGLE_CLIENT_ID" \
+            --value "${{ secrets.GOOGLE_CLIENT_ID }}" \
+            --type "String" \
+            --overwrite \
+            --region us-east-1
+
+          aws ssm put-parameter \
+            --name "/myblog/deploy/GOOGLE_CLIENT_SECRET" \
+            --value "${{ secrets.GOOGLE_CLIENT_SECRET }}" \
+            --type "SecureString" \
+            --overwrite \
+            --region us-east-1
+
+          aws ssm put-parameter \
+            --name "/myblog/deploy/ADMIN_SETUP_TOKEN" \
+            --value "${{ secrets.ADMIN_SETUP_TOKEN }}" \
+            --type "SecureString" \
+            --overwrite \
+            --region us-east-1
+
+          aws ssm put-parameter \
+            --name "/myblog/deploy/NEXTAUTH_SECRET" \
+            --value "${{ secrets.NEXTAUTH_SECRET }}" \
+            --type "SecureString" \
+            --overwrite \
+            --region us-east-1
+
+          aws ssm put-parameter \
+            --name "/myblog/deploy/TINYMCE_API_KEY" \
+            --value "${{ secrets.TINYMCE_API_KEY }}" \
+            --type "String" \
+            --overwrite \
+            --region us-east-1
+
+          # Simple SSM commands that retrieve parameters from SSM Parameter Store
+          SSM_COMMANDS_JSON='["set -e", "echo Starting deployment...", "cd /home/ubuntu", "if ! command -v aws &> /dev/null; then apt-get update -y && apt-get install -y unzip curl && curl -s https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o awscliv2.zip && unzip awscliv2.zip && ./aws/install && rm -rf aws awscliv2.zip; fi", "if ! command -v docker-compose &> /dev/null; then curl -L https://github.com/docker/compose/releases/download/v2.24.0/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose && chmod +x /usr/local/bin/docker-compose; fi", "if ! command -v git &> /dev/null; then apt-get install -y git; fi", "echo Cloning repository...", "rm -rf MyBlog", "git clone https://github.com/BlockAce01/MyBlog.git MyBlog", "cd MyBlog", "echo Creating environment file...", "cat > .env << EOF", "AWS_ACCOUNT_ID='"${{ secrets.AWS_ACCOUNT_ID }}"'", "MONGODB_URI=$(aws ssm get-parameter --name /myblog/deploy/MONGODB_URI --with-decryption --query Parameter.Value --output text --region us-east-1)", "JWT_SECRET=$(aws ssm get-parameter --name /myblog/deploy/JWT_SECRET --with-decryption --query Parameter.Value --output text --region us-east-1)", "GOOGLE_CLIENT_ID=$(aws ssm get-parameter --name /myblog/deploy/GOOGLE_CLIENT_ID --query Parameter.Value --output text --region us-east-1)", "GOOGLE_CLIENT_SECRET=$(aws ssm get-parameter --name /myblog/deploy/GOOGLE_CLIENT_SECRET --with-decryption --query Parameter.Value --output text --region us-east-1)", "ADMIN_SETUP_TOKEN=$(aws ssm get-parameter --name /myblog/deploy/ADMIN_SETUP_TOKEN --with-decryption --query Parameter.Value --output text --region us-east-1)", "NEXTAUTH_SECRET=$(aws ssm get-parameter --name /myblog/deploy/NEXTAUTH_SECRET --with-decryption --query Parameter.Value --output text --region us-east-1)", "NEXT_PUBLIC_TINYMCE_API_KEY=$(aws ssm get-parameter --name /myblog/deploy/TINYMCE_API_KEY --query Parameter.Value --output text --region us-east-1)", "ECR_FRONTEND=$(aws ssm get-parameter --name /myblog/deploy/ECR_FRONTEND --query Parameter.Value --output text --region us-east-1)", "ECR_BACKEND=$(aws ssm get-parameter --name /myblog/deploy/ECR_BACKEND --query Parameter.Value --output text --region us-east-1)", "ECR_REGISTRY=$(aws ssm get-parameter --name /myblog/deploy/ECR_REGISTRY --query Parameter.Value --output text --region us-east-1)", "EOF", "echo Deploying containers...", "aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin $ECR_REGISTRY", "docker pull $ECR_FRONTEND:latest", "docker pull $ECR_BACKEND:latest", "docker-compose -f docker-compose.prod.yml down || true", "docker-compose -f docker-compose.prod.yml up -d", "echo Waiting for services...", "sleep 30", "docker ps", "echo Running health checks...", "curl -f http://localhost:3000/api/health && echo ✅ Frontend OK || echo ❌ Frontend failed", "curl -f http://localhost:3003/health && echo ✅ Backend OK || echo ❌ Backend failed", "echo 🎉 Deployment completed!"]'
 
           # Construct the full --parameters JSON object
           PARAMETERS_JSON="{\"commands\": $SSM_COMMANDS_JSON}"

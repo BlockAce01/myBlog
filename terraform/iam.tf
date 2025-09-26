@@ -41,7 +41,9 @@ resource "aws_iam_policy" "github_actions_ecr" {
         Action = [
           "ssm:SendCommand",
           "ssm:GetCommandInvocation",
-          "ssm:DescribeInstanceInformation"
+          "ssm:DescribeInstanceInformation",
+          "ssm:PutParameter",
+          "ssm:GetParameter"
         ]
         Resource = "*"
       },
@@ -100,6 +102,12 @@ resource "aws_iam_role_policy_attachment" "ec2_ssm" {
 resource "aws_iam_role_policy_attachment" "ec2_ecr" {
   role       = aws_iam_role.ec2_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+}
+
+# Attach SSM Parameter Store permissions to EC2 role
+resource "aws_iam_role_policy_attachment" "ec2_ssm_parameters" {
+  role       = aws_iam_role.ec2_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMReadOnlyAccess"
 }
 
 # Instance profile for EC2
