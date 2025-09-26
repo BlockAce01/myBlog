@@ -64,183 +64,76 @@ jobs:
           docker push $ECR_FRONTEND:$GITHUB_SHA
           docker push $ECR_FRONTEND:latest
 
-      - name: Deploy to EC2 via SSM
-        run: |
-          echo "Verifying AWS CLI availability in deployment step..."
-          command -v aws || { echo "ERROR: aws command not found in deployment step!"; exit 1; }
-          aws --version
-          echo "AWS CLI verified. Proceeding with deployment."
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          timeout: 30s
+          script: |
+            set -e
 
-          # Get instance ID from EC2 public IP
-          INSTANCE_ID=$(aws ec2 describe-instances \
-            --filters "Name=ip-address,Values=${{ secrets.EC2_HOST }}" "Name=instance-state-name,Values=running" \
-            --query "Reservations[0].Instances[0].InstanceId" \
-            --output text \
-            --region ap-southeast-1)
+            echo "Starting deployment..."
 
-          if [ -z "$INSTANCE_ID" ] || [ "$INSTANCE_ID" = "None" ]; then
-              echo "Error: Could not find a running EC2 instance with IP ${{ secrets.EC2_HOST }}"
+            # Change to home directory
+            cd /home/ubuntu
+
+            # Clone/update repository
+            echo "Cloning repository..."
+            rm -rf MyBlog
+            git clone https://github.com/BlockAce01/MyBlog.git MyBlog
+            cd MyBlog
+
+            # Create environment file with secrets
+            echo "Setting up environment..."
+            cat > .env << EOF
+            AWS_ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }}
+            MONGODB_URI=${{ secrets.MONGODB_URI }}
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+            GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+            ADMIN_SETUP_TOKEN=${{ secrets.ADMIN_SETUP_TOKEN }}
+            NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
+            NEXT_PUBLIC_TINYMCE_API_KEY=${{ secrets.TINYMCE_API_KEY }}
+            EOF
+
+            echo "Environment file created"
+            cat .env
+
+            # Deploy containers
+            echo "Deploying containers..."
+            aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
+            aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            aws configure set region us-east-1
+
+            aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com
+
+            docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/myblog/frontend:latest
+            docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/myblog/backend:latest
+
+            docker-compose -f docker-compose.prod.yml down || echo "Compose down failed"
+            docker-compose -f docker-compose.prod.yml up -d
+
+            echo "Waiting for services..."
+            sleep 30
+
+            docker ps
+
+            echo "Running health checks..."
+            if curl -f http://localhost:3000/api/health; then
+              echo "✅ Frontend OK"
+            else
+              echo "❌ Frontend failed"
               exit 1
-          fi
+            fi
 
-          echo "Found EC2 instance: $INSTANCE_ID"
-
-          # Use simple inline SSM commands
-          ECR_REGISTRY="${{ steps.login-ecr.outputs.registry }}" # Note: This might be empty if login failed, but login usually doesn't fail silently
-          if [ -z "$ECR_REGISTRY" ]; then
-              # Fallback to constructing registry from secrets if step output is empty
-              ECR_REGISTRY="${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${AWS_REGION}.amazonaws.com"
-          fi
-          ECR_FRONTEND="${{ env.ECR_FRONTEND }}" # Use the environment variable
-          ECR_BACKEND="${{ env.ECR_BACKEND }}"   # Use the environment variable
-
-          # Store ECR registry URL for the deployment script
-          aws ssm put-parameter \
-            --name "/myblog/deploy/ECR_REGISTRY" \
-            --value "$ECR_REGISTRY" \
-            --type "String" \
-            --overwrite \
-            --region us-east-1
-
-          aws ssm put-parameter \
-            --name "/myblog/deploy/MONGODB_URI" \
-            --value "${{ secrets.MONGODB_URI }}" \
-            --type "SecureString" \
-            --overwrite \
-            --region us-east-1
-
-          aws ssm put-parameter \
-            --name "/myblog/deploy/JWT_SECRET" \
-            --value "${{ secrets.JWT_SECRET }}" \
-            --type "SecureString" \
-            --overwrite \
-            --region us-east-1
-
-          aws ssm put-parameter \
-            --name "/myblog/deploy/GOOGLE_CLIENT_ID" \
-            --value "${{ secrets.GOOGLE_CLIENT_ID }}" \
-            --type "String" \
-            --overwrite \
-            --region us-east-1
-
-          aws ssm put-parameter \
-            --name "/myblog/deploy/GOOGLE_CLIENT_SECRET" \
-            --value "${{ secrets.GOOGLE_CLIENT_SECRET }}" \
-            --type "SecureString" \
-            --overwrite \
-            --region us-east-1
-
-          aws ssm put-parameter \
-            --name "/myblog/deploy/ADMIN_SETUP_TOKEN" \
-            --value "${{ secrets.ADMIN_SETUP_TOKEN }}" \
-            --type "SecureString" \
-            --overwrite \
-            --region us-east-1
-
-          aws ssm put-parameter \
-            --name "/myblog/deploy/NEXTAUTH_SECRET" \
-            --value "${{ secrets.NEXTAUTH_SECRET }}" \
-            --type "SecureString" \
-            --overwrite \
-            --region us-east-1
-
-          aws ssm put-parameter \
-            --name "/myblog/deploy/TINYMCE_API_KEY" \
-            --value "${{ secrets.TINYMCE_API_KEY }}" \
-            --type "String" \
-            --overwrite \
-            --region us-east-1
-
-          # Execute deployment in a single SSM command with simpler steps
-          echo "Starting deployment..."
-          aws ssm send-command \
-            --instance-ids "$INSTANCE_ID" \
-            --document-name "AWS-RunShellScript" \
-            --parameters 'commands=[
-              "echo Starting deployment...",
-              "cd /home/ubuntu",
-              "echo Cloning repository...",
-              "rm -rf MyBlog",
-              "git clone https://github.com/BlockAce01/MyBlog.git MyBlog || (apt-get update -y && apt-get install -y git && git clone https://github.com/BlockAce01/MyBlog.git MyBlog)",
-              "cd MyBlog",
-              "echo Setting up environment...",
-              "AWS_ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }}",
-              "echo AWS_ACCOUNT_ID=$AWS_ACCOUNT_ID > .env",
-              "echo MONGODB_URI=\\\$(aws ssm get-parameter --name /myblog/deploy/MONGODB_URI --with-decryption --query Parameter.Value --output text --region us-east-1 2>/dev/null || echo mongodb://localhost:27017/myblog) >> .env",
-              "echo JWT_SECRET=\\\$(aws ssm get-parameter --name /myblog/deploy/JWT_SECRET --with-decryption --query Parameter.Value --output text --region us-east-1 2>/dev/null || echo fallback-jwt-secret) >> .env",
-              "echo GOOGLE_CLIENT_ID=\\\$(aws ssm get-parameter --name /myblog/deploy/GOOGLE_CLIENT_ID --query Parameter.Value --output text --region us-east-1 2>/dev/null || echo fallback-google-client-id) >> .env",
-              "echo GOOGLE_CLIENT_SECRET=\\\$(aws ssm get-parameter --name /myblog/deploy/GOOGLE_CLIENT_SECRET --with-decryption --query Parameter.Value --output text --region us-east-1 2>/dev/null || echo fallback-google-client-secret) >> .env",
-              "echo ADMIN_SETUP_TOKEN=\\\$(aws ssm get-parameter --name /myblog/deploy/ADMIN_SETUP_TOKEN --with-decryption --query Parameter.Value --output text --region us-east-1 2>/dev/null || echo fallback-admin-token) >> .env",
-              "echo NEXTAUTH_SECRET=\\\$(aws ssm get-parameter --name /myblog/deploy/NEXTAUTH_SECRET --with-decryption --query Parameter.Value --output text --region us-east-1 2>/dev/null || echo fallback-nextauth-secret) >> .env",
-              "echo NEXT_PUBLIC_TINYMCE_API_KEY=\\\$(aws ssm get-parameter --name /myblog/deploy/TINYMCE_API_KEY --query Parameter.Value --output text --region us-east-1 2>/dev/null || echo fallback-tinymce-key) >> .env",
-              "echo Environment file created",
-              "cat .env",
-              "echo Deploying containers...",
-              "aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com || echo ECR login failed",
-              "docker pull $AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/myblog/frontend:latest || echo Frontend pull failed",
-              "docker pull $AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/myblog/backend:latest || echo Backend pull failed",
-              "docker-compose -f docker-compose.prod.yml down || echo Compose down failed",
-              "docker-compose -f docker-compose.prod.yml up -d || echo Compose up failed",
-              "echo Waiting for services...",
-              "sleep 30",
-              "docker ps",
-              "echo Running health checks...",
-              "curl -f http://localhost:3000/api/health && echo ✅ Frontend OK || echo ❌ Frontend failed",
-              "curl -f http://localhost:3003/health && echo ✅ Backend OK || echo ❌ Backend failed",
-              "echo 🎉 Deployment completed!"
-            ]' \
-            --output text \
-            --query 'Command.CommandId' \
-            --region ap-southeast-1 > command_id.txt
-
-          COMMAND_ID=$(cat command_id.txt)
-
-          if [ -z "$COMMAND_ID" ]; then
-              echo "Error: Failed to send SSM command."
+            if curl -f http://localhost:3003/health; then
+              echo "✅ Backend OK"
+            else
+              echo "❌ Backend failed"
               exit 1
-          fi
+            fi
 
-          echo "SSM Command sent. Command ID: $COMMAND_ID"
-
-          # Wait for command to complete (increased timeout)
-          echo "Waiting for deployment to complete (this may take several minutes)..."
-          aws ssm wait command-executed \
-            --command-id "$COMMAND_ID" \
-            --instance-id "$INSTANCE_ID" \
-            --region ap-southeast-1 \
-            --cli-read-timeout 600 \
-            --cli-connect-timeout 60
-
-          # Get command result
-          RESULT=$(aws ssm get-command-invocation \
-            --command-id "$COMMAND_ID" \
-            --instance-id "$INSTANCE_ID" \
-            --region ap-southeast-1 \
-            --query 'Status' \
-            --output text)
-
-          echo "Deployment status: $RESULT"
-
-          # Get command output for debugging
-          aws ssm get-command-invocation \
-            --command-id "$COMMAND_ID" \
-            --instance-id "$INSTANCE_ID" \
-            --region ap-southeast-1 \
-            --query 'StandardOutputContent' \
-            --output text
-
-          if [ "$RESULT" = "Success" ]; then
-            echo "✅ Deployment completed successfully!"
-            echo "🌐 Application should be accessible at: https://${{ secrets.DOMAIN_NAME }}"
-            echo "🔧 Direct access via IP: http://${{ secrets.EC2_HOST }}"
-          else
-            echo "❌ Deployment failed with status: $RESULT"
-            echo "Error details:"
-            aws ssm get-command-invocation \
-              --command-id "$COMMAND_ID" \
-              --instance-id "$INSTANCE_ID" \
-              --region ap-southeast-1 \
-              --query 'StandardErrorContent' \
-              --output text
-            exit 1
-          fi
+            echo "🎉 Deployment completed!"
