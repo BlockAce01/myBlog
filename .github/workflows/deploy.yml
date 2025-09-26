@@ -115,6 +115,9 @@ jobs:
             echo "Environment file created"
             cat .env
 
+            # Export environment variables for docker-compose
+            export $(cat .env | xargs)
+
             # Deploy containers
             echo "Configuring AWS CLI..."
             aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
