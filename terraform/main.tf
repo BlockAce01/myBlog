@@ -17,7 +17,7 @@ provider "aws" {
   region = "us-east-1"
 }
 
-# Data source for Ubuntu 22.04 LTS AMI
+# Datas source for Ubuntu 22.04 LTS AMI
 data "aws_ami" "ubuntu" {
   most_recent = true
 
