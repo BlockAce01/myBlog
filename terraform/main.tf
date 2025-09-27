@@ -93,7 +93,7 @@ resource "aws_instance" "myblog" {
     apt-get update
     apt-get upgrade -y
 
-    # Install AWS SSM Agent
+    # Install AWS SSM Agent (Ubuntu/Debian version)
     wget https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/debian_amd64/amazon-ssm-agent.deb
     dpkg -i amazon-ssm-agent.deb
     systemctl enable amazon-ssm-agent
