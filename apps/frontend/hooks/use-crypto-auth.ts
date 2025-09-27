@@ -242,16 +242,13 @@ export const useCryptoAuth = () => {
       setIsLoading(true);
       setError(null);
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/challenge`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ email }),
+      const response = await fetch(`/api/admin/challenge`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      );
+        body: JSON.stringify({ email }),
+      });
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -282,20 +279,17 @@ export const useCryptoAuth = () => {
       setIsLoading(true);
       setError(null);
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/verify`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            challenge,
-            signature,
-            userId,
-          }),
+      const response = await fetch(`/api/admin/verify`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      );
+        body: JSON.stringify({
+          challenge,
+          signature,
+          userId,
+        }),
+      });
 
       if (!response.ok) {
         const errorData = await response.json();
