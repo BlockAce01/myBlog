@@ -99,6 +99,7 @@ jobs:
               \"ADMIN_SETUP_TOKEN=${{ secrets.ADMIN_SETUP_TOKEN }}\",
               \"NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}\",
               \"NEXT_PUBLIC_TINYMCE_API_KEY=${{ secrets.TINYMCE_API_KEY }}\",
+              \"PROD_URL=${{ secrets.PROD_URL }}\",
               \"EOF\",
               \"export \$(cat .env | xargs)\",
               \"aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}\",
