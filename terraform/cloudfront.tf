@@ -6,6 +6,9 @@ resource "aws_cloudfront_distribution" "myblog" {
   default_root_object = ""
   price_class         = "PriceClass_100" # Use only US, Canada, Europe
 
+  # Alternate domain names
+  aliases = ["blog.yugankavinda.me"]
+
   # Origin configuration (points to EC2 instance)
   origin {
     domain_name = aws_instance.myblog.public_dns
