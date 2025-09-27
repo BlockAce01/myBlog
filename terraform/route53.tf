@@ -8,14 +8,8 @@ resource "aws_route53_zone" "myblog" {
   }
 }
 
-# A record pointing to EC2 instance
-resource "aws_route53_record" "myblog_a" {
-  zone_id = aws_route53_zone.myblog.zone_id
-  name    = var.domain_name
-  type    = "A"
-  ttl     = "300"
-  records = [aws_eip.myblog.public_ip]
-}
+# Note: CNAME record removed - user will manually add in Namecheap DNS
+# pointing to: aws_cloudfront_distribution.myblog.domain_name
 
 # CNAME record for www subdomain (optional)
 resource "aws_route53_record" "myblog_www" {

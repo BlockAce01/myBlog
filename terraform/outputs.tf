@@ -57,13 +57,35 @@ output "github_actions_secret_access_key" {
 
 # Note: SSH key outputs removed - using SSM for deployment
 
+# CloudFront outputs
+output "cloudfront_domain" {
+  description = "CloudFront distribution domain name"
+  value       = aws_cloudfront_distribution.myblog.domain_name
+}
+
+output "cloudfront_distribution_id" {
+  description = "CloudFront distribution ID"
+  value       = aws_cloudfront_distribution.myblog.id
+}
+
 # Application URLs
 output "application_url" {
-  description = "Application URL (after DNS propagation)"
+  description = "Application URL via CloudFront (after Namecheap DNS update)"
   value       = "https://${var.domain_name}"
 }
 
 output "application_ip_url" {
   description = "Application URL via IP (immediate access)"
   value       = "http://${aws_eip.myblog.public_ip}"
+}
+
+output "cloudfront_url" {
+  description = "Direct CloudFront URL (for testing before DNS update)"
+  value       = "https://${aws_cloudfront_distribution.myblog.domain_name}"
+}
+
+# DNS Instructions
+output "namecheap_dns_instructions" {
+  description = "Add this CNAME record in Namecheap DNS"
+  value       = "CNAME: blog.yugankavinda.me → ${aws_cloudfront_distribution.myblog.domain_name}"
 }
