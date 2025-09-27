@@ -37,7 +37,7 @@ export function ReplyForm({
 
   const handleGoogleSignIn = () => {
     const currentUrl = window.location.href;
-    window.location.href = `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/auth/google?callbackUrl=${encodeURIComponent(currentUrl)}`;
+    window.location.href = `/api/auth/google?callbackUrl=${encodeURIComponent(currentUrl)}`;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -48,7 +48,7 @@ export function ReplyForm({
 
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/posts/${postId}/comments/${parentCommentId}/replies`,
+        `/api/posts/${postId}/comments/${parentCommentId}/replies`,
         {
           method: "POST",
           headers: {
