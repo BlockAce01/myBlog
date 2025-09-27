@@ -62,9 +62,9 @@ export function CommentCard({
     if (!showReplies && comment.replyCount && comment.replyCount > 0) {
       setLoadingReplies(true);
       try {
-        // Fetch replies when expanding - call backend API directly
+        // Fetch replies when expanding - call backend API through nginx
         const response = await fetch(
-          `http://localhost:3003/api/posts/${comment.postId}/comments/${comment.id}/replies`,
+          `/api/posts/${comment.postId}/comments/${comment.id}/replies`,
         );
         if (response.ok) {
           const replyData = await response.json();
