@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 env:
-  AWS_REGION: us-east-1
+  AWS_REGION: ap-southeast-1
   ECR_FRONTEND: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/myblog/frontend
   ECR_BACKEND: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/myblog/backend
 
@@ -114,4 +114,4 @@ jobs:
               \"if curl -f --connect-timeout 10 http://localhost:3003/health; then echo '✅ Backend OK'; else echo '❌ Backend failed'; exit 1; fi\",
               \"echo '🎉 Deployment completed successfully!'\"
             ]" \
-            --region us-east-1
+            --region ap-southeast-1
