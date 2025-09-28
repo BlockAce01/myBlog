@@ -172,7 +172,7 @@ export default function AboutPage() {
               </h3>
               <p className="text-foreground/90 font-serif leading-relaxed">
                 Currently pursuing BSc. Hons. Computing and Information Systems
-                at Sabaragamuwa University (2024-2027). Focused on software
+                at Sabaragamuwa University (2023-2027). Focused on software
                 engineering principles, system design, and emerging technologies
                 in computing.
               </p>

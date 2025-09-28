@@ -189,13 +189,13 @@ export default function PostPage() {
         {post.coverPhotoUrl &&
           post.coverPhotoUrl !==
             "https://via.placeholder.com/800x400?text=No+Image" && (
-            <div className="mb-6 sm:mb-8 rounded-lg overflow-hidden">
+            <div className="mb-6 sm:mb-8 rounded-lg overflow-hidden aspect-[2/1]">
               <OptimizedImage
                 src={post.coverPhotoUrl}
                 alt={post.title}
                 width={800}
                 height={400}
-                className="w-full h-auto object-inherit max-h-64 sm:max-h-80 lg:max-h-96 cover-photo"
+                className="w-full h-full object-cover cover-photo"
               />
             </div>
           )}
