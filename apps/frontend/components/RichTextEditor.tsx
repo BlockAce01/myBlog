@@ -134,6 +134,7 @@ export default function RichTextEditor({
             { text: "C", value: "c" },
             { text: "C#", value: "csharp" },
             { text: "C++", value: "cpp" },
+            { text: "Terraform", value: "hcl" },
           ],
           contextmenu: "link image table configurepermanentpen",
           skin: "oxide",
