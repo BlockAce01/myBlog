@@ -41,7 +41,12 @@ app.use(
     secret: process.env.JWT_SECRET || "your-secret-key",
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: false }, // Set to true in production with HTTPS
+    cookie: {
+      secure: process.env.NODE_ENV === "production", // HTTPS only in production
+      httpOnly: true, // Prevent XSS attacks
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      sameSite: "lax", // CSRF protection
+    },
   }),
 );
 app.use(passport.initialize());
