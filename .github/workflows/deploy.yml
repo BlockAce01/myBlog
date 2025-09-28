@@ -86,7 +86,7 @@ jobs:
               \"docker image prune -f\",
               \"echo 'Cloning repository...'\",
               \"sudo rm -rf MyBlog\",
-              \"git clone https://${{ secrets.GITHUB_TOKEN }}@github.com/BlockAce01/MyBlog.git MyBlog\",
+              \"git clone https://oauth2:${{ secrets.DEPLOY_TOKEN }}@github.com/BlockAce01/MyBlog.git MyBlog\",
               \"cd MyBlog\",
               \"echo 'Setting up environment...'\",
               \"cat > .env << EOF\",
