@@ -80,25 +80,42 @@ passport.use(
 
         // Create new user
         console.log("🔐 Creating new user for email:", email);
-        const newUser = new User({
+        console.log("🔐 Display name:", displayName);
+        console.log("🔐 Profile picture:", profilePicture);
+
+        // Create user with minimal required fields first
+        const userData = {
           googleId: profile.id,
-          name: displayName,
           email: email,
-          profilePicture: profilePicture,
           role: "user",
-        });
+        };
 
-        console.log("🔐 New user object:", {
-          googleId: newUser.googleId,
-          name: newUser.name,
-          email: newUser.email,
-          role: newUser.role,
-          hasProfilePicture: !!newUser.profilePicture,
-        });
+        // Add optional fields if they exist
+        if (displayName) userData.name = displayName;
+        if (profilePicture) userData.profilePicture = profilePicture;
 
-        const savedUser = await newUser.save();
-        console.log("🔐 New user created successfully with ID:", savedUser._id);
-        return done(null, savedUser);
+        console.log("🔐 User data to save:", userData);
+
+        const newUser = new User(userData);
+        console.log("🔐 New user object created:", !!newUser);
+
+        try {
+          const savedUser = await newUser.save();
+          console.log("🔐 New user saved successfully with ID:", savedUser._id);
+          console.log("🔐 Saved user data:", {
+            id: savedUser._id,
+            googleId: savedUser.googleId,
+            email: savedUser.email,
+            name: savedUser.name,
+            role: savedUser.role,
+          });
+          return done(null, savedUser);
+        } catch (saveError) {
+          console.error("❌ Failed to save new user:", saveError);
+          console.error("❌ Save error message:", saveError.message);
+          console.error("❌ Save error code:", saveError.code);
+          return done(saveError, null);
+        }
       } catch (error) {
         console.error("❌ Google OAuth strategy error:", error);
         console.error("❌ Error message:", error.message);
