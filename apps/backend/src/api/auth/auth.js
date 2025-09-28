@@ -25,7 +25,7 @@ passport.use(
           id: profile.id,
           displayName: profile.displayName,
           email: profile.emails?.[0]?.value,
-          hasPhotos: !!(profile.photos?.[0]?.value),
+          hasPhotos: !!profile.photos?.[0]?.value,
         });
 
         // Validate required profile data
@@ -35,7 +35,7 @@ passport.use(
         }
 
         const email = profile.emails[0].value;
-        const displayName = profile.displayName || email.split('@')[0];
+        const displayName = profile.displayName || email.split("@")[0];
         const profilePicture = profile.photos?.[0]?.value || null;
 
         console.log("🔐 Processed profile data:", {
