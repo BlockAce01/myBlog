@@ -44,7 +44,10 @@ passport.use(
         console.log("🔐 Email check result:", !!existingUser);
 
         if (existingUser) {
-          console.log("🔐 Linking Google account to existing user:", existingUser._id);
+          console.log(
+            "🔐 Linking Google account to existing user:",
+            existingUser._id,
+          );
           // Link Google account to existing user
           existingUser.googleId = profile.id;
           existingUser.name = profile.displayName;
