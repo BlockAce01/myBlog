@@ -16,15 +16,24 @@ passport.use(
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
+        console.log("🔐 Google OAuth strategy - Profile:", {
+          id: profile.id,
+          displayName: profile.displayName,
+          email: profile.emails?.[0]?.value,
+        });
+
         // Check if user already exists
         let user = await User.findOne({ googleId: profile.id });
+        console.log("🔐 Existing user check result:", !!user);
 
         if (user) {
+          console.log("🔐 Updating existing user:", user._id);
           // Update user info if needed
           user.name = profile.displayName;
           user.email = profile.emails[0].value;
           user.profilePicture = profile.photos[0].value;
           await user.save();
+          console.log("🔐 Existing user updated successfully");
           return done(null, user);
         }
 
@@ -32,18 +41,22 @@ passport.use(
         const existingUser = await User.findOne({
           email: profile.emails[0].value,
         });
+        console.log("🔐 Email check result:", !!existingUser);
 
         if (existingUser) {
+          console.log("🔐 Linking Google account to existing user:", existingUser._id);
           // Link Google account to existing user
           existingUser.googleId = profile.id;
           existingUser.name = profile.displayName;
           existingUser.profilePicture = profile.photos[0].value;
           existingUser.role = "admin"; // Keep admin role
           await existingUser.save();
+          console.log("🔐 Google account linked successfully");
           return done(null, existingUser);
         }
 
         // Create new user
+        console.log("🔐 Creating new user for email:", profile.emails[0].value);
         const newUser = new User({
           googleId: profile.id,
           name: profile.displayName,
@@ -52,9 +65,20 @@ passport.use(
           role: "user",
         });
 
-        await newUser.save();
-        return done(null, newUser);
+        console.log("🔐 New user object:", {
+          googleId: newUser.googleId,
+          name: newUser.name,
+          email: newUser.email,
+          role: newUser.role,
+        });
+
+        const savedUser = await newUser.save();
+        console.log("🔐 New user created successfully with ID:", savedUser._id);
+        return done(null, savedUser);
       } catch (error) {
+        console.error("❌ Google OAuth strategy error:", error);
+        console.error("❌ Error message:", error.message);
+        console.error("❌ Error stack:", error.stack);
         return done(error, null);
       }
     },
