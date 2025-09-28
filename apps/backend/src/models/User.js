@@ -9,8 +9,6 @@ const userSchema = new mongoose.Schema(
       required: function () {
         return this.role === "admin";
       },
-      unique: true,
-      sparse: true,
       trim: true,
       lowercase: true,
     },
