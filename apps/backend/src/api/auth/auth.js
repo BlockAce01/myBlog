@@ -20,6 +20,23 @@ passport.use(
           id: profile.id,
           displayName: profile.displayName,
           email: profile.emails?.[0]?.value,
+          hasPhotos: !!(profile.photos?.[0]?.value),
+        });
+
+        // Validate required profile data
+        if (!profile.emails || !profile.emails[0] || !profile.emails[0].value) {
+          console.error("❌ No email provided by Google");
+          return done(new Error("Email is required for authentication"), null);
+        }
+
+        const email = profile.emails[0].value;
+        const displayName = profile.displayName || email.split('@')[0];
+        const profilePicture = profile.photos?.[0]?.value || null;
+
+        console.log("🔐 Processed profile data:", {
+          email,
+          displayName,
+          hasProfilePicture: !!profilePicture,
         });
 
         // Check if user already exists
@@ -29,18 +46,16 @@ passport.use(
         if (user) {
           console.log("🔐 Updating existing user:", user._id);
           // Update user info if needed
-          user.name = profile.displayName;
-          user.email = profile.emails[0].value;
-          user.profilePicture = profile.photos[0].value;
+          user.name = displayName;
+          user.email = email;
+          if (profilePicture) user.profilePicture = profilePicture;
           await user.save();
           console.log("🔐 Existing user updated successfully");
           return done(null, user);
         }
 
         // Check if user exists with same email (admin user)
-        const existingUser = await User.findOne({
-          email: profile.emails[0].value,
-        });
+        const existingUser = await User.findOne({ email });
         console.log("🔐 Email check result:", !!existingUser);
 
         if (existingUser) {
@@ -50,8 +65,8 @@ passport.use(
           );
           // Link Google account to existing user
           existingUser.googleId = profile.id;
-          existingUser.name = profile.displayName;
-          existingUser.profilePicture = profile.photos[0].value;
+          existingUser.name = displayName;
+          if (profilePicture) existingUser.profilePicture = profilePicture;
           existingUser.role = "admin"; // Keep admin role
           await existingUser.save();
           console.log("🔐 Google account linked successfully");
@@ -59,12 +74,12 @@ passport.use(
         }
 
         // Create new user
-        console.log("🔐 Creating new user for email:", profile.emails[0].value);
+        console.log("🔐 Creating new user for email:", email);
         const newUser = new User({
           googleId: profile.id,
-          name: profile.displayName,
-          email: profile.emails[0].value,
-          profilePicture: profile.photos[0].value,
+          name: displayName,
+          email: email,
+          profilePicture: profilePicture,
           role: "user",
         });
 
@@ -73,6 +88,7 @@ passport.use(
           name: newUser.name,
           email: newUser.email,
           role: newUser.role,
+          hasProfilePicture: !!newUser.profilePicture,
         });
 
         const savedUser = await newUser.save();
