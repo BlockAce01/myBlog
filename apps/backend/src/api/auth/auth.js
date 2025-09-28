@@ -7,12 +7,17 @@ const User = require("../../models/User");
 require("dotenv").config();
 
 // Configure Passport Google Strategy
+const callbackURL = `${process.env.NODE_ENV === "production" ? process.env.PROD_URL : "http://localhost:3003"}/api/auth/google/callback`;
+console.log("🔐 Google OAuth callback URL:", callbackURL);
+console.log("🔐 Environment:", process.env.NODE_ENV);
+console.log("🔐 PROD_URL:", process.env.PROD_URL);
+
 passport.use(
   new GoogleStrategy(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: `${process.env.NODE_ENV === "production" ? process.env.PROD_URL : "http://localhost:3003"}/api/auth/google/callback`,
+      callbackURL: callbackURL,
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
