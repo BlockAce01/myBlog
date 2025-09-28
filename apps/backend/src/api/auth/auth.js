@@ -188,28 +188,54 @@ router.get(
   passport.authenticate("google", { failureRedirect: "/login" }),
   async (req, res) => {
     try {
+      console.log("🔐 Google OAuth callback - User object:", req.user);
+      console.log("🔐 Request query:", req.query);
+
+      // Check if user exists
+      if (!req.user) {
+        console.error("❌ No user object in request");
+        return res.redirect("/login?error=no_user");
+      }
+
+      if (!req.user._id) {
+        console.error("❌ User object missing _id:", req.user);
+        return res.redirect("/login?error=invalid_user");
+      }
+
       // Generate JWT token for the authenticated user
       const payload = {
         userId: req.user._id,
-        role: req.user.role,
+        role: req.user.role || "user",
       };
+
+      console.log("🔐 Creating JWT payload:", payload);
 
       const token = jwt.sign(payload, process.env.JWT_SECRET, {
         expiresIn: "7d",
       });
+
+      console.log("🔐 JWT token created successfully");
 
       // Redirect to frontend with token
       const frontendUrl =
         process.env.NODE_ENV === "production"
           ? process.env.PROD_URL
           : "http://localhost:3000";
+
+      console.log("🔐 Frontend URL:", frontendUrl);
+
       const redirectPath = req.query.state || "/"; // Retrieve callbackUrl from OAuth state
 
-      res.redirect(
-        `${frontendUrl}/auth/callback?token=${token}&callbackUrl=${encodeURIComponent(redirectPath)}`,
-      );
+      console.log("🔐 Redirect path:", redirectPath);
+
+      const redirectUrl = `${frontendUrl}/auth/callback?token=${token}&callbackUrl=${encodeURIComponent(redirectPath)}`;
+      console.log("🔐 Final redirect URL:", redirectUrl);
+
+      res.redirect(redirectUrl);
     } catch (error) {
-      console.error("Google OAuth callback error:", error);
+      console.error("❌ Google OAuth callback error:", error);
+      console.error("❌ Error details:", error.message);
+      console.error("❌ Stack trace:", error.stack);
       res.redirect("/login?error=oauth_callback_failed");
     }
   },
