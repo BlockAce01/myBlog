@@ -384,19 +384,7 @@ router.post("/posts/:postId/comments", async (req, res) => {
     // If still not found, create a new user
     if (!user) {
       try {
-        // Generate a unique username for Google users
-        const baseUsername = decoded.email.split("@")[0].toLowerCase();
-        let uniqueUsername = baseUsername;
-        let counter = 1;
-
-        // Check if username already exists
-        while (await User.findOne({ username: uniqueUsername })) {
-          uniqueUsername = `${baseUsername}${counter}`;
-          counter++;
-        }
-
         const newUser = new User({
-          username: uniqueUsername, // Set unique username for Google users
           googleId: decoded.userId,
           name: decoded.name,
           email: decoded.email,
@@ -405,7 +393,11 @@ router.post("/posts/:postId/comments", async (req, res) => {
         user = await newUser.save();
         finalUserId = user._id;
       } catch (createError) {
-        return res.status(500).json({ message: "Error creating user" });
+        console.error("Error creating user:", createError);
+        return res.status(500).json({
+          message: "Error creating user account",
+          error: createError.message
+        });
       }
     }
 
@@ -530,17 +522,7 @@ router.post("/posts/:postId/comments/:commentId/replies", async (req, res) => {
 
     if (!user) {
       // Create new user if needed
-      const baseUsername = decoded.email.split("@")[0].toLowerCase();
-      let uniqueUsername = baseUsername;
-      let counter = 1;
-
-      while (await User.findOne({ username: uniqueUsername })) {
-        uniqueUsername = `${baseUsername}${counter}`;
-        counter++;
-      }
-
       const newUser = new User({
-        username: uniqueUsername,
         googleId: decoded.userId,
         name: decoded.name,
         email: decoded.email,
