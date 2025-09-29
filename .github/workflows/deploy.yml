@@ -59,6 +59,12 @@ jobs:
             --build-arg NEXT_PUBLIC_BACKEND_BASE_URL=https://${{ secrets.DOMAIN_NAME }} \
             --build-arg NEXT_PUBLIC_GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }} \
             --build-arg NEXT_PUBLIC_TINYMCE_API_KEY=${{ secrets.TINYMCE_API_KEY }} \
+            --build-arg NEXT_PUBLIC_PROFILE_IMAGE_URL=${{ vars.PROFILE_IMAGE_URL }} \
+            --build-arg NEXT_PUBLIC_CONTACT_WHATSAPP=${{ vars.CONTACT_WHATSAPP }} \
+            --build-arg NEXT_PUBLIC_CONTACT_GITHUB=${{ vars.CONTACT_GITHUB }} \
+            --build-arg NEXT_PUBLIC_CONTACT_LINKEDIN=${{ vars.CONTACT_LINKEDIN }} \
+            --build-arg NEXT_PUBLIC_CONTACT_FIVERR=${{ vars.CONTACT_FIVERR }} \
+            --build-arg NEXT_PUBLIC_CONTACT_EMAIL=${{ vars.CONTACT_EMAIL }} \
             -t $ECR_FRONTEND:$GITHUB_SHA .
           docker tag $ECR_FRONTEND:$GITHUB_SHA $ECR_FRONTEND:latest
           docker push $ECR_FRONTEND:$GITHUB_SHA

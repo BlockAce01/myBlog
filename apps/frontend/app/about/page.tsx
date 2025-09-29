@@ -11,7 +11,7 @@ export default function AboutPage() {
         <section className="text-center">
           <Avatar className="w-32 h-32 mx-auto mb-6">
             <AvatarImage
-              src="/avatars/me.jpg"
+              src={process.env.NEXT_PUBLIC_PROFILE_IMAGE_URL}
               alt="Yugan"
               className="object-cover"
             />
@@ -216,7 +216,7 @@ export default function AboutPage() {
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <a
-              href="https://wa.me/94768487278"
+              href={process.env.NEXT_PUBLIC_CONTACT_WHATSAPP}
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -230,7 +230,7 @@ export default function AboutPage() {
               </Button>
             </a>
             <a
-              href="https://github.com/BlockAce01"
+              href={process.env.NEXT_PUBLIC_CONTACT_GITHUB}
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -244,7 +244,7 @@ export default function AboutPage() {
               </Button>
             </a>
             <a
-              href="https://www.linkedin.com/in/theekshana-yugan"
+              href={process.env.NEXT_PUBLIC_CONTACT_LINKEDIN}
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -258,7 +258,7 @@ export default function AboutPage() {
               </Button>
             </a>
             <a
-              href="https://www.fiverr.com/yugan_3d"
+              href={process.env.NEXT_PUBLIC_CONTACT_FIVERR}
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -272,7 +272,7 @@ export default function AboutPage() {
               </Button>
             </a>
             <a
-              href="mailto:yugankavinda@gmail.com"
+              href={`mailto:${process.env.NEXT_PUBLIC_CONTACT_EMAIL}`}
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -282,7 +282,7 @@ export default function AboutPage() {
                 className="flex items-center space-x-2 bg-transparent"
               >
                 <Mail className="w-5 h-5" />
-                <span>yugankavinda@gmail.com</span>
+                <span>{process.env.NEXT_PUBLIC_CONTACT_EMAIL}</span>
               </Button>
             </a>
           </div>
