@@ -35,24 +35,36 @@ const cors = require("cors");
 const path = require("path");
 const session = require("express-session"); // Moved this line up
 
-// Initialize Passport
+// Environment-aware session configuration
+const isProduction = process.env.NODE_ENV === "production";
 app.use(
   session({
     secret: process.env.JWT_SECRET || "your-secret-key",
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: false, // Temporarily disable for debugging - will enable HTTPS later
+      secure: isProduction, // HTTPS required in production, disabled in development
       httpOnly: true,
       maxAge: 24 * 60 * 60 * 1000,
-      sameSite: "lax",
+      sameSite: isProduction ? "strict" : "lax", // Strict in production for security
     },
   }),
 );
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.use(cors());
+// Environment-aware CORS configuration
+const corsOptions = isProduction
+  ? {
+      origin: process.env.PROD_URL ? [process.env.PROD_URL] : false, // Restrict to production domain
+      credentials: true,
+    }
+  : {
+      origin: ["http://localhost:3000", "http://localhost:3003"], // Allow local development
+      credentials: true,
+    };
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Add Helmet middleware with CSP

@@ -10,11 +10,17 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  // Environment-aware hostname binding
+  // Development: localhost (avoids Windows permission issues)
+  // Production: 0.0.0.0 (needed for Docker/server)
+  host: process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost',
   async rewrites() {
     return [
       {
         source: '/api/:path*',
-        destination: 'http://localhost:3003/api/:path*',
+        destination: process.env.NODE_ENV === 'production'
+          ? 'http://backend:3003/api/:path*'
+          : 'http://localhost:3003/api/:path*',
       },
     ]
   },

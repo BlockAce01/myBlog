@@ -1,8 +1,8 @@
 # Multi-stage build for optimized production image
 FROM node:20-alpine AS base
 
-# Install pnpm globally
-RUN npm install -g pnpm
+# Install timezone data and pnpm globally
+RUN apk add --no-cache tzdata && npm install -g pnpm
 
 # Set working directory
 WORKDIR /usr/src/app

@@ -1,0 +1,33 @@
+# Development Dockerfile for Next.js
+FROM node:20-alpine
+
+# Install pnpm
+RUN npm install -g pnpm
+
+# Set working directory
+WORKDIR /app
+
+# Copy workspace files
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/frontend/package.json ./apps/frontend/
+
+# Install dependencies
+RUN pnpm install
+
+# Copy source code
+COPY apps/frontend ./apps/frontend
+
+# Copy root tsconfig.json for the extends to work
+COPY tsconfig.json ./tsconfig.json
+
+# Set working directory to frontend app
+WORKDIR /app/apps/frontend
+
+# Expose port
+EXPOSE 3000
+
+# Set environment
+ENV NODE_ENV=development
+
+# Default command (can be overridden)
+CMD ["pnpm", "dev", "--hostname", "0.0.0.0"]

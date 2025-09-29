@@ -220,8 +220,8 @@ export const AdminKeyManagement: React.FC<KeyManagementProps> = ({
             Cryptographic Key Management
           </CardTitle>
           <CardDescription>
-            Manage your cryptographic keys for secure admin authentication.
-            Private keys are stored locally and never transmitted to the server.
+            Manage cryptographic keys for secure admin authentication. Private
+            keys are stored only in locally.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -257,9 +257,6 @@ export const AdminKeyManagement: React.FC<KeyManagementProps> = ({
                 placeholder="Enter your admin email address"
                 disabled={isLoading}
               />
-              <p className="text-sm text-muted-foreground">
-                Enter the email address associated with your admin account.
-              </p>
             </div>
           )}
 
@@ -268,7 +265,7 @@ export const AdminKeyManagement: React.FC<KeyManagementProps> = ({
             <div className="space-y-2">
               <p className="text-sm text-muted-foreground">
                 Generate a new ECDSA P-256 key pair for secure authentication.
-                Your private key will be stored securely in your browser.
+                Private key will be stored securely in browser.
               </p>
               <Button
                 onClick={handleGenerateKeys}
@@ -295,8 +292,8 @@ export const AdminKeyManagement: React.FC<KeyManagementProps> = ({
                     Backup Private Key
                   </h4>
                   <p className="text-sm text-muted-foreground">
-                    Export your private key for secure backup. Store it in a
-                    safe place.
+                    Export private key for secure backup. Store it in a safe
+                    place.
                   </p>
                   <Button
                     variant="outline"
@@ -347,7 +344,7 @@ export const AdminKeyManagement: React.FC<KeyManagementProps> = ({
                   <p className="font-medium">Private Key Export</p>
                   <p className="text-sm">
                     Store this key securely. It provides access to your admin
-                    account. Never share it with anyone.
+                    account.
                   </p>
                   <div className="bg-muted p-3 rounded-md">
                     <pre className="text-xs font-mono whitespace-pre-wrap break-all">
@@ -385,28 +382,6 @@ export const AdminKeyManagement: React.FC<KeyManagementProps> = ({
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
-        </CardContent>
-      </Card>
-
-      {/* Security Notice */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Shield className="h-5 w-5" />
-            Security Information
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2 text-sm text-muted-foreground">
-            <p>
-              • Private keys are stored locally in IndexedDB and never leave
-              your device
-            </p>
-            <p>• All cryptographic operations happen client-side</p>
-            <p>• The server only stores and verifies your public key</p>
-            <p>• Regular key rotation is recommended for enhanced security</p>
-            <p>• Always backup your private key in a secure location</p>
-          </div>
         </CardContent>
       </Card>
     </div>

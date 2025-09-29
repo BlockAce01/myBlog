@@ -96,6 +96,8 @@ jobs:
               \"cd MyBlog\",
               \"echo 'Setting up environment...'\",
               \"cat > .env << EOF\",
+              \"TZ=Asia/Colombo\",
+              \"NODE_ENV=production\",
               \"AWS_ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }}\",
               \"MONGODB_URI=${{ secrets.MONGODB_URI }}\",
               \"JWT_SECRET=${{ secrets.JWT_SECRET }}\",
