@@ -174,7 +174,7 @@ export default function AdminDashboardPage() {
               <h1 className="text-2xl font-bold text-gray-900">
                 Admin Dashboard
               </h1>
-              <p className="text-sm text-gray-600">Manage your blog posts</p>
+              <p className="text-sm text-gray-600">Manage all blog posts</p>
             </div>
             <div className="flex items-center space-x-4">
               <Link href="/admin/dashboard/new">
@@ -202,11 +202,8 @@ export default function AdminDashboardPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Blog Posts</CardTitle>
-            <CardDescription>
-              A list of all your blog posts. You can create, edit, or delete
-              posts from here.
-            </CardDescription>
+            <CardTitle>List of Blog Posts</CardTitle>
+            <CardDescription></CardDescription>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -220,7 +217,7 @@ export default function AdminDashboardPage() {
                 <Link href="/admin/dashboard/new">
                   <Button>
                     <Plus className="h-4 w-4 mr-2" />
-                    Create Your First Post
+                    Write First Blog..
                   </Button>
                 </Link>
               </div>

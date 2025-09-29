@@ -176,9 +176,6 @@ export default function AdminLoginPage() {
                 <Shield className="h-4 w-4" />
                 <AlertDescription>
                   <strong>Authentication Challenge Received</strong>
-                  <br />
-                  Your browser will now sign this challenge cryptographically to
-                  prove your identity.
                 </AlertDescription>
               </Alert>
 
@@ -215,13 +212,6 @@ export default function AdminLoginPage() {
               </Button>
             </div>
           )}
-
-          {/* Security Notice */}
-          <div className="text-xs text-muted-foreground space-y-1">
-            <p>• Private keys never leave your device</p>
-            <p>• All cryptographic operations happen client-side</p>
-            <p>• Challenge-response prevents replay attacks</p>
-          </div>
 
           <div className="text-center">
             <Link

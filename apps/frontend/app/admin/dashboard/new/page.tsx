@@ -208,9 +208,7 @@ export default function NewBlogPostPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Basic Information</CardTitle>
-                <CardDescription>
-                  Enter the basic details for your blog post
-                </CardDescription>
+                <CardDescription></CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
@@ -270,11 +268,8 @@ export default function NewBlogPostPage() {
             {/* Content */}
             <Card>
               <CardHeader>
-                <CardTitle>Content</CardTitle>
-                <CardDescription>
-                  Write the main content of your blog post using the rich text
-                  editor
-                </CardDescription>
+                <CardTitle>Body</CardTitle>
+                <CardDescription></CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
@@ -300,9 +295,7 @@ export default function NewBlogPostPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Tags</CardTitle>
-                <CardDescription>
-                  Add tags to help categorize your blog post
-                </CardDescription>
+                <CardDescription></CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex space-x-2">
@@ -349,9 +342,7 @@ export default function NewBlogPostPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Publishing Options</CardTitle>
-                <CardDescription>
-                  Configure how and when your blog post will be published
-                </CardDescription>
+                <CardDescription></CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
