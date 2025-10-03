@@ -126,6 +126,7 @@ export default function RichTextEditor({
           codesample_languages: [
             { text: "HTML/XML", value: "markup" },
             { text: "JavaScript", value: "javascript" },
+            { text: "JSON", value: "json" },
             { text: "CSS", value: "css" },
             { text: "Docker", value: "dockerfile" },
             { text: "PHP", value: "php" },
